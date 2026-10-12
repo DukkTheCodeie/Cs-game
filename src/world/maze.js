@@ -421,6 +421,99 @@ export class Maze extends Level {
     }
   }
 
+  // ---------------------------------------------------------------- explorer's map
+  _mapCell(px, pz) {
+    return { c: Math.round(px / CELL), r: Math.round(-pz / CELL) };
+  }
+
+  revealAround(px, pz) {
+    if (!this.seen) this.seen = new Set();
+    const { c, r } = this._mapCell(px, pz);
+    this.seen.add(`${c},${r}`);
+    // peek into open neighbors so you can see where passages go
+    if (r >= 0 && r < this.R && c >= 0 && c < W) {
+      if (c < W - 1 && !this.east[r][c]) this.seen.add(`${c + 1},${r}`);
+      if (c > 0 && !this.east[r][c - 1]) this.seen.add(`${c - 1},${r}`);
+      if (r < this.R - 1 && !this.north[r][c]) this.seen.add(`${c},${r + 1}`);
+      if (r > 0 && !this.north[r - 1][c]) this.seen.add(`${c},${r - 1}`);
+    }
+  }
+
+  drawMap(ctx, player) {
+    const S = 12, pad = 8;
+    const rows = this.R + 2;
+    const cw = ctx.canvas.width, ch = ctx.canvas.height;
+    ctx.clearRect(0, 0, cw, ch);
+    ctx.fillStyle = 'rgba(239,228,200,0.92)';
+    ctx.fillRect(0, 0, cw, ch);
+    const X = (c) => pad + c * S, Y = (r) => pad + (rows - 1 - r) * S;
+    const fr = this.finalRoom;
+    const fc0 = Math.round((fr.x0 + CELL / 2) / CELL);
+    const seen = this.seen || new Set();
+    // explored floor
+    for (const k of seen) {
+      const [c, r] = k.split(',').map(Number);
+      if (c < 0 || c >= W || r < 0 || r >= rows) continue;
+      ctx.fillStyle = r >= this.R ? '#ffd9ec' : '#fffaf0';
+      ctx.fillRect(X(c), Y(r), S, S);
+    }
+    ctx.strokeStyle = '#3b2a1a';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    const line = (x1, y1, x2, y2) => { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); };
+    for (const k of seen) {
+      const [c, r] = k.split(',').map(Number);
+      if (c < 0 || c >= W || r < 0) continue;
+      const x = X(c), y = Y(r);
+      if (r >= this.R) {
+        // break room outline
+        if (c === fc0) line(x, y, x, y + S);
+        if (c === fc0 + 2) line(x + S, y, x + S, y + S);
+        if (r === this.R + 1) line(x, y, x + S, y);
+        continue;
+      }
+      if (this.north[r][c]) {
+        const isGate = this.exits.some((e) => e.c === c && e.r === r);
+        if (isGate) {
+          const open = this.gates[Math.floor(r / BAND)]?.open;
+          ctx.strokeStyle = open ? '#2fbf71' : '#ff8a00';
+          ctx.lineWidth = 3;
+          line(x, y, x + S, y);
+          ctx.strokeStyle = '#3b2a1a';
+          ctx.lineWidth = 2;
+        } else line(x, y, x + S, y);
+      }
+      if (c === W - 1 || this.east[r][c]) line(x + S, y, x + S, y + S);
+      if (c === 0) line(x, y, x, y + S);
+      if (r === 0 && c !== this.entries[0].c) line(x, y + S, x + S, y + S);
+    }
+    // stations & donuts you've seen
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    this.stations.forEach((st, b) => {
+      const ex = this.exits[b];
+      if (!seen.has(`${ex.c},${ex.r}`)) return;
+      ctx.fillText(['⚡', '📟', '🖼️'][b], X(ex.c) + S / 2, Y(ex.r) + S / 2);
+    });
+    for (const col of this.collectibles) {
+      if (col.taken) continue;
+      const { c, r } = this._mapCell(col.obj.position.x, col.obj.position.z);
+      if (!seen.has(`${c},${r}`)) continue;
+      ctx.fillStyle = '#ff4f9a';
+      ctx.beginPath(); ctx.arc(X(c) + S / 2, Y(r) + S / 2, 3, 0, 7); ctx.fill();
+    }
+    if (seen.has(`${fc0 + 1},${this.R}`)) ctx.fillText('🍩', X(fc0 + 1) + S / 2, Y(this.R + 1) + S / 2);
+    // you
+    const px = pad + (player.pos.x / CELL + 0.5) * S, py = pad + (rows - 1 + player.pos.z / CELL + 0.5) * S;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.rotate(-player.yaw);
+    ctx.fillStyle = '#e8262b';
+    ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(4, 4); ctx.lineTo(0, 2); ctx.lineTo(-4, 4); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
   spawnFor(stage) {
     // stage 0: entrance; 1..3: after puzzle N solved
     if (stage === 0) {

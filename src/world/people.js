@@ -93,14 +93,20 @@ export class Person {
     }
     if (o.cap) {
       const capMat = mat(0x1b2440, 0.7);
-      const crown = m(geo('cap', () => new THREE.CylinderGeometry(0.135, 0.15, 0.1, 14)), capMat);
-      crown.position.y = 0.25;
+      const crown = m(geo('cap', () => new THREE.SphereGeometry(0.148, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.5)), capMat);
+      crown.scale.set(1.04, 0.62, 1.08);
+      crown.position.y = 0.19;
       head.add(crown);
-      const brim = m(geo('brim', () => new THREE.BoxGeometry(0.2, 0.015, 0.13)), capMat);
-      brim.position.set(0, 0.205, 0.17);
+      const band = m(geo('capband', () => new THREE.CylinderGeometry(0.152, 0.152, 0.035, 16)), mat(0x0e1326, 0.6));
+      band.position.y = 0.19;
+      head.add(band);
+      const brim = m(geo('brim', () => new THREE.CylinderGeometry(0.11, 0.11, 0.014, 16, 1, false, -Math.PI / 2, Math.PI)), capMat);
+      brim.scale.set(1.1, 1, 1.2);
+      brim.position.set(0, 0.185, 0.12);
+      brim.rotation.x = 0.12;
       head.add(brim);
-      const cb = m(geo('capbadge', () => new THREE.BoxGeometry(0.05, 0.04, 0.01)), new THREE.MeshStandardMaterial({ color: 0xffd34d, metalness: 0.8, roughness: 0.3 }));
-      cb.position.set(0, 0.26, 0.142);
+      const cb = m(geo('capbadge', () => new THREE.BoxGeometry(0.045, 0.035, 0.01)), new THREE.MeshStandardMaterial({ color: 0xffd34d, metalness: 0.8, roughness: 0.3 }));
+      cb.position.set(0, 0.235, 0.152);
       head.add(cb);
       this.cap = { crown, brim, cb };
     }

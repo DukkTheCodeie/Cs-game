@@ -23,7 +23,11 @@ Then anyone can play at `https://<your-username>.github.io/<repo-name>/`.
 | Pause | `Esc` |
 | Skip a line / cutscene | `Space` / `Esc` |
 
-Phones and tablets get touch controls (stick + buttons, and swipes during the chase).
+Phones and tablets get touch controls (stick + buttons, and swipes during the chase) — play in landscape.
+In the maze, press `M` to show/hide the map that fills in as you explore.
+
+**Settings** has volume, voices (robot text-to-speech, cute beeps, or off), subtitles, mouse sensitivity,
+field of view, brightness, camera shake, and graphics quality (High adds glow effects; Fast is for older computers).
 
 ## 📖 The story (spoilers!)
 

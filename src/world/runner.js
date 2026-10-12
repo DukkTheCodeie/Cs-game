@@ -112,6 +112,30 @@ export class Runner extends Level {
     // the wall with the guard-shaped hole
     this._buildWall();
 
+    // sparkle bursts when you grab donuts
+    const [sc2] = [document.createElement('canvas')];
+    sc2.width = sc2.height = 32;
+    const sx2 = sc2.getContext('2d');
+    const sg2 = sx2.createRadialGradient(16, 16, 0, 16, 16, 16);
+    sg2.addColorStop(0, 'rgba(255,255,255,1)');
+    sg2.addColorStop(0.3, 'rgba(255,150,210,0.9)');
+    sg2.addColorStop(1, 'rgba(255,100,180,0)');
+    sx2.fillStyle = sg2;
+    sx2.fillRect(0, 0, 32, 32);
+    this.sparkTex = new THREE.CanvasTexture(sc2);
+    this.sparks = [];
+    for (let i = 0; i < 48; i++) {
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.sparkTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      sp.visible = false;
+      sp.scale.setScalar(0.35);
+      this.scene.add(sp);
+      this.sparks.push({ s: sp, v: new THREE.Vector3(), life: 0 });
+    }
+    this.sparkIdx = 0;
+    this.stepT = 0;
+    this.wasAir = false;
+    this.roll = 0;
+
     this.obstacles = [];
     this.donuts = [];
     this.plan = this._plan();
@@ -120,7 +144,7 @@ export class Runner extends Level {
 
     this.st = {
       phase: 'idle', z: 0, x: 0, lane: 1, prevLane: 1, y: 0, vy: 0, slide: 0, speed: 0,
-      danger: 0.3, invuln: 0, slow: 0, stompT: 0, t: 0, donutCount: 0, arrowShown: false, alarmT: 0,
+      danger: 0.25, invuln: 0, slow: 0, stompT: 0, t: 0, donutCount: 0, arrowShown: false, alarmT: 0,
     };
     this.camPos = new THREE.Vector3();
     this.camLook = new THREE.Vector3();
@@ -259,6 +283,16 @@ export class Runner extends Level {
     }
   }
 
+  _burst(pos) {
+    for (let i = 0; i < 8; i++) {
+      const sp = this.sparks[this.sparkIdx++ % this.sparks.length];
+      sp.s.position.copy(pos);
+      sp.s.visible = true;
+      sp.v.set((Math.random() - 0.5) * 5, 2 + Math.random() * 4, (Math.random() - 0.5) * 3 - this.st.speed * 0.6);
+      sp.life = 0.5 + Math.random() * 0.3;
+    }
+  }
+
   _spawnDonut(x, y, z) {
     const d = P.makeDonut({ frosting: Math.floor(Math.random() * 5), glow: true, scale: 1.6 });
     d.rotation.x = Math.PI / 2;
@@ -379,7 +413,7 @@ export class Runner extends Level {
         if (st.y > 0.05) st.vy = -18;
         st.slide = 0.75;
       }
-      st.danger = clamp(st.danger - dt * 0.035, 0, 1);
+      st.danger = clamp(st.danger - dt * 0.045, 0, 1);
       st.invuln -= dt;
       // T-Rex stomps
       st.stompT -= dt;
@@ -411,6 +445,28 @@ export class Runner extends Level {
     st.vy -= 32 * dt;
     st.y = Math.max(0, st.y + st.vy * dt);
     if (st.y === 0) st.vy = Math.max(0, st.vy);
+    const inAir = st.y > 0.02;
+    if (this.wasAir && !inAir && st.phase === 'run') { g.audio.play('thud', { vol: 0.35 }); g.shake(0.06, 0.15); }
+    this.wasAir = inAir;
+    if (st.phase === 'run' && !inAir) {
+      this.stepT += dt * st.speed;
+      if (this.stepT > 3.4) { this.stepT = 0; g.audio.play('step', { surface: 'carpet', vol: 0.8 }); }
+    }
+    for (const sp of this.sparks) {
+      if (sp.life <= 0) continue;
+      sp.life -= dt;
+      sp.v.y -= 9 * dt;
+      sp.s.position.addScaledVector(sp.v, dt);
+      sp.s.material.opacity = Math.min(1, sp.life * 2.5);
+      if (sp.life <= 0) sp.s.visible = false;
+    }
+    if (st.phase === 'run') {
+      const fast = (st.speed - 13) / 7;
+      g.hud.setSpeedLines(0.15 + fast * 0.55);
+      cam.fov = damp(cam.fov, 70 + fast * 9, 3, dt);
+      cam.updateProjectionMatrix();
+    } else g.hud.setSpeedLines(0);
+    this.roll = damp(this.roll, (LANES[st.lane] - st.x) * -0.035, 8, dt);
     st.slide -= dt;
     st.x = damp(st.x, LANES[st.lane], 14, dt);
 
@@ -439,6 +495,7 @@ export class Runner extends Level {
         this.scene.remove(d.obj);
         st.donutCount++;
         g.meter.add(4);
+        this._burst(d.obj.position);
         g.audio.play('coin', { pitch: (st.donutCount % 5) * 2 });
       }
       if (d.obj.position.z > st.z + 12) { d.taken = true; this.scene.remove(d.obj); }
@@ -478,6 +535,7 @@ export class Runner extends Level {
       } else {
         cam.position.copy(this.camPos);
         cam.lookAt(this.camLook);
+        if (this.camMode === 'chase') cam.rotateZ(this.roll);
       }
     }
 
@@ -513,9 +571,9 @@ export class Runner extends Level {
       const midSwitch = Math.abs(st.x - LANES[st.lane]) > 0.5 && st.prevLane !== st.lane;
       if (midSwitch && o.lane === st.lane) {
         st.lane = st.prevLane;
-        this._stumble(0.2, false, o);
+        this._stumble(0.18, false, o);
       } else {
-        this._stumble(0.4, true, o);
+        this._stumble(0.34, true, o);
       }
       return;
     }

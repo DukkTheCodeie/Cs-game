@@ -46,7 +46,7 @@ export class Museum extends Level {
       stone: new THREE.MeshStandardMaterial({ map: tex('stone'), roughness: 0.8 }),
       mosaic: new THREE.MeshStandardMaterial({ map: tex('mosaic'), roughness: 0.6 }),
       ceiling: new THREE.MeshStandardMaterial({ map: tex('ceiling'), roughness: 0.9, color: 0x9a968e }),
-      darkCeil: new THREE.MeshStandardMaterial({ color: 0x1d1b1a, roughness: 1 }),
+      darkCeil: new THREE.MeshStandardMaterial({ color: this.night ? 0x1d1b1a : 0xb9b3a6, roughness: 1 }),
       trim: new THREE.MeshStandardMaterial({ color: 0x2a2420, roughness: 0.6 }),
     };
 
@@ -338,6 +338,30 @@ export class Museum extends Level {
     this.wallX(-10, 12, 15, 13, m.dinoWall, [], 3);
     // lobby wall above y=8 is covered by dino hall's taller wall
     this.wallX(-10.01, -12, 12, 13, m.dinoWall, [{ c: 0, w: 24.5, h: 8 }], 3);
+    // light shafts falling from the skylights (moonlight at night, sunbeams by day)
+    const [bc, bx] = makeCanvas(64, 256);
+    // soft on all sides: bright core fading down and out to the edges
+    const bimg = bx.createImageData(64, 256);
+    for (let y = 0; y < 256; y++) for (let x = 0; x < 64; x++) {
+      const h = Math.pow(Math.sin((x / 63) * Math.PI), 2.2);
+      const v = Math.pow(1 - y / 255, 1.6);
+      const i = (y * 64 + x) * 4;
+      bimg.data[i] = bimg.data[i + 1] = bimg.data[i + 2] = 255;
+      bimg.data[i + 3] = 255 * h * v;
+    }
+    bx.putImageData(bimg, 0, 0);
+    const beamTex = canvasTexture(bc, { srgb: false });
+    beamTex.wrapS = beamTex.wrapT = THREE.ClampToEdgeWrapping;
+    const beamMat = new THREE.MeshBasicMaterial({ map: beamTex, color: this.night ? 0x7090ff : 0xfff0c8, transparent: true, opacity: this.night ? 0.05 : 0.12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+    for (const z of [-18, -30, -40]) {
+      for (const k of [0, 1]) {
+        const beam = new THREE.Mesh(new THREE.PlaneGeometry(7, 14), beamMat);
+        beam.position.set(1.5, 6.1, z - 2.2);
+        beam.rotation.set(0, k * Math.PI / 2, 0.22);
+        if (k) beam.position.set(1.5, 6.1, z - 2.2);
+        s.add(beam);
+      }
+    }
     // skylights
     for (const z of [-18, -30, -40]) {
       const sk = new THREE.Mesh(new THREE.PlaneGeometry(8, 4), new THREE.MeshBasicMaterial({ color: this.night ? 0x1e3266 : 0xffffff, toneMapped: !this.night }));

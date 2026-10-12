@@ -40,12 +40,59 @@ export class Player {
     this.flModel.position.set(0.24, -0.22, -0.45);
     this.camera.add(this.flModel);
     this.flModel.visible = false;
+    this._makeDust();
     this.flashOn = false;
     this.hasFlashlight = false;
     this.flickerT = 0;
     this.baseIntensity = 60;
     this.swayX = 0;
     this.swayY = 0;
+  }
+
+  // Dust motes floating inside the flashlight beam.
+  _makeDust() {
+    const N = 140;
+    const pos = new Float32Array(N * 3);
+    this.dustSeed = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      this.dustSeed[i * 3] = Math.random();
+      this.dustSeed[i * 3 + 1] = Math.random();
+      this.dustSeed[i * 3 + 2] = Math.random();
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const x = c.getContext('2d');
+    const gr = x.createRadialGradient(16, 16, 0, 16, 16, 16);
+    gr.addColorStop(0, 'rgba(255,240,210,1)');
+    gr.addColorStop(1, 'rgba(255,240,210,0)');
+    x.fillStyle = gr;
+    x.fillRect(0, 0, 32, 32);
+    const mat = new THREE.PointsMaterial({ size: 0.014, map: new THREE.CanvasTexture(c), transparent: true, opacity: 0.32, depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true });
+    this.dust = new THREE.Points(geo, mat);
+    this.dust.frustumCulled = false;
+    this.dust.visible = false;
+    this.camera.add(this.dust);
+    this.dustT = 0;
+  }
+
+  updateDust(dt) {
+    const on = this.flashOn && this.flModel.visible && ['explore', 'cutscene', 'puzzle'].includes(this.game.mode);
+    this.dust.visible = on;
+    if (!on) return;
+    this.dustT += dt;
+    const p = this.dust.geometry.attributes.position;
+    const sd = this.dustSeed, t = this.dustT;
+    for (let i = 0; i < p.count; i++) {
+      const a = sd[i * 3], b = sd[i * 3 + 1], c = sd[i * 3 + 2];
+      // depth cycles slowly toward the camera so motes drift through the beam
+      const z = -0.6 - ((c * 7 + t * 0.12 * (0.5 + a)) % 7);
+      const r = Math.tan(0.4) * -z * Math.sqrt(b);
+      const ang = a * Math.PI * 2 + t * 0.15 * (b - 0.5);
+      p.setXYZ(i, 0.1 + Math.cos(ang) * r + Math.sin(t * 0.7 + i) * 0.03, -0.15 + Math.sin(ang) * r * 0.9 + Math.cos(t * 0.5 + i * 1.3) * 0.03, z);
+    }
+    p.needsUpdate = true;
   }
 
   setPose(x, z, yaw, pitch = 0) {

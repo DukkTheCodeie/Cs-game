@@ -55,7 +55,7 @@ export class Menu {
       <div class="menu-left">
         <div class="logo">${t1.replace(/O/, '<span class="donut-o"></span>')}<span class="l2">${t2.replace(/^O/, '<span class="donut-o"></span>')}</span></div>
         <div class="tagline">One night. One password. Way too many donuts.</div>
-        ${save.flags.kicked ? '<div><span class="menu-badge">YOU BEAT THE GAME (KIND OF)</span></div>' : ''}
+        <div class="menu-badges">${save.flags.kicked ? '<span class="menu-badge">🏁 YOU BEAT THE GAME (KIND OF)</span>' : ''}${save.donuts.length ? `<span class="menu-badge ${save.donuts.length >= 14 ? 'gold' : 'dim'}">🍩 ${save.donuts.length}/14 donuts${save.donuts.length >= 14 ? ' — DONUT HUNTER' : ''}</span>` : ''}</div>
         ${cont ? `<button class="btn menu-btn pink" data-act="continue">▶ CONTINUE <small>${cont.name}</small></button>` : ''}
         <button class="btn menu-btn ${cont ? '' : 'pink'}" data-act="new">${cont ? 'NEW GAME' : '▶ PLAY'} <small>Prologue</small></button>
         <button class="btn menu-btn" data-act="chapters">CHAPTERS <small>${reached.length}/${CHAPTERS.length}</small></button>
@@ -138,7 +138,9 @@ export class Menu {
     range('sensitivity', 'Mouse sensitivity', 0.2, 3, 0.1, (v) => v.toFixed(1) + '×');
     select('invertY', 'Invert mouse Y', [[false, 'No'], [true, 'Yes']]);
     range('fov', 'Field of view', 60, 100, 1, (v) => v + '°');
-    select('quality', 'Graphics', [['high', 'High (shadows)'], ['low', 'Fast (no shadows)']]);
+    range('brightness', 'Brightness', 0.7, 1.8, 0.05, (v) => Math.round(v * 100) + '%');
+    select('quality', 'Graphics', [['high', 'High (glow + shadows)'], ['medium', 'Medium (shadows)'], ['low', 'Fast (for slow computers)']]);
+    select('shake', 'Camera shake', [[true, 'On'], [false, 'Reduced']]);
     select('marker', 'Objective compass', [[true, 'On'], [false, 'Off']]);
     const reset = el('button', 'btn small ghost', 'Reset save data');
     reset.style.marginTop = '18px';

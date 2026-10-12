@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍩</text></svg>">
+  <meta name="theme-color" content="#0b0f1a">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,6 +20,7 @@
     <div id="fx-drowsy"></div>
     <div id="fx-grain"></div>
     <div id="fx-flash"></div>
+    <div id="fx-speed"></div>
     <div id="fx-eyelids"><div class="lid top"></div><div class="lid bottom"></div></div>
     <div id="fx-fade"></div>
   </div>
@@ -36,10 +39,11 @@
     <div id="objective" class="off"><span class="obj-label">OBJECTIVE</span><span class="obj-text"></span></div>
     <div id="fragments" class="off"><div class="frag-label">NEW PASSWORD</div><div class="frag-slots"></div></div>
     <div id="donut-count" class="off"></div>
+    <div id="minimap" class="off"><div class="mm-title">ARCHIVE MAP <span>M</span></div><canvas width="100" height="220"></canvas></div>
     <div id="crosshair"></div>
     <div id="prompt" class="off"><kbd>E</kbd><span class="prompt-text"></span></div>
     <div id="chase" class="off">
-      <div class="chase-label">ESCAPE</div>
+      <div class="chase-label">ESCAPE <span class="chase-dist">0 m</span></div>
       <div class="chase-track">
         <div class="chase-fill"></div>
         <div class="chase-rex">🦖</div>
@@ -55,6 +59,7 @@
   <div id="toasts"></div>
   <div id="titlecard"><div class="tc-chapter"></div><div class="tc-title"></div></div>
   <div id="caption"></div>
+  <div id="loadtip" class="off"><div class="lt-chapter"></div><div class="lt-tip"></div></div>
 
   <div id="dialogue">
     <div id="facecam" class="off">
@@ -84,6 +89,8 @@
       <div class="boot-loading">Unlocking the museum…</div>
     </div>
   </div>
+
+  <div id="rotate-hint"><div class="phone">📱</div>Turn your phone sideways to play!<div class="help">(the museum is wider than it is tall)</div></div>
 
   <div id="touch" data-mode="off">
     <div class="stick"><div class="knob"></div></div>

@@ -128,7 +128,16 @@ export class HUD {
     this.hint.classList.remove('off');
   }
 
+  loadingTip(chapter, tip) {
+    const el = $('#loadtip');
+    if (!chapter) { el.classList.add('off'); return; }
+    $('.lt-chapter', el).textContent = chapter;
+    $('.lt-tip', el).innerHTML = tip ? '💡 ' + tip : '';
+    el.classList.remove('off');
+  }
+
   setFade(v, dur = 0.2) {
+    if (v === 0) this.loadingTip(null);
     this.fade.style.transition = `opacity ${dur}s linear`;
     this.fade.style.opacity = v;
   }
@@ -161,8 +170,10 @@ export class HUD {
     $('.chase-you', this.chase).style.left = p + '%';
     $('.chase-rex', this.chase).style.left = Math.max(0, p - 4 - (1 - danger) * 26) + '%';
     $('.danger-fill', this.chase).style.width = danger * 100 + '%';
+    $('.chase-dist', this.chase).textContent = Math.round(progress * 880) + ' m';
     if (donuts != null) this.setDonutCount(`🍩 × ${donuts}`);
   }
+  setSpeedLines(k) { $('#fx-speed').style.opacity = clamp(k, 0, 1); }
   showArrow(on) { this.arrow.classList.toggle('off', !on); }
   setDonutCount(text) {
     this.donutCount.classList.toggle('off', !text);

@@ -23,6 +23,7 @@ export function openPuzzle(game, kind, { fragment = '', onSolvedLine = null } = 
     modal.append(panel);
     root.append(modal);
     const body = $('.pz-body', panel);
+    body.classList.add('pz-' + kind);
     const hintBox = $('.pz-hint', panel);
     let hintLevel = 0;
     let finished = false;
@@ -113,11 +114,11 @@ const PUZZLES = {
       for (let i = 0; i < 26; i++) {
         const a = (i / 26) * 360;
         const o = el('div', 'lt', A[i]);
-        o.style.transform = `rotate(${a}deg) translateY(-${R - 22}px)`;
+        o.style.transform = `rotate(${a}deg) translateY(-${R * 0.83}px)`;
         o.style.marginTop = '-12px';
         outer.append(o);
         const n = el('div', 'lt', A[i]);
-        n.style.transform = `rotate(${a}deg) translateY(-${R - 58}px)`;
+        n.style.transform = `rotate(${a}deg) translateY(-${R * 0.54}px)`;
         n.style.marginTop = '-12px';
         inner.append(n);
       }

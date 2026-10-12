@@ -4,6 +4,10 @@ import { Scheduler, Ease } from '../core/scheduler.js';
 import { Input } from '../core/input.js';
 import { AudioEngine } from '../core/audio.js';
 import { setMaxAnisotropy } from '../world/textures.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { HUD } from '../ui/hud.js';
 import { Dialogue } from '../ui/dialogue.js';
 import { ClipLibrary } from '../ui/clips.js';
@@ -12,7 +16,7 @@ import { Computer, showGameOver } from '../ui/computer.js';
 import { openPuzzle } from '../puzzles/puzzles.js';
 import { Player } from './player.js';
 import { Museum, SPOTS } from '../world/museum.js';
-import { CHAPTERS, START, runChapter } from './chapters.js';
+import { CHAPTERS, START, runChapter, tipFor } from './chapters.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
 export const TOTAL_DONUTS = 14;
@@ -20,7 +24,7 @@ export const TOTAL_DONUTS = 14;
 function defaultSave() {
   return {
     chapter: null, reached: [], solved: {}, donuts: [], fragments: [], flags: {},
-    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true },
+    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15 },
   };
 }
 
@@ -82,6 +86,14 @@ export class Game {
     setMaxAnisotropy(r.capabilities.getMaxAnisotropy());
     this.camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 400);
     this.camLook = new THREE.Vector3();
+    // Post-processing: bloom makes the T-Rex eyes, screens, signs and donuts glow.
+    this.composer = new EffectComposer(r);
+    this.renderPass = new RenderPass(new THREE.Scene(), this.camera);
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.55, 0.45, 0.82);
+    this.composer.addPass(this.renderPass);
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(new OutputPass());
+    this.useBloom = true;
     this.input = new Input(this.canvas);
     this.audio = new AudioEngine();
     this.sched = new Scheduler();
@@ -139,15 +151,22 @@ export class Game {
     this.audio.setVolumes({ master: s.master, music: s.music, sfx: s.sfx });
     if (this.mode !== 'runner') this.camera.fov = s.fov;
     this.camera.updateProjectionMatrix();
-    const high = s.quality !== 'low';
-    this.renderer.setPixelRatio(Math.min(devicePixelRatio, high ? 1.75 : 1));
-    this.player.spot.castShadow = high;
+    if (s.quality === 'ultra') s.quality = 'high';
+    const q = s.quality; // high = shadows + glow, medium = shadows, low = fastest
+    const pr = Math.min(devicePixelRatio, q === 'low' ? 1 : 1.75);
+    this.renderer.setPixelRatio(pr);
+    this.composer.setPixelRatio(pr);
+    this.composer.setSize(innerWidth, innerHeight);
+    this.useBloom = q === 'high';
+    this.renderer.toneMappingExposure = s.brightness ?? 1.15;
+    this.player.spot.castShadow = q !== 'low';
     document.documentElement.style.setProperty('--sub-size', s.subtitles === 'large' ? '28px' : innerWidth < 720 ? '17px' : '22px');
     this.persist();
   }
 
   resize() {
     this.renderer.setSize(innerWidth, innerHeight, false);
+    this.composer?.setSize(innerWidth, innerHeight);
     this.camera.aspect = innerWidth / innerHeight;
     this.camera.updateProjectionMatrix();
   }
@@ -186,6 +205,7 @@ export class Game {
         } else this.unlockT = 0;
       } else if (this.mode === 'menu') this._menuCam(dt);
       this.level?.update(dt);
+      this.player.updateDust(dt);
       this.meter.update(dt);
       this._updateShake(dt);
       if (this.clockOn) {
@@ -199,7 +219,12 @@ export class Game {
     this.hud.update();
     const cam = this.camera, s = this.shakeOffset;
     cam.position.x += s.x; cam.position.y += s.y; cam.rotation.z += s.rz;
-    if (this.level) this.renderer.render(this.level.scene, cam);
+    if (this.level) {
+      if (this.useBloom) {
+        this.renderPass.scene = this.level.scene;
+        this.composer.render(rawDt);
+      } else this.renderer.render(this.level.scene, cam);
+    }
     cam.position.x -= s.x; cam.position.y -= s.y; cam.rotation.z -= s.rz;
     inp.endFrame();
   }
@@ -245,6 +270,7 @@ export class Game {
   }
 
   shake(amp, dur = 0.5) {
+    if (!this.save.settings.shake) amp *= 0.15;
     if (amp >= this.shakeAmp * Math.max(0, this.shakeT / this.shakeDur)) { this.shakeAmp = amp; this.shakeT = dur; this.shakeDur = dur; }
   }
 
@@ -259,6 +285,7 @@ export class Game {
   // ------------------------------------------------------------ modes
   setMode(mode) {
     this.mode = mode;
+    document.body.classList.toggle('playing', mode !== 'menu' && mode !== 'boot');
     const explore = mode === 'explore';
     this.player.enabled = explore;
     this.hud.crosshair(explore);
@@ -393,6 +420,9 @@ export class Game {
     this.audio.play('munch');
     this.audio.play('pickup');
     this.hud.toast(`🍩 Donut found! <b>+20%</b> <span style="opacity:.7">(${this.save.donuts.length}/${TOTAL_DONUTS} hidden donuts)</span>`);
+    if (this.save.donuts.length === TOTAL_DONUTS) {
+      setTimeout(() => { this.hud.toast('🏆 <b>DONUT HUNTER</b> — you found every hidden donut!', 'gold'); this.audio.play('chime'); }, 1200);
+    }
   }
 
   async openPuzzle(kind, fragment) {
@@ -440,6 +470,7 @@ export class Game {
     h.setFragments([], { show: false });
     h.showChase(false);
     h.showArrow(false);
+    h.setSpeedLines(0);
     h.setPrompt(null);
     h.controlsHint(null);
     h.setDrowsy(0);
@@ -447,6 +478,8 @@ export class Game {
     h.setLetterbox(false);
     h.setDonutCount(null);
     h.caption('');
+    h.loadingTip(null);
+    $('#minimap').classList.add('off');
     $('#skip-btn').classList.add('off');
     $('#modal-root').innerHTML = '';
     this.computer.close();
@@ -480,6 +513,10 @@ export class Game {
     }
     this.checkpoint(id);
     this.audio.setReverb(0.5);
+    if (id !== 'intro') {
+      this.hud.loadingTip(CHAPTERS.find((c) => c.id === id)?.name, tipFor(id));
+      await this._guard(new Promise((r) => requestAnimationFrame(() => setTimeout(r, 40))));
+    }
     runChapter(this, id, mode);
   }
 

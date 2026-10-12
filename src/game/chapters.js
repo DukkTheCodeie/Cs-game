@@ -17,6 +17,25 @@ export const CHAPTERS = [
   { id: 'morning', name: 'Chapter 5 — Morning Shift', blurb: '7 hours later…' },
 ];
 
+export const TIPS = {
+  intro: 'Headphones on. It\'s a quiet night... for now.',
+  dino: 'Read the plaques — museums <b>love</b> fun facts.',
+  roman: 'Roman numerals: M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1.',
+  chase: '← → switch lanes · ↑ jump · ↓ slide. Hitting things lets the T-Rex catch up.',
+  maze: 'Dead ends often hide donuts. Your map fills in as you explore (M).',
+  morning: 'Good morning! Your shift ended two hours ago.',
+};
+const GENERAL_TIPS = [
+  'There are <b>14 hidden donuts</b>. They glow pink.',
+  'Sprinting burns your donut meter about twice as fast.',
+  'Stuck on a puzzle? A hint costs a little donut.',
+  'Want to star in this game? Try the <b>Clip Studio</b> in the menu.',
+  'Aaron has been Employee of the Month 11 months in a row.',
+];
+export function tipFor(id) {
+  return Math.random() < 0.6 ? TIPS[id] : GENERAL_TIPS[Math.floor(Math.random() * GENERAL_TIPS.length)];
+}
+
 export const START = {
   intro: { meter: 100, fragments: [] },
   dino: { meter: 100, fragments: [] },
@@ -53,6 +72,9 @@ function dist2D(g, p) {
 }
 
 function setupMonitor(g, lvl, state) {
+  // one drawing loop per level; later calls just switch what's on screen
+  if (lvl.screenState) { Object.assign(lvl.screenState, state); return lvl.screenState; }
+  lvl.screenState = state;
   const mon = lvl.refs.monitor;
   let t = 0, acc = 0;
   lvl.addUpdater((dt) => {
@@ -68,6 +90,7 @@ function setupMonitor(g, lvl, state) {
     else drawLocked(x, t, 'LOCKED', 'Solve the puzzles to log in.');
     mon.texture.needsUpdate = true;
   });
+  return state;
 }
 
 function nightSetup(g, lvl) {
@@ -333,6 +356,7 @@ async function roman(g, lvl, mode) {
   });
   lvl.refs.console2.draw(['SOLVED', 'KEY: 1974'], '#ffcc4d', 'BEYOND THE WALLS...');
   g.audio.stopMusic(2);
+  g.player.speedMul = 0; // frozen in fear — you can only look around
   await g.say('museos05');
   g.say('guard16');
   await g.wait(1.6);
@@ -508,7 +532,7 @@ async function maze(g, _lvl, mode) {
   g.hud.showMeter(true);
   g.hud.setFragments(g.save.fragments);
   g.meter.enabled = true;
-  g.meter.drain = 0.62;
+  g.meter.drain = 0.48;
   g.meter.onEmpty = () => g.failed('YOU FELL ASLEEP', 'Right there in the archives. The T-Rex is very disappointed in you.<br>Tip: dead ends often hide donuts.');
   g.player.giveFlashlight(true);
   g.camera.fov = g.save.settings.fov;
@@ -533,6 +557,19 @@ async function maze(g, _lvl, mode) {
       await g.say('guard22');
     });
   }
+
+  // the explorer's map, filling in as you go
+  const mm = document.getElementById('minimap');
+  const mmCtx = mm.querySelector('canvas').getContext('2d');
+  mm.classList.remove('off');
+  g.hud.toast('🗺️ Your map fills in as you explore. Press <b>M</b> to hide it.', 'gold');
+  let mmAcc = 1;
+  lvl.addUpdater((dt) => {
+    if (g.input.wasPressed('KeyM')) mm.classList.toggle('off');
+    lvl.revealAround(g.player.pos.x, g.player.pos.z);
+    mmAcc += dt;
+    if (mmAcc > 0.1 && !mm.classList.contains('off')) { mmAcc = 0; lvl.drawMap(mmCtx, g.player); }
+  });
 
   // T-Rex eye peeks through holes in the outer walls
   let peekSaid = false;
