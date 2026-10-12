@@ -335,11 +335,13 @@ export class Game {
       <div class="chapters">
         <button class="btn big pink" data-a="resume">▶ RESUME</button>
         <button class="btn" data-a="settings">SETTINGS</button>
+        <button class="btn" data-a="controls">CONTROLS</button>
         <button class="btn" data-a="restart">RESTART CHAPTER</button>
         <button class="btn ghost" data-a="menu">QUIT TO MENU</button>
       </div>`, () => { if (this.paused) this.resume(); }));
     m.panel.querySelector('[data-a=resume]').onclick = () => m.close();
     m.panel.querySelector('[data-a=settings]').onclick = () => { this.audio.ctx?.resume?.(); this.menu.settings(); };
+    m.panel.querySelector('[data-a=controls]').onclick = () => this.menu.controls();
     m.panel.querySelector('[data-a=restart]').onclick = () => { this.paused = false; m.close(); this.startChapter(this.save.chapter || 'intro', { mode: 'continue' }); };
     m.panel.querySelector('[data-a=menu]').onclick = () => { this.paused = false; m.close(); this.toMenu(); };
   }

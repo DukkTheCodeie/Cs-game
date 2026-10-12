@@ -61,6 +61,7 @@ export class Menu {
         <button class="btn menu-btn" data-act="chapters">CHAPTERS <small>${reached.length}/${CHAPTERS.length}</small></button>
         <button class="btn menu-btn mint" data-act="clips">🎬 CLIP STUDIO <small>put yourself in the game</small></button>
         <button class="btn menu-btn" data-act="settings">SETTINGS</button>
+        <button class="btn menu-btn ghost" data-act="controls">CONTROLS</button>
         <button class="btn menu-btn ghost" data-act="credits">CREDITS</button>
         <div class="menu-foot">${g.input.isTouch ? 'Touch controls on · landscape recommended' : 'WASD move · Mouse look · E use · F flashlight · Shift sprint'}</div>
       </div>`;
@@ -100,6 +101,7 @@ export class Menu {
     else if (act === 'settings') this.settings();
     else if (act === 'clips') openClipStudio(g);
     else if (act === 'credits') this.credits();
+    else if (act === 'controls') this.controls();
   }
 
   chapters() {
@@ -151,6 +153,23 @@ export class Menu {
       this.show();
     };
     box.append(reset);
+  }
+
+  controls() {
+    const row = (k, d) => `<div class="setting" style="grid-template-columns:200px 1fr"><span>${k}</span><span style="font-weight:700;color:var(--dim)">${d}</span></div>`;
+    modal(`<h2>CONTROLS</h2><div class="sub">Keyboard + mouse · touch controls appear automatically on phones and tablets.</div>
+      ${row('<kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>', 'Walk (touch: left side of the screen)')}
+      ${row('<kbd>Mouse</kbd>', 'Look around — click the game first (touch: drag on the right side)')}
+      ${row('<kbd>E</kbd> or click', 'Use / inspect the thing in the middle of the screen (touch: USE)')}
+      ${row('<kbd>F</kbd>', 'Flashlight on / off (touch: 🔦)')}
+      ${row('<kbd>Shift</kbd>', 'Sprint — burns your donut meter faster (touch: RUN)')}
+      ${row('<kbd>M</kbd>', 'Show / hide the map (in the archives)')}
+      ${row('<kbd>Esc</kbd> / <kbd>P</kbd>', 'Pause (in cutscenes: skip)')}
+      ${row('<kbd>Space</kbd> / <kbd>Enter</kbd>', 'Skip a line of dialogue')}
+      <div class="clip-group">DURING THE CHASE</div>
+      ${row('<kbd>A</kbd> <kbd>D</kbd> / <kbd>←</kbd> <kbd>→</kbd>', 'Change lanes (touch: swipe left / right)')}
+      ${row('<kbd>W</kbd> / <kbd>Space</kbd> / <kbd>↑</kbd>', 'Jump over ropes, benches and fallen columns (swipe up)')}
+      ${row('<kbd>S</kbd> / <kbd>↓</kbd>', 'Slide under hanging signs (swipe down)')}`);
   }
 
   credits() {
