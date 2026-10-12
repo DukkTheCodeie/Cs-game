@@ -76,7 +76,7 @@ button { font-family: var(--body); }
 #fragments { position: absolute; top: 108px; right: 18px; padding: 10px 14px; background: var(--panel); border-radius: 12px; border: 1px solid rgba(109, 255, 158, 0.25); }
 .frag-label { font: 900 10px var(--body); letter-spacing: 0.18em; color: var(--mint); margin-bottom: 6px; }
 .frag-slots { display: flex; gap: 6px; }
-.frag { min-width: 44px; padding: 3px 8px; text-align: center; font: 24px var(--mono); border-radius: 6px; background: #071510; border: 1px solid rgba(109, 255, 158, 0.25); color: rgba(109, 255, 158, 0.25); }
+.frag { min-width: 44px; padding: 3px 8px; text-align: center; font: 24px var(--mono); border-radius: 6px; background: #071510; border: 1px dashed #3d6e50; color: #4d8a63; } /* empty slot: dim but readable (4.6:1) */
 .frag.got { color: var(--mint); border-color: var(--mint); text-shadow: 0 0 8px rgba(109, 255, 158, 0.8); animation: fragIn 0.8s; }
 .frag.missing { color: var(--red); border-color: rgba(255, 59, 59, 0.5); }
 @keyframes fragIn { 0% { transform: scale(2); opacity: 0; } 60% { transform: scale(0.9); opacity: 1; } }
