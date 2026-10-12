@@ -289,8 +289,8 @@ export class AudioEngine {
         this.noise({ t, d: 0.03, g: 0.12 * v, f: 3000 + R() * 1500, q: 3 });
         break;
       case 'munch':
-        for (let i = 0; i < 4; i++) this.noise({ t: t + i * (0.09 + R() * 0.05), d: 0.06, g: 0.22 * v, f: 1500 + R() * 2000, q: 1.5 });
-        this.tone({ type: 'sine', f: 300, f2: 120, t: t + 0.42, d: 0.12, g: 0.12 * v });
+        for (let i = 0; i < 4; i++) this.noise({ t: t + i * (0.09 + R() * 0.05), d: 0.07, g: 0.5 * v, f: 1300 + R() * 1800, q: 1.2 });
+        this.tone({ type: 'sine', f: 300, f2: 120, t: t + 0.42, d: 0.12, g: 0.22 * v });
         break;
       case 'pickup':
         this.tone({ type: 'sine', f: 520, f2: 1500, t, d: 0.16, g: 0.12 * v });
@@ -594,7 +594,7 @@ export class AudioEngine {
 // Music. Each track is a 16th-note step sequencer function.
 const TRACKS = {
   menu: {
-    bpm: 76, vol: 0.7,
+    bpm: 76, vol: 1.25,
     step(a, s, t, spb, out) {
       const bar = Math.floor(s / 16) % 4, st = s % 16;
       const chords = [[57, 60, 64], [53, 57, 60], [50, 53, 57], [52, 56, 59]];
@@ -611,7 +611,7 @@ const TRACKS = {
     },
   },
   explore: {
-    bpm: 54, vol: 0.75,
+    bpm: 54, vol: 1.1,
     step(a, s, t, spb, out) {
       const st = s % 64;
       if (st === 0) {
@@ -655,7 +655,7 @@ const TRACKS = {
     },
   },
   maze: {
-    bpm: 92, vol: 0.75,
+    bpm: 92, vol: 1.15,
     step(a, s, t, spb, out) {
       const st = s % 16, bar = Math.floor(s / 16) % 4;
       if (st % 2 === 0) a.hat(t, st % 4 === 0 ? 0.04 : 0.02, out);
@@ -668,7 +668,7 @@ const TRACKS = {
     },
   },
   morning: {
-    bpm: 112, vol: 0.7,
+    bpm: 112, vol: 1.6,
     step(a, s, t, spb, out) {
       const st = s % 16, bar = Math.floor(s / 16) % 4;
       const chords = [[60, 64, 67], [55, 59, 62], [57, 60, 64], [53, 57, 60]];
@@ -681,7 +681,7 @@ const TRACKS = {
     },
   },
   meta: {
-    bpm: 100, vol: 0.7,
+    bpm: 100, vol: 2.0,
     step(a, s, t, spb, out) {
       const st = s % 16, bar = Math.floor(s / 16) % 4;
       const chords = [[60, 64, 67, 71], [57, 60, 64, 67], [50, 53, 57, 60], [55, 59, 62, 65]];
