@@ -146,11 +146,20 @@ export class Menu {
     select('marker', 'Objective compass', [[true, 'On'], [false, 'Off']]);
     const reset = el('button', 'btn small ghost', 'Reset save data');
     reset.style.marginTop = '18px';
+    // two-step confirm inside the page (pop-up confirm dialogs are blocked in some browsers/embeds)
+    let armed = null;
     reset.onclick = () => {
-      if (!confirm('Erase your progress, collected donuts and the ending? (Clips you recorded are kept.)')) return;
+      if (!armed) {
+        reset.textContent = 'Click again to erase progress, donuts and the ending (clips are kept)';
+        reset.style.borderColor = 'var(--red)';
+        armed = setTimeout(() => { armed = null; reset.textContent = 'Reset save data'; reset.style.borderColor = ''; }, 4000);
+        return;
+      }
+      clearTimeout(armed);
       g.resetSave();
       m.close();
       this.show();
+      g.hud.toast('Save data erased.', 'gold');
     };
     box.append(reset);
   }
