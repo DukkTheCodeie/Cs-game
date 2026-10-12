@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 import { tex, makeCanvas, canvasTexture, plaqueTexture, signTexture } from './textures.js';
 import { mulberry32 } from '../core/util.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { batchStatic } from './batch.js';
+export { batchStatic };
 
 // Reusable museum props. Every function returns a THREE.Group positioned at the origin (floor level).
 
@@ -56,16 +59,27 @@ export function makeDonut({ frosting = 0, glow = false, scale = 1 } = {}) {
   fr.scale.set(1.03, 1.03, 0.62);
   fr.position.y = 0.022;
   g.add(fr);
-  const r = mulberry32(frosting * 31 + 7);
-  const sg = geo('sprinkle', () => new THREE.CapsuleGeometry(0.006, 0.022, 2, 4));
-  for (let i = 0; i < 14; i++) {
-    const a = r() * Math.PI * 2, rad = 0.09 + r() * 0.06;
-    const c = SPRINKLES[Math.floor(r() * SPRINKLES.length)];
-    const s = new THREE.Mesh(sg, mat('spr' + c, { color: c, roughness: 0.4, emissive: glow ? c : 0, emissiveIntensity: glow ? 0.3 : 0 }));
-    s.position.set(Math.cos(a) * rad, 0.06, Math.sin(a) * rad);
-    s.rotation.set(Math.PI / 2, 0, r() * Math.PI);
-    g.add(s);
-  }
+  // all 14 sprinkles are one vertex-colored mesh (one draw call)
+  const sprGeo = geo('sprinkles' + (frosting % 5), () => {
+    const r = mulberry32(frosting * 31 + 7);
+    const base = new THREE.CapsuleGeometry(0.006, 0.022, 2, 4);
+    const parts = [];
+    const col = new THREE.Color();
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+    for (let i = 0; i < 14; i++) {
+      const a = r() * Math.PI * 2, rad = 0.09 + r() * 0.06;
+      col.set(SPRINKLES[Math.floor(r() * SPRINKLES.length)]);
+      const g2 = base.clone();
+      q.setFromEuler(e.set(Math.PI / 2, 0, r() * Math.PI));
+      g2.applyMatrix4(m4.compose(new THREE.Vector3(Math.cos(a) * rad, 0.06, Math.sin(a) * rad), q, new THREE.Vector3(1, 1, 1)));
+      const n = g2.attributes.position.count, cols = new Float32Array(n * 3);
+      for (let k = 0; k < n; k++) { cols[k * 3] = col.r; cols[k * 3 + 1] = col.g; cols[k * 3 + 2] = col.b; }
+      g2.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+      parts.push(g2);
+    }
+    return mergeGeometries(parts, false);
+  });
+  g.add(new THREE.Mesh(sprGeo, mat('sprinkleMat' + glow, { vertexColors: true, roughness: 0.4, emissive: glow ? 0x444444 : 0x000000 })));
   g.scale.setScalar(scale);
   return g;
 }

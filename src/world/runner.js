@@ -5,6 +5,7 @@ import * as P from './props.js';
 import { TRex, buildSkull, trexMats } from './trex.js';
 import { makeGuard } from './people.js';
 import { mulberry32, damp, clamp, lerp } from '../core/util.js';
+import { batchStatic } from './batch.js';
 
 // "Subway Surfers, but it's a museum and a skeleton T-Rex wants you."
 
@@ -195,6 +196,7 @@ export class Runner extends Level {
       const lamp = P.box(2.4, 0.08, 0.5, m.lamp, 0, 6.9, -6 - k * 12);
       g.add(lamp);
     }
+    batchStatic(g);
     return g;
   }
 
@@ -353,6 +355,7 @@ export class Runner extends Level {
       y0 = 1.3; y1 = 3.6; d = 0.3; w = 2.1;
     }
     P.shadowAll(g, true, false);
+    batchStatic(g);
     return { mesh: g, y0, y1, d, w };
   }
 

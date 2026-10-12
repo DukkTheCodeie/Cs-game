@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { damp } from '../core/util.js';
+import { batchJoints } from './batch.js';
 
 // Low-poly people: the guard (you!), Aaron, and museum visitors.
 
@@ -156,6 +157,7 @@ export class Person {
     });
 
     this.anim = { mode: 'idle', phase: 0, speed: 0, time: 0, talk: 0, blend: {} };
+    batchJoints([hips, torso, head, ...this.arms.flatMap((a) => [a.sh, a.el, a.hand]), ...this.legs.flatMap((l) => [l.hip, l.knee])], [this.mouth]);
     this.update(0);
   }
 

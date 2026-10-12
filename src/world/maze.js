@@ -4,6 +4,7 @@ import { tex, signTexture, makeCanvas, canvasTexture } from './textures.js';
 import * as P from './props.js';
 import { mulberry32 } from '../core/util.js';
 import { personOutline } from './runner.js';
+import { batchStatic } from './batch.js';
 
 // The Archives: three maze sections, each locked by a puzzle gate.
 // Cell (c, r): center x = c*CELL, z = -r*CELL. Progress goes north (-z).
@@ -127,6 +128,8 @@ export class Maze extends Level {
     this._finalRoom();
     this._stations();
     this._decorate();
+    const dynamic = new Set([this.lastDonut, ...this.gates.map((gt) => gt.mesh), ...this.collectibles.map((c) => c.obj)]);
+    batchStatic(this.scene, (o) => dynamic.has(o));
   }
 
   _bfs(start, north, east, r0, r1) {

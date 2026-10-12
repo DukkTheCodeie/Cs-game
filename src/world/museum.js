@@ -6,6 +6,7 @@ import { TRex } from './trex.js';
 import { makeGuard, makeVisitor, Person } from './people.js';
 import { drawCCTV } from './screens.js';
 import { mulberry32 } from '../core/util.js';
+import { batchStatic } from './batch.js';
 
 // The City Museum of Natural History. Layout (meters, y up, north = -z):
 //   Security office  x[-20,-12] z[-5,5]
@@ -57,6 +58,11 @@ export class Museum extends Level {
     this._roman();
     this._collectibles();
     if (!this.night) this._visitors();
+    // merge everything that never moves (walls, props, signs...) → far fewer draw calls
+    const r = this.refs;
+    const dynamic = new Set([r.trex.group, r.guard.group, r.donutBox, r.deskFlashlight, r.footprints,
+      ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
+    batchStatic(this.scene, (o) => dynamic.has(o));
   }
 
   // ------------------------------------------------------------------ lights

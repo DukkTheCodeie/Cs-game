@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { tex } from './textures.js';
 import { damp } from '../core/util.js';
+import { batchJoints } from './batch.js';
 
 // A fully procedural, animated T-Rex skeleton. Local space: +z = forward (head), y = up.
 
@@ -275,6 +276,9 @@ export class TRex {
       breathe: 0, time: 0, lean: 0,
     };
     this.applyPose(0);
+    // merge the ~250 bone pieces into a few meshes per moving joint
+    const joints = [this.body, this.headPivot, this.jaw, ...this.tail, ...this.arms, ...this.legs.flatMap((l) => [l.hip, l.knee, l.ankle, l.foot])];
+    batchJoints(joints, this.eyes);
   }
 
   _leg(s, m) {

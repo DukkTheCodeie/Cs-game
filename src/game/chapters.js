@@ -416,7 +416,7 @@ async function chase(g, _lvl, mode) {
   const lvl = new Runner(g);
   await g.loadLevel(lvl);
   g.checkpoint('chase');
-  g.setClock(122, true);
+  g.setClock(122, false); // the chase panel sits where the clock goes
   g.hud.show(true);
   g.hud.showMeter(true);
   g.hud.setFragments(g.save.fragments);
