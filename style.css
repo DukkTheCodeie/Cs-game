@@ -504,3 +504,11 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
   .lights { grid-template-columns: repeat(3, 70px); } .light { width: 70px; height: 70px; }
   .wheel { width: 200px; height: 200px; }
 }
+
+/* ---------------------------------------------------------------- reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .donut-o, #fx-grain, #bonus-btn, #arrow, #arrow span, #fx-speed, .sub-next, .fc-rec, #meter.low,
+  #speaker.angry .tv, .museos-hint .glitch, .denied-text, .phone, .rec-dot { animation: none !important; }
+  #fx-grain, #fx-speed { display: none; }
+  * { scroll-behavior: auto !important; }
+}

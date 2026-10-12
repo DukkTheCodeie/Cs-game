@@ -30,6 +30,8 @@ function defaultSave() {
 
 function loadSave() {
   const d = defaultSave();
+  // respect the device's "reduce motion" setting for new players
+  try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.settings.shake = false; } catch (_) { /* ignore */ }
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
     if (s) return { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) }, flags: { ...(s.flags || {}) } };
