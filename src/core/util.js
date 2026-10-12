@@ -39,5 +39,9 @@ export function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 
-export const isTouchDevice = () =>
-  (typeof matchMedia !== 'undefined' && matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window;
+// Phones and tablets. A laptop with a touchscreen still has a mouse or trackpad, so it gets
+// mouse look (pointer lock) instead of the on-screen stick.
+export const isTouchDevice = () => {
+  if (typeof matchMedia === 'undefined') return 'ontouchstart' in window;
+  return matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && !matchMedia('(any-pointer: fine)').matches);
+};

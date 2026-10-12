@@ -18,7 +18,7 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--text); font-family: var(--body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; outline: none; }
+canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; outline: none; touch-action: none; }
 .off { display: none !important; }
 kbd { display: inline-block; min-width: 1.7em; padding: 0.1em 0.45em; border-radius: 6px; background: #f3ecdc; color: #111; font: 800 0.85em var(--body); box-shadow: 0 3px 0 #8a8270; text-align: center; }
 button { font-family: var(--body); }
@@ -379,7 +379,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #touch .stick.on { display: block; }
 #touch .knob { position: absolute; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px; border-radius: 50%; background: rgba(255, 255, 255, 0.5); }
 #touch .tbtns { position: fixed; right: 18px; bottom: 30px; display: flex; flex-direction: column; gap: 12px; }
-#touch .tbtn { pointer-events: auto; width: 74px; height: 74px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.4); background: rgba(10, 12, 20, 0.6); color: #fff; font: 900 16px var(--body); }
+#touch .tbtn { pointer-events: auto; touch-action: none; width: 74px; height: 74px; border-radius: 50%; border: 3px solid rgba(255, 255, 255, 0.4); background: rgba(10, 12, 20, 0.6); color: #fff; font: 900 16px var(--body); }
 #touch .tbtn.on { background: rgba(233, 196, 106, 0.6); }
 #touch .tbtn.pause { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); width: 50px; height: 50px; font-size: 14px; }
 #touch[data-mode='runner'] .tbtns { display: none; }

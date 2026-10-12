@@ -42,6 +42,11 @@ export class Input {
     });
     addEventListener('mouseup', (e) => { this.down.delete('Mouse' + e.button); if (e.button === 0) this.dragging = false; });
 
+    // Never let the browser zoom the page over the game view: a trackpad pinch arrives as
+    // ctrl+wheel, and Safari sends its own gesture events.
+    canvas.addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+    for (const type of ['gesturestart', 'gesturechange']) canvas.addEventListener(type, (e) => e.preventDefault());
+
     if (this.isTouch) this._setupTouch();
   }
 
@@ -101,6 +106,9 @@ export class Input {
 
     const start = (e) => {
       const mode = root.dataset.mode;
+      // A thumb on the stick plus a thumb looking around is a pinch to the browser: claim the
+      // touch so it can't zoom the page (or double-tap zoom, or pop up a long-press menu).
+      if (mode !== 'off' && e.target === this.canvas && e.cancelable) e.preventDefault();
       for (const t of e.changedTouches) {
         if (t.target.closest('.tbtn')) continue;
         if (mode === 'runner') {
@@ -148,7 +156,7 @@ export class Input {
         if (swipe && t.identifier === swipe.id) swipe = null;
       }
     };
-    addEventListener('touchstart', start, { passive: true });
+    addEventListener('touchstart', start, { passive: false });
     addEventListener('touchmove', move, { passive: false });
     addEventListener('touchend', end);
     addEventListener('touchcancel', end);
