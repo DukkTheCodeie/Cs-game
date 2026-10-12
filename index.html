@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>LOCKED OUT — A Night Guard Story</title>
+  <meta name="description" content="A 3D museum night-guard game: puzzles, a walking T-Rex skeleton, a chase, a maze, and way too many donuts.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;900&family=VT323&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍩</text></svg>">
+  <meta name="theme-color" content="#0b0f1a">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="fx">
+    <div id="fx-vignette"></div>
+    <div id="fx-drowsy"></div>
+    <div id="fx-grain"></div>
+    <div id="fx-flash"></div>
+    <div id="fx-speed"></div>
+    <div id="fx-eyelids"><div class="lid top"></div><div class="lid bottom"></div></div>
+    <div id="fx-fade"></div>
+  </div>
+  <div id="letterbox"><div class="bar top"></div><div class="bar bottom"></div></div>
+
+  <div id="hud" class="off">
+    <div id="meter" class="off">
+      <div class="meter-donut"></div>
+      <div class="meter-body">
+        <div class="meter-label">DONUT METER <span class="meter-pct">100%</span></div>
+        <div class="meter-bar"><div class="meter-fill"></div><div class="meter-shine"></div></div>
+      </div>
+    </div>
+    <div id="clock" class="off"></div>
+    <div id="compass" class="off"><div class="compass-track"><div class="compass-ticks"></div><div class="compass-marker">▼</div></div></div>
+    <div id="objective" class="off"><span class="obj-label">OBJECTIVE</span><span class="obj-text"></span></div>
+    <div id="fragments" class="off"><div class="frag-label">NEW PASSWORD</div><div class="frag-slots"></div></div>
+    <div id="donut-count" class="off"></div>
+    <div id="minimap" class="off"><div class="mm-title">ARCHIVE MAP <span>M</span></div><canvas width="100" height="220"></canvas></div>
+    <div id="crosshair"></div>
+    <div id="prompt" class="off"><kbd>E</kbd><span class="prompt-text"></span></div>
+    <div id="chase" class="off">
+      <div class="chase-label">ESCAPE <span class="chase-dist">0 m</span></div>
+      <div class="chase-track">
+        <div class="chase-fill"></div>
+        <div class="chase-rex">🦖</div>
+        <div class="chase-you">🏃</div>
+        <div class="chase-door">🚪</div>
+      </div>
+      <div class="chase-danger"><span>T-REX</span><div class="danger-bar"><div class="danger-fill"></div></div></div>
+    </div>
+    <div id="mirror" class="off"><span>BEHIND YOU</span></div>
+    <div id="arrow" class="off">GO RIGHT <span>➜</span></div>
+    <div id="bigtext"></div>
+    <div id="controls-hint" class="off"></div>
+  </div>
+  <div id="toasts"></div>
+  <div id="titlecard"><div class="tc-chapter"></div><div class="tc-title"></div></div>
+  <div id="caption"></div>
+  <div id="loadtip" class="off"><div class="lt-chapter"></div><div class="lt-tip"></div></div>
+
+  <div id="dialogue">
+    <div id="facecam" class="off">
+      <div class="fc-frame">
+        <canvas width="256" height="256"></canvas>
+        <img alt="">
+        <video playsinline preload="auto"></video>
+        <div class="fc-scan"></div>
+      </div>
+      <div class="fc-name"></div>
+      <div class="fc-rec">● REC</div>
+    </div>
+    <div id="subtitle" class="off"><span class="sub-name"></span><span class="sub-text"></span><span class="sub-next">▸</span></div>
+  </div>
+  <button id="skip-btn" class="off">SKIP ⏭ <small>Esc</small></button>
+
+  <div id="modal-root"></div>
+  <div id="menu" class="off"></div>
+  <div id="kicked" class="off"></div>
+
+  <div id="boot">
+    <div class="boot-inner">
+      <div class="boot-logo">LOCKED <span class="donut-o"></span>UT</div>
+      <div class="boot-sub">a night guard story</div>
+      <button id="boot-start" class="btn big">CLICK TO START</button>
+      <div class="boot-tips">🎧 Headphones recommended · best in Chrome, Edge or Firefox</div>
+      <div class="boot-loading">Unlocking the museum…</div>
+    </div>
+  </div>
+
+  <div id="rotate-hint"><div class="phone">📱</div>Turn your phone sideways to play!<div class="help">(the museum is wider than it is tall)</div></div>
+
+  <div id="touch" data-mode="off">
+    <div class="stick"><div class="knob"></div></div>
+    <div class="tbtns">
+      <button class="tbtn" data-code="KeyE">USE</button>
+      <button class="tbtn" data-code="KeyF">🔦</button>
+      <button class="tbtn" data-code="ShiftLeft">RUN</button>
+    </div>
+    <button class="tbtn pause" data-code="Escape">❚❚</button>
+  </div>
+
+  <script src="game-config.js"></script>
+  <script src="dist/game.js"></script>
+</body>
+</html>
