@@ -226,6 +226,7 @@ export class Game {
         this.renderPass.scene = this.level.scene;
         this.composer.render(rawDt);
       } else this.renderer.render(this.level.scene, cam);
+      this.level.renderExtra?.(this.renderer);
     }
     cam.position.x -= s.x; cam.position.y -= s.y; cam.rotation.z -= s.rz;
     inp.endFrame();
@@ -494,6 +495,7 @@ export class Game {
     h.showChase(false);
     h.showArrow(false);
     h.setSpeedLines(0);
+    $('#mirror').classList.add('off');
     h.setPrompt(null);
     h.controlsHint(null);
     h.setDrowsy(0);

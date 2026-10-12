@@ -92,6 +92,14 @@ export class Runner extends Level {
     // the T-Rex (full body, used in intro/outro)
     this.trex = new TRex();
     this.trex.setAlive(true);
+    // The T-Rex lives on layer 1: the main camera sees it in the intro/outro,
+    // and during the run only the rear-view mirror camera does.
+    this.trex.group.traverse((o) => o.layers.set(1));
+    this.trex.eyeLight?.layers.enableAll(); // keep the light state identical for both cameras
+    this.mirrorCam = new THREE.PerspectiveCamera(64, 2.4, 0.1, 90);
+    this.mirrorCam.layers.enable(1);
+    this.mirrorEl = document.getElementById('mirror');
+    game.camera.layers.enable(1);
     this.trex.group.rotation.y = Math.PI;
     s.add(this.trex.group);
 
@@ -371,6 +379,8 @@ export class Runner extends Level {
   }
 
   beginRun() {
+    this.game.camera.layers.disable(1);
+    this.mirrorEl?.classList.remove('off');
     this.st.phase = 'run';
     this.st.speed = 13;
   }
@@ -543,7 +553,14 @@ export class Runner extends Level {
     }
 
     // T-Rex in run phase stays out of shot
-    if (st.phase === 'run') this.trex.group.visible = false;
+    if (st.phase === 'run') {
+      // in the run, the T-Rex is drawn only in the rear-view mirror, closing in as danger rises
+      const tr = this.trex.group;
+      tr.visible = true;
+      tr.position.set(st.x * 0.5, 0, st.z + lerp(17, 5.2, st.danger));
+      tr.rotation.y = Math.PI;
+      this.trex.setMode('run', st.speed * 0.8);
+    }
     this.trex.update(dt);
 
     // lunge animation
@@ -610,6 +627,7 @@ export class Runner extends Level {
   _caught(wall) {
     const st = this.st, g = this.game;
     if (st.phase !== 'run') return;
+    this.mirrorEl?.classList.add('off');
     st.phase = 'caught';
     st.speed = 0;
     g.hud.showArrow(false);
@@ -624,6 +642,8 @@ export class Runner extends Level {
 
   _escape() {
     const st = this.st;
+    this.mirrorEl?.classList.add('off');
+    this.game.camera.layers.enable(1);
     st.phase = 'escape';
     this.game.hud.showArrow(false);
     this.resolve?.('escaped');
@@ -644,7 +664,31 @@ export class Runner extends Level {
     this.camBlend = 0;
   }
 
+  // Second pass after the main render: the rear-view mirror.
+  renderExtra(renderer) {
+    const el = this.mirrorEl;
+    if (!el || el.classList.contains('off') || this.st.phase !== 'run' || this.game.paused) return;
+    const r = el.getBoundingClientRect();
+    if (r.width < 10) return;
+    const st = this.st, cam = this.mirrorCam;
+    cam.aspect = r.width / r.height;
+    cam.updateProjectionMatrix();
+    // front-facing chase shot: you running toward the viewer, the T-Rex looming behind you
+    cam.position.set(st.x * 0.8, 1.9 + st.y * 0.5, st.z - 3.4);
+    cam.lookAt(st.x * 0.6, 3.5, st.z + 9);
+    const y = innerHeight - r.bottom;
+    renderer.setScissorTest(true);
+    renderer.setScissor(r.left, y, r.width, r.height);
+    renderer.setViewport(r.left, y, r.width, r.height);
+    renderer.clearDepth();
+    renderer.render(this.scene, cam);
+    renderer.setScissorTest(false);
+    renderer.setViewport(0, 0, innerWidth, innerHeight);
+  }
+
   dispose() {
+    this.game.camera.layers.set(0);
+    this.mirrorEl?.classList.add('off');
     this.game.camera.remove(this.lunge);
     super.dispose();
   }
