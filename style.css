@@ -105,7 +105,7 @@ button { font-family: var(--body); }
 .danger-fill { height: 100%; width: 30%; background: linear-gradient(90deg, #ffcc4d, #ff3b3b); transition: width 0.2s; }
 #mirror { position: absolute; top: 112px; left: 50%; transform: translateX(-50%); width: min(260px, 30vw); aspect-ratio: 2.4; border-radius: 40px / 22px; border: 5px solid #1b1b22; box-shadow: 0 0 0 2px #5a5a66, 0 10px 24px rgba(0,0,0,0.6), inset 0 0 18px rgba(0,0,0,0.6); pointer-events: none; }
 #mirror span { position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%); font: 900 10px var(--body); letter-spacing: 0.2em; color: #ff8a8a; text-shadow: 0 1px 2px #000; white-space: nowrap; }
-#arrow { position: absolute; right: 6vw; top: 38%; font: 54px var(--title); color: #111; background: #ffcc4d; padding: 10px 26px; border-radius: 18px; border: 5px solid #111; box-shadow: 0 10px 0 #111; animation: arrowPulse 0.5s infinite alternate; }
+#arrow { position: absolute; right: 6vw; top: 47%; font: 54px var(--title); color: #111; background: #ffcc4d; padding: 10px 26px; border-radius: 18px; border: 5px solid #111; box-shadow: 0 10px 0 #111; animation: arrowPulse 0.5s infinite alternate; }
 #arrow span { display: inline-block; animation: arrowNudge 0.35s infinite alternate; }
 @keyframes arrowPulse { to { transform: scale(1.08) rotate(-2deg); } }
 @keyframes arrowNudge { to { transform: translateX(14px); } }
@@ -114,6 +114,8 @@ button { font-family: var(--body); }
 @keyframes bigIn { 0% { opacity: 0; transform: scale(3); } 15% { opacity: 1; transform: scale(0.95); } 25% { transform: scale(1.05); } 80% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.2); } }
 #controls-hint { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); padding: 12px 20px; border-radius: 14px; background: rgba(0, 0, 0, 0.7); font: 700 16px var(--body); display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; max-width: 92vw; animation: promptIn 0.4s; }
 #controls-hint span { white-space: nowrap; }
+#controls-hint { transition: opacity 0.25s; }
+body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the bottom of the screen */
 
 #toasts { position: fixed; left: 50%; top: 120px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 12; pointer-events: none; }
 .toast { padding: 10px 20px; border-radius: 14px; background: var(--panel-2); border: 2px solid var(--pink); font: 800 17px var(--body); box-shadow: 0 8px 26px rgba(0, 0, 0, 0.6); animation: toastIn 3s forwards; }
@@ -439,10 +441,10 @@ button { font-family: var(--body); }
   #minimap canvas { width: 56px; height: 123px; }
   .mm-title { display: none; }
   #prompt { top: calc(50% + 26px); font-size: 14px; padding: 6px 12px; }
-  #controls-hint { font-size: 12px; gap: 10px; padding: 6px 12px; bottom: 50px; }
+  #controls-hint { font-size: 12px; gap: 6px 10px; padding: 6px 12px; bottom: 74px; left: 12px; transform: none; max-width: calc(100vw - 240px); justify-content: flex-start; }
   .tc-title { font-size: 40px; } .tc-chapter { font-size: 13px; }
-  #chase { top: 6px; padding: 5px 12px; width: min(420px, 52vw); }
-  #mirror { top: 74px; width: min(170px, 24vw); border-width: 3px; }
+  #chase { top: 6px; padding: 5px 12px; width: min(400px, 44vw); }
+  #mirror { top: 86px; width: min(170px, 24vw); border-width: 3px; }
   #mirror span { display: none; }
   .chase-track { height: 18px; margin: 3px 14px; }
   .chase-you, .chase-rex, .chase-door { font-size: 16px; }

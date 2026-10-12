@@ -419,7 +419,7 @@ async function chase(g, _lvl, mode) {
   g.setClock(122, false); // the chase panel sits where the clock goes
   g.hud.show(true);
   g.hud.showMeter(true);
-  g.hud.setFragments(g.save.fragments);
+  g.hud.setFragments(g.save.fragments, { show: false }); // the chase HUD needs the space; nothing changes here
   g.meter.enabled = true;
   g.meter.drain = 0.25;
   g.meter.onEmpty = null;

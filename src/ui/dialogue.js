@@ -107,6 +107,7 @@ export class Dialogue {
     const skipped = new Promise((r) => (skipFn = r));
     const token = { skipped: false, skip: () => { token.skipped = true; skipFn(); } };
     this.current = token;
+    document.body.classList.add('talking');
 
     const st = this.stationFor(who);
     st.who = who;
@@ -186,6 +187,7 @@ export class Dialogue {
   _end(token, st) {
     if (this.current === token) {
       this.current = null;
+      document.body.classList.remove('talking');
       this.sub.classList.add('off');
       if (st === this.facecam) this.fcRoot.classList.add('off');
       else this.tvBubble?.(null);
