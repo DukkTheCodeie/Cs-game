@@ -28,17 +28,19 @@ export class Input {
       this.onLockChange?.(this.locked);
     });
     addEventListener('mousemove', (e) => {
-      if (this.locked) {
+      // Pointer lock, or (fallback for browsers that refuse it) click-and-drag on the game view.
+      if (this.locked || (this.dragging && (e.buttons & 1))) {
         // Some browsers spike movementX on lock; clamp it.
         this.mdx += clamp(e.movementX, -200, 200);
         this.mdy += clamp(e.movementY, -200, 200);
       }
     });
     canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 0) this.dragging = true;
       this.pressed.add('Mouse' + e.button);
       this.down.add('Mouse' + e.button);
     });
-    addEventListener('mouseup', (e) => this.down.delete('Mouse' + e.button));
+    addEventListener('mouseup', (e) => { this.down.delete('Mouse' + e.button); if (e.button === 0) this.dragging = false; });
 
     if (this.isTouch) this._setupTouch();
   }

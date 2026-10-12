@@ -159,8 +159,14 @@ export class Dialogue {
       const est = 1.2 + text.length * 0.055;
       const voice = g.save.settings.voice || 'tts';
       let done;
-      if (voice === 'tts' && 'speechSynthesis' in window && this.voices.length) {
-        done = Promise.race([this._tts(who, text), timeout(est * 1.8 + 2)]);
+      if (voice === 'tts' && 'speechSynthesis' in window && this.voices.length && !this.ttsBroken) {
+        done = Promise.race([this._tts(who, text), timeout(est * 1.8 + 2)]).then((r) => {
+          // The browser refused to speak (e.g. blocked autoplay): use beeps from now on.
+          if (r === 'nostart' && !token.skipped) {
+            this.ttsBroken = true;
+            return timeout(Math.max(g.audio.babble(text, who), 0.6));
+          }
+        });
       } else if (voice !== 'off') {
         const d = g.audio.babble(text, who);
         done = timeout(Math.max(d, 0.6));
@@ -196,10 +202,13 @@ export class Dialogue {
       u.pitch = { guard: 1.05, dev: 0.85, aaron: 1.3, museos: 0.4 }[who] ?? 1;
       u.rate = { guard: 1.08, dev: 1.0, aaron: 1.12, museos: 0.88 }[who] ?? 1;
       u.volume = Math.min(1, (this.game.save.settings.master ?? 0.8) * 1.1);
-      u.onend = resolve;
-      u.onerror = resolve;
+      let started = false;
+      u.onstart = () => { started = true; };
+      u.onend = () => resolve('end');
+      u.onerror = () => resolve(started ? 'end' : 'nostart');
       speechSynthesis.cancel();
       speechSynthesis.speak(u);
+      setTimeout(() => { if (!started && !speechSynthesis.speaking) { speechSynthesis.cancel(); resolve('nostart'); } }, 1500);
     });
   }
 

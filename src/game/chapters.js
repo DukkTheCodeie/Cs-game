@@ -597,6 +597,7 @@ async function maze(g, _lvl, mode) {
     if (Math.random() < dt * 0.15) g.audio.play('drip');
   });
 
+  let inBreakRoom = false;
   const frags = ['ZAP', 'NAP', 'DONUT'];
   const lines = ['museos07', 'museos08', 'museos09'];
   lvl.stations.forEach((st, b) => {
@@ -609,7 +610,7 @@ async function maze(g, _lvl, mode) {
       st.light.color.set(0x66ff99);
       stage = Math.max(stage, b + 1);
       await lvl.openGate(b);
-      g.objective(objectives[Math.min(3, b + 1)]);
+      if (!inBreakRoom) g.objective(objectives[Math.min(3, b + 1)]);
       g.audio.play('radio');
       await g.say(lines[b]);
       if (b === 1) await g.say('guard24');
@@ -621,6 +622,7 @@ async function maze(g, _lvl, mode) {
   lvl.addTrigger({
     minX: fr.x0, maxX: fr.x1, minZ: fr.z1, maxZ: fr.z0 - 0.3,
     onEnter: () => {
+      inBreakRoom = true;
       g.objective('Take THE LAST DONUT');
       g.audio.playMusic('menu');
       g.say('guard25');

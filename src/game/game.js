@@ -203,7 +203,7 @@ export class Game {
         this._interact();
         if (!inp.isTouch && !inp.locked) {
           this.unlockT += rawDt;
-          if (this.unlockT > 0.6) this.hud.setPrompt('Click to look around');
+          if (this.unlockT > 0.6) this.hud.setPrompt(inp.dragging ? null : 'Click (or drag) to look around');
         } else this.unlockT = 0;
       } else if (this.mode === 'menu') this._menuCam(dt);
       this.level?.update(dt);
@@ -305,6 +305,9 @@ export class Game {
   // ------------------------------------------------------------ modes
   setMode(mode) {
     this.mode = mode;
+    // drop focus from any clicked button so Space/Enter go to the game, not the button
+    const ae = document.activeElement;
+    if (ae && ae !== document.body && ae.blur && !ae.closest?.('.modal')) ae.blur();
     document.body.classList.toggle('playing', mode !== 'menu' && mode !== 'boot');
     const explore = mode === 'explore';
     this.player.enabled = explore;

@@ -30,6 +30,14 @@ addEventListener('DOMContentLoaded', async () => {
     boot.classList.add('loading');
     game.audio.init();
     game.audio.play('select');
+    // Unlock speech + video playback while we still have the user's click (needed on iPhone/Safari).
+    try {
+      if ('speechSynthesis' in window) {
+        const u = new SpeechSynthesisUtterance(' ');
+        u.volume = 0;
+        speechSynthesis.speak(u);
+      }
+    } catch (_) { /* ignore */ }
     await ready;
     boot.style.transition = 'opacity .8s';
     boot.style.opacity = '0';
