@@ -119,6 +119,19 @@ export class Game {
     this.timeScale = 1;
     this.clock = new THREE.Clock();
 
+    // If the graphics driver resets (it happens on some laptops), offer a clean reload
+    // instead of leaving a frozen black screen.
+    this.canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      this.persist();
+      const d = document.createElement('div');
+      d.id = 'gameover-scr';
+      d.innerHTML = `<div class="go-title" style="font-size:clamp(36px,7vw,72px)">GRAPHICS HICCUP</div>
+        <div class="go-sub">Your computer's graphics driver restarted. Your progress is saved.</div>
+        <button class="btn big pink">↻ RELOAD</button>`;
+      d.querySelector('button').onclick = () => location.reload();
+      document.body.append(d);
+    });
     addEventListener('resize', () => this.resize());
     this.resize();
     this.input.onKey = (e) => this._onKey(e);

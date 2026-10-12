@@ -205,7 +205,7 @@ const PUZZLES = {
   lightsout: {
     title: 'FUSE BOX',
     sub: 'Switch ALL nine fuses ON to power the gate. Each switch also flips its neighbors (up, down, left, right).',
-    keys: 'Click the switches · Esc close',
+    keys: 'Click the switches (or keys 1–9) · Esc close',
     build({ game, body, solve }) {
       const N = 9;
       let st = new Array(N).fill(true);
@@ -249,6 +249,11 @@ const PUZZLES = {
         return best ? [...Array(9).keys()].filter((i) => best.m & (1 << i)) : [];
       };
       return {
+        // keyboard: 1-9 press the switches (laid out like a phone keypad, top-left = 1)
+        onKey(e) {
+          const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+          if (m) cells[Number(m[1]) - 1].click();
+        },
         hints: () => ['Try pressing the switches in the CORNERS and the CENTER first.', 'The glowing dashed switch is part of the solution. Press it!', 'Keep asking — each hint shows another correct switch.'],
         onHint() { const sol = solution(); render(); if (sol.length) cells[sol[0]].classList.add('hint'); },
       };
