@@ -18,6 +18,9 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--text); font-family: var(--body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+/* No pinch or double-tap zoom anywhere in the game (it zooms the whole page, or the page the game is
+   embedded in). One-finger scrolling in menus still works. */
+html { touch-action: pan-x pan-y; }
 canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; outline: none; touch-action: none; }
 .off { display: none !important; }
 kbd { display: inline-block; min-width: 1.7em; padding: 0.1em 0.45em; border-radius: 6px; background: #f3ecdc; color: #111; font: 800 0.85em var(--body); box-shadow: 0 3px 0 #8a8270; text-align: center; }
