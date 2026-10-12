@@ -166,6 +166,8 @@ button { font-family: var(--body); }
 .sub-next { position: absolute; right: 14px; bottom: 8px; color: var(--gold); opacity: 0; animation: nextBlink 0.8s infinite; }
 #subtitle.done .sub-next { opacity: 1; }
 @keyframes nextBlink { 50% { transform: translateX(4px); } }
+#subtitle[data-place='tv'] { position: fixed; right: 5vw; bottom: calc(12vh + min(330px, 40vw) * 0.75 + 70px); max-width: min(400px, 44vw); }
+#subtitle[data-place='left'] { position: fixed; left: 258px; bottom: 120px; max-width: min(460px, 44vw); }
 #skip-btn { position: fixed; right: 22px; bottom: calc(9vh + 14px); z-index: 31; padding: 8px 16px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.25); background: rgba(0, 0, 0, 0.6); color: #ddd; font: 800 14px var(--body); cursor: pointer; }
 #skip-btn small { opacity: 0.6; margin-left: 6px; }
 #skip-btn:hover { border-color: var(--gold); color: #fff; }
@@ -417,6 +419,8 @@ button { font-family: var(--body); }
   .menu-btn { padding: 7px 14px; font-size: 14px; border-radius: 10px; box-shadow: 0 3px 0 #000; }
   .menu-foot { display: none; }
   #speaker { width: 30vw; right: 12px; bottom: 10px; }
+  #subtitle[data-place='tv'] { right: 12px; bottom: calc(10px + 30vw * 0.75 + 48px); max-width: 42vw; }
+  #subtitle[data-place='left'] { left: 120px; bottom: 60px; }
   .tv { padding: 8px 8px 26px; border-radius: 16px; }
   .tv .tv-label { font-size: 10px; bottom: 6px; left: 12px; }
   #meter { top: 8px; left: 8px; padding: 5px 10px 5px 5px; gap: 8px; border-radius: 12px; }
@@ -493,6 +497,7 @@ button { font-family: var(--body); }
   #dialogue { padding-bottom: 9vh; gap: 10px; }
   #menu { padding: 0 20px; align-items: flex-start; padding-top: 6vh; background: rgba(3, 5, 12, 0.6); }
   #speaker { width: 46vw; right: 12px; bottom: 12px; }
+  #subtitle[data-place='tv'] { right: 12px; bottom: calc(12px + 46vw * 0.75 + 60px); max-width: 80vw; }
   .setting { grid-template-columns: 1fr; gap: 4px; }
   .lights { grid-template-columns: repeat(3, 70px); } .light { width: 70px; height: 70px; }
   .wheel { width: 200px; height: 200px; }

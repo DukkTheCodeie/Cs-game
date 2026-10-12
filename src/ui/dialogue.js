@@ -116,6 +116,8 @@ export class Dialogue {
     const subsOn = g.save.settings.subtitles !== 'off';
     this.sub.classList.toggle('off', !subsOn);
     this.sub.dataset.who = who;
+    // in the menu, speech appears next to whoever is talking instead of over the buttons
+    this.sub.dataset.place = st === this.tv ? 'tv' : this.fcRoot.classList.contains('menu-pos') ? 'left' : '';
     this.subName.textContent = name;
     this.fullText = text;
     this.typeT = 0;
