@@ -21,7 +21,7 @@ export class Player {
     this.eyeOffset = 0; // for crouch/wake-up animations
 
     // flashlight
-    const spot = (this.spot = new THREE.SpotLight(0xfff1d6, 0, 34, 0.48, 0.55, 1.4));
+    const spot = (this.spot = new THREE.SpotLight(0xfff1d6, 0, 36, 0.48, 0.6, 1.2));
     spot.position.set(0.18, -0.15, 0.1);
     spot.target.position.set(0.05, -0.2, -6);
     spot.castShadow = true;
@@ -44,7 +44,7 @@ export class Player {
     this.flashOn = false;
     this.hasFlashlight = false;
     this.flickerT = 0;
-    this.baseIntensity = 60;
+    this.baseIntensity = 32;
     this.swayX = 0;
     this.swayY = 0;
   }

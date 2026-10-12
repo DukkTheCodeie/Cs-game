@@ -190,9 +190,11 @@ export class Game {
 
   // ------------------------------------------------------------ loop
   loop() {
-    const rawDt = Math.min(0.05, this.clock.getDelta());
+    const realDt = this.clock.getDelta();
+    const rawDt = Math.min(0.05, realDt);
     const dt = rawDt * this.timeScale;
     const inp = this.input;
+    this._perfCheck(Math.min(realDt, 0.5));
     if (inp.isTouch && inp.wasPressed('Escape') && ['explore', 'runner'].includes(this.mode)) this.togglePause();
     if (!this.paused) {
       this.sched.update(dt);
@@ -227,6 +229,24 @@ export class Game {
     }
     cam.position.x -= s.x; cam.position.y -= s.y; cam.rotation.z -= s.rz;
     inp.endFrame();
+  }
+
+  // If gameplay runs slowly for a few seconds, step graphics down one level (once per tier).
+  _perfCheck(dt) {
+    if (this.paused || !['explore', 'runner'].includes(this.mode) || document.hidden) { this._perf = null; return; }
+    const p = (this._perf ||= { t: 0, n: 0, skip: 1 });
+    if (p.skip > 0) { p.skip -= dt; return; } // ignore the first second (shader warm-up)
+    p.t += dt; p.n++;
+    if (p.t < 4) return;
+    const fps = p.n / p.t;
+    this._perf = { t: 0, n: 0, skip: 0 };
+    const s = this.save.settings;
+    if (fps < 28 && s.quality !== 'low' && !this.autoLowered?.[s.quality]) {
+      (this.autoLowered ||= {})[s.quality] = true;
+      s.quality = s.quality === 'high' ? 'medium' : 'low';
+      this.applySettings();
+      this.hud.toast(`⚙️ Graphics set to <b>${s.quality === 'medium' ? 'Medium' : 'Fast'}</b> for smoother play (change it in Settings)`, 'gold');
+    }
   }
 
   _interact() {
