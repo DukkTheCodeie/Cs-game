@@ -204,7 +204,7 @@ const PUZZLES = {
   // ---------------------------------------------------------------- 3. Lights out (fuse box)
   lightsout: {
     title: 'FUSE BOX',
-    sub: 'Turn ALL nine fuses green to power the gate. Each switch also flips its neighbors (up, down, left, right).',
+    sub: 'Switch ALL nine fuses ON to power the gate. Each switch also flips its neighbors (up, down, left, right).',
     keys: 'Click the switches · Esc close',
     build({ game, body, solve }) {
       const N = 9;
@@ -219,7 +219,7 @@ const PUZZLES = {
         return out;
       };
       for (const i of [0, 4, 8, 5]) st = press(st, i);
-      body.innerHTML = `<div class="lights"></div><div class="help" style="text-align:center">Green = power on. Make them all green!</div>`;
+      body.innerHTML = `<div class="lights"></div><div class="help" style="text-align:center">Make every switch say <b>ON</b> (green, with a lit bulb).</div>`;
       const grid = $('.lights', body);
       const cells = [];
       let done = false;

@@ -226,9 +226,11 @@ button { font-family: var(--body); }
 
 .lights { display: grid; grid-template-columns: repeat(3, 84px); gap: 14px; justify-content: center; margin: 20px 0; padding: 18px; border-radius: 18px; background: #2a3038; border: 4px solid #555e6a; box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6); width: max-content; margin-inline: auto; }
 .light { width: 84px; height: 84px; border-radius: 16px; border: 3px solid #111; background: radial-gradient(circle at 50% 40%, #5a1515, #2a0808); cursor: pointer; transition: background 0.2s, box-shadow 0.2s, transform 0.1s; position: relative; }
-.light::after { content: '⚡'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; opacity: 0.2; }
+.light::after { content: 'OFF'; position: absolute; inset: 0; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 9px; font: 900 15px var(--body); color: rgba(255,255,255,0.45); letter-spacing: 0.08em; }
+.light::before { content: ''; position: absolute; left: 50%; top: 10px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); }
 .light.on { background: radial-gradient(circle at 50% 40%, #b8ffd0, #2ecc71); box-shadow: 0 0 24px rgba(109, 255, 158, 0.8); }
-.light.on::after { opacity: 0.8; }
+.light.on::after { content: 'ON'; color: #063d1c; }
+.light.on::before { background: #fff; border-color: #fff; box-shadow: 0 0 10px #fff; }
 .light:active { transform: scale(0.94); }
 .light.hint { outline: 4px dashed var(--gold); outline-offset: 4px; }
 
