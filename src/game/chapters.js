@@ -772,8 +772,12 @@ async function maze(g) {
   const queue = [];
   let queueT = 0;
   const announced = new Set([stage]);
+  const mmTitle = document.querySelector('#minimap .mm-title');
+  const showSection = (b) => { if (mmTitle) mmTitle.firstChild.textContent = `SECTION ${b + 1} `; };
+  showSection(stage);
   lvl.onBandChange = (b) => {
     g.meter.drain = drainFor(b);
+    showSection(b);
     if (announced.has(b)) return;
     announced.add(b);
     const lines = SECTION_LINES[lvl.bands.get(b)?.theme?.id];
