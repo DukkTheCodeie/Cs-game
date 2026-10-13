@@ -781,12 +781,14 @@ async function maze(g) {
     if (announced.has(b)) return;
     announced.add(b);
     const lines = SECTION_LINES[lvl.bands.get(b)?.theme?.id];
-    if (lines) { queue.push(...lines); queueT = 1.5; }
+    // (an announcement for a section you've already left would just be confusing)
+    for (let i = queue.length - 1; i >= 0; i--) if (queue[i].section) queue.splice(i, 1);
+    if (lines) { queue.push(...lines.map((id) => ({ id, section: true }))); queueT = 1.5; }
   };
   lvl.addUpdater((dt) => {
     queueT -= dt;
     if (!queue.length || queueT > 0 || g.mode !== 'explore' || g.dialogue.current) return;
-    const id = queue.shift();
+    const { id } = queue.shift();
     if (id.startsWith('museos')) g.audio.play('radio');
     g.say(id);
     queueT = 0.6;
@@ -863,7 +865,7 @@ async function maze(g) {
       g.shake(0.12, 1);
     }
     if (Math.random() < dt * 0.15) g.audio.play('drip');
-    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; queue.push(['guard44', 'guard58', 'museos32'][lowCount++ % 3]); }
+    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; queue.push({ id: ['guard44', 'guard58', 'museos32'][lowCount++ % 3] }); }
     if (g.meter.value > 40) lowSaid = false;
   });
 
@@ -879,7 +881,7 @@ async function maze(g) {
       const n = lvl.puzzleParams(k.k).count, got = lvl.keysFor(k.k).filter((x) => x.taken).length;
       const hex = '#' + k.color.toString(16).padStart(6, '0');
       g.hud.toast(`🔑 Found the <b style="color:${hex}">${k.name.toUpperCase()}</b> key! <b>(${got}/${n})</b>`, 'gold');
-      if (k.k >= HANDMADE && !genKeySaid) { genKeySaid = true; queue.push('guard57'); }
+      if (k.k >= HANDMADE && !genKeySaid) { genKeySaid = true; queue.push({ id: 'guard57' }); }
       if (k.k === opened) g.objective(objectiveFor(opened));
     }
   });
