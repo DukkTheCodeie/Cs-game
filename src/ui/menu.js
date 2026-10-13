@@ -79,14 +79,15 @@ export class Menu {
     g.audio.playMusic(save.flags.ending === 'pending' ? 'meta' : 'menu');
     if (save.flags.ending === 'pending') {
       this._metaEnding();
+    } else if (save.flags.kicked && !save.flags.backAgain) {
+      // (being back after the ending comes first, even if somehow you were never welcomed)
+      save.flags.backAgain = save.flags.welcomed = true;
+      g.persist();
+      setTimeout(() => this.open && g.say('dev05'), 1200);
     } else if (!save.flags.welcomed) {
       save.flags.welcomed = true;
       g.persist();
       setTimeout(() => this.open && !this.busy && g.say('dev01'), 1200);
-    } else if (save.flags.kicked && !save.flags.backAgain) {
-      save.flags.backAgain = true;
-      g.persist();
-      setTimeout(() => this.open && g.say('dev05'), 1200);
     } else if (save.flags.kicked && !save.flags.backAgain2) {
       save.flags.backAgain2 = true;
       g.persist();
