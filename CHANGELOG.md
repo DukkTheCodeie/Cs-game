@@ -26,6 +26,8 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
   Donut Storage (empty, of course).
 - MUSE-OS announces each section, and the guard has something to say about most of them. Plus more
   lines deep in the archives.
+- The archive map is shorter to match the smaller sections, so it covers less of the screen and shows
+  the section you're in plus the start of the next one.
 
 **Puzzles**
 - The Pharaoh's Lock is harder: the pillars now show real Egyptian numbers (∩ is 10, | is 1), and the

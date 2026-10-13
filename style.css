@@ -86,7 +86,7 @@ button { font-family: var(--body); }
 @keyframes fragIn { 0% { transform: scale(2); opacity: 0; } 60% { transform: scale(0.9); opacity: 1; } }
 #donut-count { position: absolute; top: 96px; left: 18px; font: 800 14px var(--body); color: var(--pink); background: rgba(0, 0, 0, 0.5); padding: 4px 10px; border-radius: 10px; }
 #minimap { position: absolute; left: 18px; top: 100px; padding: 6px; border-radius: 10px; background: #c9b48a; box-shadow: 0 8px 24px rgba(0,0,0,0.6); transform: rotate(-1.5deg); }
-#minimap canvas { display: block; width: 100px; height: 220px; border-radius: 4px; }
+#minimap canvas { display: block; width: 100px; height: 150px; border-radius: 4px; }
 .mm-title { font: 11px var(--title); color: #3b2a1a; text-align: center; margin-bottom: 4px; }
 .mm-title span { font: 900 10px var(--body); background: #3b2a1a; color: #efe4c8; border-radius: 4px; padding: 0 4px; margin-left: 4px; }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255, 255, 255, 0.75); box-shadow: 0 0 4px #000; transition: transform 0.15s, background 0.15s; }
@@ -444,7 +444,7 @@ body:has(.computer-modal) #dialogue { padding-bottom: 14px; }
 @media (max-height: 640px) {
   .wheel { width: 190px; height: 190px; }
   .wheel-wrap { margin: 6px 0 0; }
-  #minimap canvas { width: 70px; height: 154px; }
+  #minimap canvas { width: 70px; height: 105px; }
   #facecam { width: 120px; }
   .panel { padding: 16px 20px; }
   .panel h2 { font-size: 24px; }
@@ -482,7 +482,7 @@ body:has(.computer-modal) #dialogue { padding-bottom: 14px; }
   .frag { min-width: 28px; font-size: 16px; padding: 1px 5px; }
   #donut-count { top: 52px; left: 8px; }
   #minimap { top: 52px; left: 8px; padding: 4px; }
-  #minimap canvas { width: 56px; height: 123px; }
+  #minimap canvas { width: 56px; height: 84px; }
   .mm-title { display: none; }
   #prompt { top: calc(50% + 26px); font-size: 14px; padding: 6px 12px; }
   #controls-hint { font-size: 12px; gap: 6px 10px; padding: 6px 12px; bottom: 74px; left: 12px; transform: none; max-width: calc(100vw - 240px); justify-content: flex-start; }
