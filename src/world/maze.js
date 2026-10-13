@@ -5,12 +5,16 @@ import * as P from './props.js';
 import { mulberry32 } from '../core/util.js';
 import { personOutline } from './runner.js';
 import { batchStatic } from './batch.js';
+import { ShelfBuilder, shelfMaterials } from './shelves.js';
 
-// The Archives: three maze sections, each locked by a puzzle gate.
+// The Archives: three maze sections, each locked by a gate (fuse box, three lost keys, torn poster).
 // Cell (c, r): center x = c*CELL, z = -r*CELL. Progress goes north (-z).
+// The walls are real steel shelves full of boxes; posts stand at every corner.
 
 export const CELL = 3.2;
 const W = 7, BAND = 5, BANDS = 3, H = 3.0, T = 0.3;
+const TT = 0.64; // shelving thickness (both sides stocked)
+export const KEY_COLORS = [['red', 0xff4545], ['blue', 0x4aa8ff], ['yellow', 0xffd23f]];
 
 export class Maze extends Level {
   constructor(game) {
@@ -24,8 +28,9 @@ export class Maze extends Level {
     s.add(new THREE.AmbientLight(0x8090b0, 0.22));
     s.add(new THREE.HemisphereLight(0x405070, 0x100c08, 0.3));
 
+    this.shelfMats = shelfMaterials();
     this.mats = {
-      wall: new THREE.MeshStandardMaterial({ map: tex('shelves'), roughness: 0.85 }),
+      wall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x8a7f72, roughness: 0.9 }),
       floor: new THREE.MeshStandardMaterial({ map: tex('concrete'), roughness: 0.9 }),
       ceil: new THREE.MeshStandardMaterial({ map: tex('concrete'), color: 0x555555, roughness: 1 }),
       pipe: new THREE.MeshStandardMaterial({ color: 0x5a6068, roughness: 0.5, metalness: 0.6 }),
@@ -66,6 +71,7 @@ export class Maze extends Level {
       }
       // BFS distances from entry
       const dist = this._bfs(entry, north, east, r0, r1);
+      this[`dist${b}`] = dist;
       let best = null;
       for (let c = 0; c < W; c++) {
         const d = dist[`${c},${r1}`];
@@ -108,27 +114,35 @@ export class Maze extends Level {
     // south boundary (row -1 north edge), except entrance at c=3 (hole wall)
     for (let c = 0; c < W; c++) if (c !== this.entries[0].c) segX(-1, c);
 
-    const wallGeo = boxUV(CELL + T, H, T, 1.6);
-    const inst = new THREE.InstancedMesh(wallGeo, this.mats.wall, segs.length);
-    const mtx = new THREE.Matrix4(), q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1);
-    segs.forEach((sg, i) => {
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), sg.rot);
-      mtx.compose(new THREE.Vector3(sg.x, H / 2, sg.z), q, one);
-      inst.setMatrixAt(i, mtx);
-      const hl = (CELL + T) / 2, ht = T / 2;
-      if (sg.rot === 0) this.addCollider(sg.x - hl, sg.x + hl, sg.z - ht, sg.z + ht);
-      else this.addCollider(sg.x - ht, sg.x + ht, sg.z - hl, sg.z + hl);
+    // eye-peek spots on the outer walls (a gap in the boxes, a hole in the back panel)
+    this._planPeeks();
+    const shelves = new ShelfBuilder(rng, H);
+    const corners = new Set();
+    const corner = (x, z) => corners.add(`${Math.round(x * 100)},${Math.round(z * 100)}`);
+    const L = CELL - TT;
+    segs.forEach((sg) => {
+      const along = sg.rot === 0;
+      const peek = this.peeks.find((pk) => pk.seg === `${sg.x.toFixed(2)},${sg.z.toFixed(2)}`);
+      // peek walls are on the west/east boundary: the side facing into the maze has the gap
+      const gaps = peek ? [{ side: peek.west ? 1 : -1, level: 2, from: -0.55, to: 0.55 }] : [];
+      shelves.unit(sg.x, sg.z, sg.rot, L, TT, gaps);
+      const hl = (CELL + TT) / 2, ht = TT / 2;
+      if (along) { this.addCollider(sg.x - hl, sg.x + hl, sg.z - ht, sg.z + ht); corner(sg.x - CELL / 2, sg.z); corner(sg.x + CELL / 2, sg.z); }
+      else { this.addCollider(sg.x - ht, sg.x + ht, sg.z - hl, sg.z + hl); corner(sg.x, sg.z - CELL / 2); corner(sg.x, sg.z + CELL / 2); }
     });
-    inst.receiveShadow = true;
-    inst.castShadow = true;
-    s.add(inst);
+    for (const gt of this.gateSpots) { corner(gt.x - CELL / 2, gt.z); corner(gt.x + CELL / 2, gt.z); }
+    corner(this.entries[0].c * CELL - CELL / 2, CELL / 2);
+    corner(this.entries[0].c * CELL + CELL / 2, CELL / 2);
+    for (const k of corners) { const [x, z] = k.split(',').map((v) => Number(v) / 100); shelves.pillar(x, z, TT); }
+    for (const mesh of shelves.build(this.shelfMats)) s.add(mesh);
     this.wallSegs = segs;
 
     this._entranceWall();
     this._finalRoom();
     this._stations();
     this._decorate();
-    const dynamic = new Set([this.lastDonut, ...this.gates.map((gt) => gt.mesh), ...this.collectibles.map((c) => c.obj)]);
+    this._keys();
+    const dynamic = new Set([this.lastDonut, ...this.gates.map((gt) => gt.mesh), ...this.collectibles.map((c) => c.obj), ...this.keys.map((k) => k.obj), ...this.keySlots]);
     batchStatic(this.scene, (o) => dynamic.has(o));
   }
 
@@ -167,15 +181,23 @@ export class Maze extends Level {
   _gateWall(r, c, band) {
     const s = this.scene;
     const x = c * CELL, z = -r * CELL - CELL / 2;
+    (this.gateSpots ||= []).push({ x, z });
     const gw = 1.5;
-    const side = (CELL + T - gw) / 2;
+    const side = (CELL - TT - gw) / 2;
     for (const sx of [-1, 1]) {
-      const m = new THREE.Mesh(boxUV(side, H, T, 1.6), this.mats.wall);
+      const m = new THREE.Mesh(boxUV(side, H, TT, 1.6), this.shelfMats.pillar);
       m.position.set(x + sx * (gw / 2 + side / 2), H / 2, z);
       s.add(m);
-      this.addCollider(x + sx * (gw / 2 + side / 2) - side / 2, x + sx * (gw / 2 + side / 2) + side / 2, z - T / 2, z + T / 2);
+      this.addCollider(x + sx * (gw / 2 + side / 2) - side / 2 - TT / 2, x + sx * (gw / 2 + side / 2) + side / 2 + TT / 2, z - TT / 2, z + TT / 2);
     }
-    const lintel = P.box(gw, H - 2.3, T, P.MATS.metal(), x, 2.3, z);
+    // hazard stripes up the gate posts
+    const haz = new THREE.MeshBasicMaterial({ map: signTexture('', { w: 64, h: 256, bg: '#ffcc00' }), color: 0xd9a300 });
+    for (const sx of [-1, 1]) {
+      const st = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 2.3), haz);
+      st.position.set(x + sx * (gw / 2 + 0.04), 1.15, z + TT / 2 + 0.005);
+      s.add(st);
+    }
+    const lintel = P.box(gw, H - 2.3, TT, P.MATS.metal(), x, 2.3, z);
     s.add(lintel);
     // the gate: vertical bars
     const gate = new THREE.Group();
@@ -213,7 +235,7 @@ export class Maze extends Level {
     const c = this.entries[0].c;
     const x = c * CELL, z = CELL / 2;
     const shape = new THREE.Shape();
-    const hw = (CELL + T) / 2;
+    const hw = (CELL - TT) / 2 + 0.02;
     shape.moveTo(-hw, 0); shape.lineTo(hw, 0); shape.lineTo(hw, H); shape.lineTo(-hw, H); shape.lineTo(-hw, 0);
     const hole = new THREE.Path();
     personOutline(1.18).forEach(([px, py], i) => (i === 0 ? hole.moveTo(px, py + 0.001) : hole.lineTo(px, py + 0.001)));
@@ -298,12 +320,13 @@ export class Maze extends Level {
   _stations() {
     const s = this.scene;
     this.stations = [];
-    const kinds = ['lightsout', 'morse', 'slider'];
+    const kinds = ['lightsout', 'keys', 'slider'];
+    this.keySlots = [];
     for (let b = 0; b < BANDS; b++) {
       const ex = this.exits[b];
       const gx = ex.c * CELL, gz = -ex.r * CELL - CELL / 2;
       // mount on the wall to the left of the gate, facing south
-      const x = gx - 1.15, z = gz + T / 2 + 0.02;
+      const x = gx - 1.15, z = gz + TT / 2 + 0.02;
       const g = new THREE.Group();
       const kind = kinds[b];
       let lamp = null;
@@ -317,19 +340,30 @@ export class Maze extends Level {
           led.position.set(-0.18 + (i % 3) * 0.18, 1.2 - Math.floor(i / 3) * 0.18, 0.19);
           g.add(led);
         }
-      } else if (kind === 'morse') {
-        g.add(P.box(0.9, 0.06, 0.5, P.MATS.darkWood(), 0, 0.95, 0.25));
-        g.add(P.box(0.06, 0.95, 0.06, P.MATS.darkWood(), -0.38, 0, 0.45));
-        g.add(P.box(0.06, 0.95, 0.06, P.MATS.darkWood(), 0.38, 0, 0.45));
-        const tg = P.makeTelegraph();
-        tg.group.children[0].visible = false; // hide its desk
-        tg.group.position.set(0.1, 0.2, 0.25);
-        tg.group.scale.setScalar(1);
-        g.add(tg.group);
-        lamp = tg;
-        const chart = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.9), new THREE.MeshStandardMaterial({ map: signTexture('MORSE\nCODE\n.- -...', { w: 256, h: 330, bg: '#efe6cf', fg: '#222', font: 'bold 44px Courier New, monospace' }) }));
-        chart.position.set(0, 1.8, 0.02);
-        g.add(chart);
+      } else if (kind === 'keys') {
+        // a steel lock plate with three colored keyholes
+        g.add(P.box(0.66, 0.9, 0.1, P.mat('lockplate', { color: 0x4b5260, metalness: 0.7, roughness: 0.35 }), 0, 0.85, 0.05));
+        const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.56, 0.22), new THREE.MeshBasicMaterial({ map: signTexture('3 KEYS', { w: 256, h: 100, bg: '#1a1d24', fg: '#ffd23f', font: 'bold 54px Arial Black, Arial' }) }));
+        sign.position.set(0, 1.92, 0.11);
+        g.add(sign);
+        KEY_COLORS.forEach(([, color], i) => {
+          const y = 1.55 - i * 0.26;
+          const ring = new THREE.Mesh(new THREE.TorusGeometry(0.075, 0.02, 8, 18), new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6, metalness: 0.5, roughness: 0.4 }));
+          ring.position.set(0, y, 0.11);
+          g.add(ring);
+          g.add(P.box(0.025, 0.07, 0.01, P.MATS.black(), 0, y - 0.035, 0.105));
+          // the key that appears once you've put it in
+          const k = new THREE.Group();
+          const km = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.2, metalness: 0.6, roughness: 0.3 });
+          const bow = new THREE.Mesh(new THREE.TorusGeometry(0.05, 0.016, 6, 14), km);
+          bow.position.z = 0.16;
+          k.add(bow);
+          k.add(P.box(0.02, 0.02, 0.1, km, 0, 0, 0.11));
+          k.position.set(0, y, 0);
+          k.visible = false;
+          g.add(k);
+          this.keySlots.push(k);
+        });
       } else {
         const frame = P.box(1.0, 1.2, 0.08, P.MATS.brass(), 0, 0.9, 0.04);
         g.add(frame);
@@ -344,10 +378,10 @@ export class Maze extends Level {
       g.position.set(x, 0, z);
       s.add(g);
       this.addBoxCollider(x, z + 0.25, 0.8, 0.5);
-      const light = new THREE.PointLight(kind === 'morse' ? 0xffaa33 : kind === 'lightsout' ? 0x66ff99 : 0xff77cc, 3, 5, 2);
+      const light = new THREE.PointLight(kind === 'keys' ? 0xffd23f : kind === 'lightsout' ? 0x66ff99 : 0xff77cc, 3, 5, 2);
       light.position.set(x, 2.4, z + 0.8);
       s.add(light);
-      const it = this.addInteractable({ id: 'station' + b, pos: new THREE.Vector3(x, 1.2, z + 0.1), prompt: ['Fix the fuse box', 'Use the telegraph', 'Restore the poster'][b], enabled: true, radius: 2.3 });
+      const it = this.addInteractable({ id: 'station' + b, pos: new THREE.Vector3(x, 1.2, z + 0.1), prompt: ['Fix the fuse box', 'Unlock the gate', 'Restore the poster'][b], enabled: true, radius: 2.3 });
       this.stations.push({ kind, it, lamp, light, band: b, pos: new THREE.Vector3(x, 0, z + 1.2) });
     }
   }
@@ -373,14 +407,17 @@ export class Maze extends Level {
     }
     // donuts and props in dead ends
     this.donutCells = [];
+    this.propCells = [];
     for (let b = 0; b < BANDS; b++) {
       const dead = this[`dead${b}`];
+      const reserve = b === 1 ? 3 : 0; // the middle section's far dead ends are kept free for the keys
       dead.slice(0, 2).forEach((cell, i) => {
         const p = this.cellPos(cell.c, cell.r);
         this.addCollectible(`maze_${b}_${i}`, p.x, 0.9, p.z, (b * 2 + i) % 5);
         this.donutCells.push(cell);
       });
-      dead.slice(2, 6).forEach((cell, i) => {
+      dead.slice(2 + reserve, 6 + reserve).forEach((cell, i) => {
+        this.propCells.push(cell);
         const p = this.cellPos(cell.c, cell.r);
         const pick = (b * 3 + i) % 4;
         let obj;
@@ -393,35 +430,75 @@ export class Maze extends Level {
         this.addBoxCollider(p.x, p.z, 0.9, 0.9);
       });
     }
-    // crates scattered along walls (non-blocking, small)
-    for (let i = 0; i < 16; i++) {
-      const c = Math.floor(rng() * W), r = Math.floor(rng() * this.R);
-      const p = this.cellPos(c, r);
-      const cr = P.makeCrate(0.5);
-      cr.position.x = p.x + (rng() < 0.5 ? -1 : 1) * 1.15;
-      cr.position.z = p.z + (rng() - 0.5) * 1.6;
-      cr.rotation.y = rng();
-      s.add(cr);
-    }
-    // eye-peek holes on the outer walls
+  }
+
+  _planPeeks() {
+    const s = this.scene, rng = this.rng;
     this.peeks = [];
     const holeMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
     for (let b = 0; b < BANDS; b++) {
       const r = b * BAND + 1 + Math.floor(rng() * 3);
       const west = rng() < 0.5;
-      const x = west ? -CELL / 2 + T / 2 + 0.01 : (W - 1) * CELL + CELL / 2 - T / 2 - 0.01;
-      const z = -r * CELL + (rng() - 0.5);
+      const wx = west ? -CELL / 2 : (W - 1) * CELL + CELL / 2;
+      const z = -r * CELL;
+      const face = wx + (west ? 0.03 : -0.03);
       const hole = new THREE.Mesh(new THREE.CircleGeometry(0.28, 14), holeMat);
-      hole.position.set(x, 1.7, z);
+      hole.position.set(face, 1.75, z);
       hole.rotation.y = west ? Math.PI / 2 : -Math.PI / 2;
       hole.scale.set(1.4, 0.8, 1);
       s.add(hole);
       const eye = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 8), new THREE.MeshStandardMaterial({ color: 0xff3010, emissive: 0xff2a00, emissiveIntensity: 6 }));
-      eye.position.set(x + (west ? 0.02 : -0.02), 1.7, z);
+      eye.position.set(face + (west ? 0.02 : -0.02), 1.75, z);
       eye.visible = false;
       s.add(eye);
-      this.peeks.push({ x: west ? x + 1.5 : x - 1.5, z, eye, done: false });
+      this.peeks.push({ x: west ? wx + 1.7 : wx - 1.7, z, eye, done: false, west, seg: `${wx.toFixed(2)},${z.toFixed(2)}` });
     }
+  }
+
+  // Three keys for the middle gate, waiting in far corners of that section.
+  _keys() {
+    const s = this.scene;
+    const used = new Set([...this.donutCells, ...this.propCells].map((c) => `${c.c},${c.r}`));
+    const dist = this.dist1;
+    const ex = this.exits[1];
+    const cand = [...this.dead1.slice(2), ...Object.entries(dist).map(([k, d]) => { const [c, r] = k.split(',').map(Number); return { c, r, d }; }).sort((p, q) => q.d - p.d)]
+      .filter((cl) => !used.has(`${cl.c},${cl.r}`) && !(cl.c === ex.c && cl.r === ex.r) && !(cl.c === this.entries[1].c && cl.r === this.entries[1].r));
+    this.keys = [];
+    for (const [name, color] of KEY_COLORS) {
+      const cell = cand.find((cl) => !used.has(`${cl.c},${cl.r}`));
+      used.add(`${cell.c},${cell.r}`);
+      const p = this.cellPos(cell.c, cell.r);
+      const g = new THREE.Group();
+      const m = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 1.6, metalness: 0.6, roughness: 0.3 });
+      const bow = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.028, 8, 20), m);
+      bow.position.y = 0.16;
+      g.add(bow);
+      g.add(P.box(0.035, 0.3, 0.035, m, 0, -0.16, 0));
+      g.add(P.box(0.08, 0.035, 0.035, m, 0.04, -0.14, 0));
+      g.add(P.box(0.06, 0.035, 0.035, m, 0.03, -0.06, 0));
+      const halo = new THREE.Mesh(new THREE.RingGeometry(0.22, 0.32, 24), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false }));
+      g.add(halo);
+      g.position.set(p.x, 1.1, p.z);
+      s.add(g);
+      const light = new THREE.PointLight(color, 2.2, 3.5, 2);
+      light.position.set(p.x, 1.4, p.z);
+      s.add(light);
+      this.keys.push({ name, color, obj: g, light, cell, taken: false, t: Math.random() * 6 });
+    }
+    this.addUpdater((dt) => {
+      for (const k of this.keys) {
+        if (k.taken) continue;
+        k.t += dt;
+        k.obj.rotation.y += dt * 1.8;
+        k.obj.position.y = 1.1 + Math.sin(k.t * 2) * 0.08;
+      }
+    });
+  }
+
+  takeKey(k) {
+    k.taken = true;
+    k.obj.visible = false;
+    k.light.intensity = 0;
   }
 
   // ---------------------------------------------------------------- explorer's map
@@ -497,8 +574,15 @@ export class Maze extends Level {
     this.stations.forEach((st, b) => {
       const ex = this.exits[b];
       if (!seen.has(`${ex.c},${ex.r}`)) return;
-      ctx.fillText(['⚡', '📟', '🖼️'][b], X(ex.c) + S / 2, Y(ex.r) + S / 2);
+      ctx.fillText(['⚡', '🔒', '🖼️'][b], X(ex.c) + S / 2, Y(ex.r) + S / 2);
     });
+    for (const k of this.keys) {
+      if (k.taken || !seen.has(`${k.cell.c},${k.cell.r}`)) continue;
+      ctx.fillStyle = '#' + k.color.toString(16).padStart(6, '0');
+      ctx.strokeStyle = '#3b2a1a';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(X(k.cell.c) + S / 2, Y(k.cell.r) + S / 2, 4, 0, 7); ctx.fill(); ctx.stroke();
+    }
     for (const col of this.collectibles) {
       if (col.taken) continue;
       const { c, r } = this._mapCell(col.obj.position.x, col.obj.position.z);

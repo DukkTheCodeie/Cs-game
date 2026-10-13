@@ -17,9 +17,10 @@ import { openPuzzle } from '../puzzles/puzzles.js';
 import { Player } from './player.js';
 import { Museum, SPOTS } from '../world/museum.js';
 import { CHAPTERS, START, runChapter, tipFor } from './chapters.js';
+import { TOTAL_DONUTS, FRAGMENTS } from './constants.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
-export const TOTAL_DONUTS = 14;
+export { TOTAL_DONUTS };
 
 function defaultSave() {
   return {
@@ -34,7 +35,12 @@ function loadSave() {
   try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.settings.shake = false; } catch (_) { /* ignore */ }
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-    if (s) return { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) }, flags: { ...(s.flags || {}) } };
+    if (s) {
+      const save = { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) }, flags: { ...(s.flags || {}) } };
+      // older versions had a NAP fragment (the telegraph puzzle is gone)
+      save.fragments = (save.fragments || []).filter((f) => FRAGMENTS.includes(f));
+      return save;
+    }
   } catch (_) { /* ignore */ }
   return d;
 }
@@ -188,7 +194,7 @@ export class Game {
 
   // ------------------------------------------------------------ boot
   async boot() {
-    await this.clips.init();
+    this.clips.init();
     this.menuLevel = new Museum(this, { time: 'night' });
     this.menuLevel.persistent = true;
     this.setLevel(this.menuLevel);
@@ -545,7 +551,7 @@ export class Game {
     const st = START[id];
     if (mode === 'fresh') {
       this.save.fragments = st.fragments.slice();
-      if (['intro', 'dino', 'roman', 'chase', 'maze'].includes(id)) this.save.solved = {};
+      if (['intro', 'dino', 'egypt', 'roman', 'chase', 'maze'].includes(id)) this.save.solved = {};
       this.meter.set(st.meter);
     } else if (mode === 'continue') {
       this.meter.set(Math.max(60, st.meter * 0.85));

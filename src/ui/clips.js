@@ -1,25 +1,18 @@
-import { LINES } from '../game/script.js';
+import { LINES, SPEAKER_EMOTIONS } from '../game/script.js';
 
-// Where clips come from (first match wins):
-//   1. Recorded / uploaded in the in-game Clip Studio (saved in this browser, IndexedDB)
-//   2. Files you drop in the repo:  assets/clips/<lineId>.mp4  (.webm / .mov also work)
-// Photos for portraits:  assets/clips/guard.png  /  assets/clips/dev.png  (.jpg / .webp also work)
-// If nothing is found, a cartoon portrait + voice is used instead.
+// Your clips and photos come ONLY from files in the repo (assets/clips/), so only people who can
+// change the repo (you) can put things in the game. For each line, the first match wins:
+//   1. assets/clips/<lineId>.mp4        you saying that line (plays with its own sound)
+//   2. assets/clips/<who>-<emotion>.mp4 a short reaction for that emotion (plays muted, looped)
+//   3. assets/clips/<who>-<emotion>.jpg a photo of you making that face
+//   4. assets/clips/<who>.jpg           your normal photo
+//   5. the cartoon, making that face
+// Videos: .mp4 / .webm / .mov · photos: .jpg / .jpeg / .png / .webp
 
 export const CLIP_DIR = 'assets/clips/';
 const VIDEO_EXTS = ['mp4', 'webm', 'mov'];
-const IMAGE_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
-export const PORTRAIT_WHO = ['guard', 'dev', 'aaron'];
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    if (!('indexedDB' in window)) return reject(new Error('no indexedDB'));
-    const r = indexedDB.open('locked-out-clips', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('clips');
-    r.onsuccess = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-  });
-}
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
+export const ACTORS = ['guard', 'dev', 'aaron', 'mummy'];
 
 function probe(url, kind) {
   return new Promise((resolve) => {
@@ -44,109 +37,73 @@ function probe(url, kind) {
 
 export class ClipLibrary {
   constructor() {
-    this.files = {};
-    this.recorded = {};
+    this.found = {};
     this.probes = {};
-    this.db = null;
     this.listeners = new Set();
   }
 
-  async init() {
-    try {
-      this.db = await openDB();
-      const keys = await this._req((s) => s.getAllKeys());
-      for (const k of keys) {
-        const blob = await this._req((s) => s.get(k));
-        if (blob) this._setRecorded(k, blob);
-      }
-    } catch (e) {
-      console.info('[clips] browser storage unavailable — recording disabled', e?.message || e);
-    }
-    this._probeAll();
-  }
-
-  _req(fn, mode = 'readonly') {
-    return new Promise((resolve, reject) => {
-      const tx = this.db.transaction('clips', mode);
-      const r = fn(tx.objectStore('clips'));
-      r.onsuccess = () => resolve(r.result);
-      r.onerror = () => reject(r.error);
-    });
-  }
-
-  _setRecorded(k, blob) {
-    if (this.recorded[k]) URL.revokeObjectURL(this.recorded[k].url);
-    this.recorded[k] = { url: URL.createObjectURL(blob), blob, type: blob.type || '', source: 'recorded' };
-  }
-
-  async _probeAll() {
+  // Look for files in the background; the game doesn't wait for this.
+  init() {
     const jobs = [];
-    for (const id of Object.keys(LINES)) jobs.push(() => this._probeVideo(id));
-    for (const who of PORTRAIT_WHO) jobs.push(() => this._probeImage(who));
+    const faces = (who) => {
+      jobs.push(() => this._find(`img:${who}`, who, 'img'));
+      for (const mood of SPEAKER_EMOTIONS[who] || []) {
+        jobs.push(() => this._find(`emoimg:${who}-${mood}`, `${who}-${mood}`, 'img'));
+        jobs.push(() => this._find(`emovid:${who}-${mood}`, `${who}-${mood}`, 'video'));
+      }
+    };
+    faces('dev'); // the menu TV shows up first
+    for (const who of ACTORS) if (who !== 'dev') faces(who);
+    for (const id of Object.keys(LINES)) jobs.push(() => this._find(`line:${id}`, id, 'video'));
     let i = 0;
     const worker = async () => { while (i < jobs.length) await jobs[i++](); };
-    await Promise.all([worker(), worker(), worker(), worker()]);
-    this._emit();
+    Promise.all([worker(), worker(), worker(), worker(), worker(), worker()]).then(() => this._emit());
   }
 
-  _probeVideo(id) {
-    if (!this.probes[id]) {
-      this.probes[id] = (async () => {
-        for (const ext of VIDEO_EXTS) {
-          const url = `${CLIP_DIR}${id}.${ext}`;
-          if (await probe(url, 'video')) { this.files[id] = { url, source: 'file' }; return; }
-        }
-      })();
-    }
-    return this.probes[id];
-  }
-
-  _probeImage(who) {
-    const key = 'portrait_' + who;
+  _find(key, base, kind) {
     if (!this.probes[key]) {
       this.probes[key] = (async () => {
-        for (const ext of IMAGE_EXTS) {
-          const url = `${CLIP_DIR}${who}.${ext}`;
-          if (await probe(url, 'img')) { this.files[key] = { url, source: 'file' }; return; }
+        for (const ext of kind === 'video' ? VIDEO_EXTS : IMAGE_EXTS) {
+          const url = `${CLIP_DIR}${base}.${ext}`;
+          if (await probe(url, kind)) {
+            this.found[key] = { url, kind };
+            this._emit();
+            return this.found[key];
+          }
         }
+        return null;
       })();
     }
     return this.probes[key];
   }
 
-  // Resolve a clip for a line, waiting briefly for the file probe if it hasn't finished.
-  async resolve(id) {
-    if (this.recorded[id]) return this.recorded[id];
-    if (this.files[id]) return this.files[id];
-    const p = this._probeVideo(id);
-    await Promise.race([p, new Promise((r) => setTimeout(r, 350))]);
-    return this.recorded[id] || this.files[id] || null;
+  _candidates(id, who, mood) {
+    const c = [];
+    if (id) c.push([`line:${id}`, id, 'video', 'line']);
+    if (ACTORS.includes(who)) {
+      c.push([`emovid:${who}-${mood}`, `${who}-${mood}`, 'video', 'emotion']);
+      c.push([`emoimg:${who}-${mood}`, `${who}-${mood}`, 'img', 'emotion']);
+      c.push([`img:${who}`, who, 'img', 'photo']);
+    }
+    return c;
   }
 
-  get(id) {
-    return this.recorded[id] || this.files[id] || null;
+  // Best media for a line, waiting briefly for file checks that haven't finished yet.
+  async forLine(id, who, mood) {
+    const deadline = performance.now() + 450;
+    for (const [key, base, kind, type] of this._candidates(id, who, mood)) {
+      if (this.found[key]) return { ...this.found[key], type };
+      const left = deadline - performance.now();
+      const r = left > 0 ? await Promise.race([this._find(key, base, kind), new Promise((res) => setTimeout(() => res(null), left))]) : null;
+      if (r) return { ...r, type };
+    }
+    return null;
   }
 
-  portrait(who) {
-    const k = 'portrait_' + who;
-    return this.recorded[k] || this.files[k] || null;
-  }
-
-  async save(id, blob) {
-    this._setRecorded(id, blob);
-    if (this.db) await this._req((s) => s.put(blob, id), 'readwrite');
-    this._emit();
-  }
-
-  async remove(id) {
-    if (this.recorded[id]) URL.revokeObjectURL(this.recorded[id].url);
-    delete this.recorded[id];
-    if (this.db) await this._req((s) => s.delete(id), 'readwrite');
-    this._emit();
-  }
-
-  get canStore() {
-    return !!this.db;
+  // Best still face (or silent loop) for a character who isn't talking, e.g. the dev on the menu TV.
+  face(who, mood = 'normal') {
+    for (const [key] of this._candidates(null, who, mood)) if (this.found[key]) return this.found[key];
+    return null;
   }
 
   onChange(fn) {

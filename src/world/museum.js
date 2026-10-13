@@ -3,7 +3,8 @@ import { Level, boxUV } from './level.js';
 import { tex, signTexture, makeCanvas, canvasTexture, plaqueTexture } from './textures.js';
 import * as P from './props.js';
 import { TRex } from './trex.js';
-import { makeGuard, makeVisitor, Person } from './people.js';
+import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
+import { drawGlyph, drawStrokes, GLYPH_KEYS } from './glyphs.js';
 import { drawCCTV } from './screens.js';
 import { mulberry32 } from '../core/util.js';
 import { batchStatic } from './batch.js';
@@ -13,6 +14,7 @@ import { batchStatic } from './batch.js';
 //   Lobby            x[-12, 12] z[-10,10]
 //   Dinosaur Hall    x[-15, 15] z[-46,-10]
 //   Roman Hall       x[ 12, 40] z[-9, 9]
+//   Egyptian Wing    x[ 15, 39] z[-37,-9]  (doors to the Dinosaur Hall and the Roman Hall)
 
 export const SPOTS = {
   officeChair: new THREE.Vector3(-17.9, 0, 0),
@@ -24,7 +26,20 @@ export const SPOTS = {
   romanDoor: new THREE.Vector3(13.5, 0, 0),
   romanPanel: new THREE.Vector3(37.4, 0, 0),
   computer: new THREE.Vector3(-18.75, 1.05, 0),
+  egyptDoor: new THREE.Vector3(15.2, 0, -24),
+  egyptPanel: new THREE.Vector3(24.4, 0, -20.6),
+  sarcophagus: new THREE.Vector3(27.5, 0, -25),
+  romanNorthDoor: new THREE.Vector3(24.75, 0, -9.2),
 };
+
+export const EGYPT = { x0: 15.42, x1: 39, z0: -37, z1: -9.42, h: 8.5 };
+// pillar | , || , ||| , |||| and their symbols (the Pharaoh's Lock code)
+export const EGYPT_PILLARS = [
+  { n: 1, glyph: 'bird', x: 19.2, z: -29.4 },
+  { n: 2, glyph: 'eye', x: 31.6, z: -33.4 },
+  { n: 3, glyph: 'snake', x: 36.4, z: -19.6 },
+  { n: 4, glyph: 'ankh', x: 18.4, z: -15.2 },
+];
 
 export class Museum extends Level {
   constructor(game, { time = 'night' } = {}) {
@@ -32,7 +47,7 @@ export class Museum extends Level {
     this.time = time;
     this.night = time === 'night';
     this.refs = {};
-    this.surfaceAt = (x, z) => (x < -12 ? 'wood' : x > 12 ? 'marble' : z < -10 ? 'stone' : 'marble');
+    this.surfaceAt = (x, z) => (x < -12 ? 'wood' : x > 15.2 && z < -9.3 ? 'stone' : x > 12 ? 'marble' : z < -10 ? 'stone' : 'marble');
     const s = this.scene;
     s.background = new THREE.Color(this.night ? 0x020308 : 0xbfd2e6);
     s.fog = this.night ? new THREE.FogExp2(0x03050b, 0.028) : new THREE.Fog(0xcfdbe8, 40, 140);
@@ -56,11 +71,12 @@ export class Museum extends Level {
     this._lobby();
     this._dino();
     this._roman();
+    this._egypt();
     this._collectibles();
     if (!this.night) this._visitors();
     // merge everything that never moves (walls, props, signs...) → far fewer draw calls
     const r = this.refs;
-    const dynamic = new Set([r.trex.group, r.guard.group, r.donutBox, r.deskFlashlight, r.footprints,
+    const dynamic = new Set([r.trex.group, r.guard.group, r.donutBox, r.deskFlashlight, r.footprints, r.sarcLid, r.mummy.holder, ...r.flames.map((f) => f.flame),
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
     batchStatic(this.scene, (o) => dynamic.has(o));
   }
@@ -88,12 +104,14 @@ export class Museum extends Level {
       accent(0x6a86ff, 6, 22, 0, 9, -40);     // mural
       accent(0xffb070, 5, 14, 37, 5, 0);      // tablet
       accent(0x6a86ff, 3, 16, 0, 6, 6);       // lobby moon wash
+      accent(0x8a6aff, 4, 18, 27, 7, -30);    // egypt: moonlight over the mural
       this.officeLamp = accent(0xffc77a, 3.5, 7, -18.4, 1.4, 0.9);
       this.fluoro = accent(0xdfe8ff, 2.5, 8, -16, 3.1, 0);
     } else {
       accent(0xffffff, 30, 40, 0, 11, -28);
       accent(0xfff2dd, 20, 30, 26, 8, 0);
       accent(0xffffff, 12, 25, 0, 7, 0);
+      accent(0xfff2dd, 22, 32, 27, 7.5, -23);
       this.officeLamp = accent(0xffc77a, 2, 6, -18.4, 1.4, 0.9);
       this.fluoro = accent(0xffffff, 6, 10, -16, 3.1, 0);
     }
@@ -318,7 +336,7 @@ export class Museum extends Level {
     banner.rotation.y = 0.3;
     s.add(banner);
     // museum map board
-    const map = P.makeWallPlaque('MUSEUM MAP', '↑ North: Dinosaur Hall\n→ East: Roman Empire\n← West: Security Office\n↓ South: Exit (locked at night)', 2.4, 1.6, { bg: '#16202e', fg: '#dfe8ff', accent: '#6dc2ff' });
+    const map = P.makeWallPlaque('MUSEUM MAP', '↑ North: Dinosaur Hall (→ Egyptian Wing)\n→ East: Roman Empire\n← West: Security Office\n↓ South: Exit (locked at night)', 2.4, 1.6, { bg: '#16202e', fg: '#dfe8ff', accent: '#6dc2ff' });
     map.position.set(11.78, 2.2, 6.5);
     map.rotation.y = -Math.PI / 2;
     s.add(map);
@@ -339,7 +357,7 @@ export class Museum extends Level {
     this.ceiling(-15, 15, -46, -10, 13, m.darkCeil);
     this.wallX(-46, -15, 15, 13, m.dinoWall, [], 3);
     this.wallZ(-15, -46, -10, 13, m.dinoWall, [], 3);
-    this.wallZ(15, -46, -10, 13, m.dinoWall, [], 3);
+    this.wallZ(15, -46, -10, 13, m.dinoWall, [{ c: SPOTS.egyptDoor.z, w: 3.2, h: 4.4 }], 3);
     this.wallX(-10, -15, -12, 13, m.dinoWall, [], 3);
     this.wallX(-10, 12, 15, 13, m.dinoWall, [], 3);
     // lobby wall above y=8 is covered by dino hall's taller wall
@@ -490,9 +508,12 @@ export class Museum extends Level {
     const fpMat = new THREE.MeshBasicMaterial({ map: canvasTexture(fc), transparent: true, depthWrite: false, opacity: 0.85 });
     const prints = new THREE.Group();
     const path = [];
-    for (let i = 0; i < 6; i++) path.push([(i % 2 ? 0.7 : -0.7) + Math.sin(i * 0.3) * 0.5, -21 + i * 2.3]);
-    // ...through the lobby, toward the Roman Hall (east)
-    for (let i = 0; i < 12; i++) path.push([0.8 + i * 1.25, -7.6 + i * 0.65 + (i % 2 ? 0.45 : -0.45)]);
+    // off the platform, east to the Egyptian Wing...
+    for (let i = 0; i < 9; i++) path.push([5.4 + i * 1.25, -27.4 + i * 0.4 + (i % 2 ? 0.45 : -0.45)]);
+    // ...a lap around the mummy's hall (knocking over a statue)...
+    for (let i = 0; i < 10; i++) path.push([17.2 + i * 1.7, -23.4 + i * 0.85 + (i % 2 ? 0.45 : -0.45)]);
+    // ...and out through the door to the Roman Hall
+    for (let i = 0; i < 6; i++) path.push([32.4 - i * 1.4, -14.6 + i * 0.75 + (i % 2 ? 0.45 : -0.45)]);
     const fpGeo = new THREE.PlaneGeometry(1.1, 1.1);
     path.forEach(([x, z], i) => {
       const fp = new THREE.Mesh(fpGeo, fpMat);
@@ -513,7 +534,7 @@ export class Museum extends Level {
     const m = this.mats, s = this.scene;
     this.floor(12, 40, -9, 9, m.mosaic, 0, 4);
     this.ceiling(12, 40, -9, 9, 9, m.darkCeil);
-    this.wallX(-9, 12, 40, 9, m.romanWall, [], 3);
+    this.wallX(-9, 12, 40, 9, m.romanWall, [{ c: SPOTS.romanNorthDoor.x, w: 3.2, h: 4.4 }], 3);
     this.wallX(9, 12, 40, 9, m.romanWall, [], 3);
     this.wallZ(40, -9, 9, 9, m.romanWall, [], 3);
     this.wallZ(12, -9, 9, 9, m.romanWall, [{ c: 0, w: 6, h: 6.2 }], 3);
@@ -526,7 +547,7 @@ export class Museum extends Level {
       this.addBoxCollider(cx, cz, 1.25, 1.25);
     }
     // busts
-    const names = [['JULIUS CAESAR', 19.25, -8], ['AUGUSTUS', 24.75, -8], ['NERO', 30.25, -8], ['MARCUS AURELIUS', 19.25, 8], ['CALIGULA', 24.75, 8], ['HADRIAN', 30.25, 8]];
+    const names = [['JULIUS CAESAR', 19.25, -8], ['NERO', 30.25, -8], ['MARCUS AURELIUS', 19.25, 8], ['CALIGULA', 24.75, 8], ['HADRIAN', 30.25, 8]];
     for (const [n, x, z] of names) {
       this.add(P.makeBust(n), x, 0, z, z > 0 ? Math.PI : 0);
       this.addBoxCollider(x, z, 0.85, 0.85);
@@ -594,6 +615,302 @@ export class Museum extends Level {
     s.add(e);
   }
 
+  // ------------------------------------------------------------------ egyptian wing
+  _egypt() {
+    const s = this.scene, n = this.night;
+    const E = EGYPT;
+    const sandWall = new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xc9a46c, roughness: 0.9 });
+    const sandFloor = new THREE.MeshStandardMaterial({ map: tex('stone'), color: 0xd8b98a, roughness: 0.85 });
+    const sandstone = P.mat('sandstone', { color: 0xc8a978, roughness: 0.85 });
+    const darkStone = P.mat('egyptDark', { color: 0x8a7350, roughness: 0.9 });
+    const basalt = P.mat('basalt', { color: 0x1b1a1f, roughness: 0.35, metalness: 0.2 });
+    const gold = P.MATS.brass();
+    const lapis = P.mat('lapis', { color: 0x1f3d8a, roughness: 0.5 });
+    this.floor(E.x0, E.x1, E.z0, E.z1, sandFloor, 0, 3);
+    this.ceiling(E.x0, E.x1, E.z0, E.z1, E.h, this.mats.darkCeil);
+    this.wallZ(E.x0, E.z0, E.z1, E.h, sandWall, [{ c: SPOTS.egyptDoor.z, w: 3.2, h: 4.4 }], 3);
+    this.wallZ(E.x1, E.z0, E.z1, E.h, sandWall, [], 3);
+    this.wallX(E.z0, E.x0, E.x1, E.h, sandWall, [], 3);
+    this.wallX(E.z1, E.x0, E.x1, E.h, sandWall, [{ c: SPOTS.romanNorthDoor.x, w: 3.2, h: 4.4 }], 3);
+
+    // doorways through the double walls (dinosaur hall ↔ egypt ↔ rome)
+    const doorFrame = (axis, cx, cz) => {
+      const depth = 0.95, jw = 0.26;
+      for (const sd of [-1, 1]) {
+        const o = sd * (1.6 - jw / 2);
+        const j = axis === 'z' ? P.box(depth, 4.4, jw, sandstone, cx, 0, cz + o) : P.box(jw, 4.4, depth, sandstone, cx + o, 0, cz);
+        s.add(j);
+        if (axis === 'z') this.addCollider(cx - depth / 2, cx + depth / 2, cz + o - jw / 2, cz + o + jw / 2);
+        else this.addCollider(cx + o - jw / 2, cx + o + jw / 2, cz - depth / 2, cz + depth / 2);
+      }
+      s.add(axis === 'z' ? P.box(depth + 0.1, 0.6, 3.5, sandstone, cx, 4.3, cz) : P.box(3.5, 0.6, depth + 0.1, sandstone, cx, 4.3, cz));
+      s.add(axis === 'z' ? P.box(depth + 0.14, 0.1, 3.6, gold, cx, 4.4, cz) : P.box(3.6, 0.1, depth + 0.14, gold, cx, 4.4, cz));
+    };
+    doorFrame('z', (E.x0 + 15) / 2, SPOTS.egyptDoor.z);
+    doorFrame('x', SPOTS.romanNorthDoor.x, (E.z1 - 9) / 2);
+
+    // painted frieze of hieroglyphs running around the walls
+    const [fc, fx] = makeCanvas(1024, 128);
+    fx.fillStyle = '#d9b57a'; fx.fillRect(0, 0, 1024, 128);
+    fx.fillStyle = '#8a2a18'; fx.fillRect(0, 0, 1024, 10); fx.fillRect(0, 118, 1024, 10);
+    fx.fillStyle = '#1f3d8a'; fx.fillRect(0, 12, 1024, 5); fx.fillRect(0, 111, 1024, 5);
+    GLYPH_KEYS.forEach((k, i) => drawGlyph(fx, k, 64 + i * 128, 64, 80, ['#1f3d8a', '#8a2a18', '#1a1a1a'][i % 3]));
+    const frieze = (len, x, z, ry) => {
+      const t = canvasTexture(fc);
+      t.wrapS = THREE.RepeatWrapping;
+      t.repeat.set(len / 7, 1);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(len, 0.9), new THREE.MeshStandardMaterial({ map: t, roughness: 0.8 }));
+      m.position.set(x, 5.6, z);
+      m.rotation.y = ry;
+      s.add(m);
+    };
+    const W2 = this.wallT / 2 + 0.01;
+    frieze(E.x1 - E.x0, (E.x0 + E.x1) / 2, E.z0 + W2, 0);
+    frieze(E.x1 - E.x0, (E.x0 + E.x1) / 2, E.z1 - W2, Math.PI);
+    frieze(E.z1 - E.z0, E.x1 - W2, (E.z0 + E.z1) / 2, -Math.PI / 2);
+    frieze(E.z1 - E.z0, E.x0 + W2, (E.z0 + E.z1) / 2, Math.PI / 2);
+
+    // north wall mural: the eye that watches the hall
+    const [mc, mx] = makeCanvas(1024, 512);
+    const sky = mx.createLinearGradient(0, 0, 0, 512);
+    sky.addColorStop(0, '#2a1a3a'); sky.addColorStop(0.55, '#c86a2a'); sky.addColorStop(1, '#e8c07a');
+    mx.fillStyle = sky; mx.fillRect(0, 0, 1024, 512);
+    mx.fillStyle = '#7a4a1e';
+    for (const [px, w, h] of [[180, 300, 210], [470, 380, 280], [800, 260, 170]]) { mx.beginPath(); mx.moveTo(px - w / 2, 512); mx.lineTo(px, 512 - h); mx.lineTo(px + w / 2, 512); mx.fill(); }
+    mx.fillStyle = '#ffd36a'; mx.beginPath(); mx.arc(512, 120, 54, 0, 7); mx.fill();
+    drawGlyph(mx, 'eye', 512, 260, 190, '#14244f');
+    mx.fillStyle = '#f3e6c4'; mx.font = 'bold 54px Georgia, serif'; mx.textAlign = 'center';
+    mx.fillText('THE LAND OF THE PHARAOHS', 512, 60);
+    const mural = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), new THREE.MeshStandardMaterial({ map: canvasTexture(mc), roughness: 0.8 }));
+    mural.position.set((E.x0 + E.x1) / 2, 3.2, E.z0 + W2);
+    s.add(mural);
+
+    // the four pillars (the Pharaoh's Lock code)
+    this.refs.pillars = [];
+    EGYPT_PILLARS.forEach(({ n: num, glyph, x, z }) => {
+      const pg = new THREE.Group();
+      pg.add(P.box(1.4, 0.3, 1.4, darkStone, 0, 0, 0));
+      pg.add(P.box(1.1, E.h - 0.6, 1.1, sandstone, 0, 0.3, 0));
+      pg.add(P.box(1.4, 0.3, 1.4, darkStone, 0, E.h - 0.3, 0));
+      const [pc, px] = makeCanvas(256, 768);
+      px.fillStyle = '#e3c992'; px.fillRect(0, 0, 256, 768);
+      for (let i = 0; i < 600; i++) { px.fillStyle = `rgba(90,60,20,${Math.random() * 0.1})`; px.fillRect(Math.random() * 256, Math.random() * 768, 3, 3); }
+      px.strokeStyle = '#8a2a18'; px.lineWidth = 10; px.strokeRect(12, 12, 232, 744);
+      px.fillStyle = '#1f3d8a'; px.fillRect(12, 250, 232, 10); px.fillRect(12, 600, 232, 10);
+      drawStrokes(px, num, 128, 140, 150, '#b0301a');
+      drawGlyph(px, glyph, 128, 430, 220, '#14244f');
+      for (let i = 0; i < 4; i++) drawGlyph(px, GLYPH_KEYS[(num * 3 + i) % GLYPH_KEYS.length], 50 + (i % 2) * 156, 650 + Math.floor(i / 2) * 70, 50, 'rgba(60,40,20,0.55)');
+      const ptex = canvasTexture(pc);
+      const pmat = new THREE.MeshStandardMaterial({ map: ptex, roughness: 0.75 });
+      for (let f = 0; f < 4; f++) {
+        const pl = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 3.0), pmat);
+        const a = (f * Math.PI) / 2;
+        pl.position.set(Math.sin(a) * 0.56, 2.05, Math.cos(a) * 0.56);
+        pl.rotation.y = a;
+        pg.add(pl);
+      }
+      this.add(pg, x, 0, z);
+      this.addBoxCollider(x, z, 1.4, 1.4);
+      const it = this.addInteractable({ id: 'pillar' + num, pos: new THREE.Vector3(x, 1.7, z), prompt: 'Read the pillar', enabled: false, radius: 2.9 });
+      this.refs.pillars.push({ n: num, glyph, it, x, z });
+    });
+
+    // puzzle console: the Pharaoh's Lock
+    const ce = P.makeConsole({ title: "PHARAOH'S LOCK", color: '#e9c46a' });
+    this.add(ce.group, SPOTS.egyptPanel.x, 0, SPOTS.egyptPanel.z);
+    this.addBoxCollider(SPOTS.egyptPanel.x, SPOTS.egyptPanel.z, 0.8, 0.6);
+    this.addUpdater((dt) => ce.update(dt));
+    this.refs.consoleE = ce;
+    this.refs.panelEIt = this.addInteractable({ id: 'panelE', pos: new THREE.Vector3(SPOTS.egyptPanel.x, 1.2, SPOTS.egyptPanel.z), prompt: "Open the Pharaoh's Lock", enabled: false });
+
+    // the dais and THE SARCOPHAGUS (it opens)
+    const SC = SPOTS.sarcophagus;
+    const dais = new THREE.Mesh(boxUV(4.6, 0.45, 6, 2), new THREE.MeshStandardMaterial({ map: tex('stone'), color: 0x9a7f58, roughness: 0.85 }));
+    dais.position.set(SC.x, 0.225, SC.z);
+    dais.receiveShadow = true;
+    s.add(dais);
+    s.add(P.box(4.7, 0.06, 6.1, gold, SC.x, 0.45, SC.z));
+    s.add(P.box(2.6, 0.22, 0.7, darkStone, SC.x, 0, SC.z + 3.3));
+    this.addCollider(SC.x - 2.3, SC.x + 2.3, SC.z - 3, SC.z + 3);
+    const [sc, sx] = makeCanvas(512, 256);
+    for (let i = 0; i < 16; i++) { sx.fillStyle = i % 2 ? '#1f3d8a' : '#d4a43a'; sx.fillRect(i * 32, 0, 32, 256); }
+    sx.fillStyle = '#d4a43a'; sx.fillRect(0, 96, 512, 64);
+    GLYPH_KEYS.forEach((k, i) => drawGlyph(sx, k, 32 + i * 64, 128, 50, '#14244f'));
+    const sarcMat = new THREE.MeshStandardMaterial({ map: canvasTexture(sc), roughness: 0.45, metalness: 0.4 });
+    const inside = P.mat('sarcInside', { color: 0x1a120a, roughness: 1 });
+    const sarc = new THREE.Group();
+    const bw = 1.3, bh = 0.9, bl = 2.6, th = 0.1;
+    sarc.add(P.box(bw, th, bl, inside, 0, 0, 0));
+    sarc.add(P.box(th, bh, bl, sarcMat, -bw / 2 + th / 2, 0, 0));
+    sarc.add(P.box(th, bh, bl, sarcMat, bw / 2 - th / 2, 0, 0));
+    sarc.add(P.box(bw, bh, th, sarcMat, 0, 0, -bl / 2 + th / 2));
+    sarc.add(P.box(bw, bh, th, sarcMat, 0, 0, bl / 2 - th / 2));
+    sarc.add(P.box(bw - 2 * th, 0.02, bl - 2 * th, inside, 0, th, 0));
+    this.add(sarc, SC.x, 0.45, SC.z);
+    // the lid, with a golden pharaoh face at the head (north) end
+    const lid = new THREE.Group();
+    const [lc, lx] = makeCanvas(256, 512);
+    lx.fillStyle = '#d4a43a'; lx.fillRect(0, 0, 256, 512);
+    for (let i = 0; i < 9; i++) { lx.fillStyle = i % 2 ? '#1f3d8a' : '#e9c46a'; lx.fillRect(40, 150 + i * 22, 176, 22); }
+    drawGlyph(lx, 'ankh', 128, 400, 120, '#14244f');
+    drawGlyph(lx, 'scarab', 128, 90, 110, '#14244f');
+    const lidTop = new THREE.Mesh(new THREE.BoxGeometry(bw + 0.06, 0.16, bl + 0.06), [sarcMat, sarcMat, new THREE.MeshStandardMaterial({ map: canvasTexture(lc), roughness: 0.4, metalness: 0.5 }), sarcMat, sarcMat, sarcMat]);
+    lidTop.castShadow = true;
+    lid.add(lidTop);
+    const face = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 12, 0, Math.PI * 2, 0, Math.PI / 2), gold);
+    face.scale.set(1, 0.55, 1.15);
+    face.position.set(0, 0.08, -bl / 2 + 0.42);
+    lid.add(face);
+    for (const sd of [-1, 1]) lid.add(P.box(0.14, 0.06, 0.6, lapis, sd * 0.3, 0.06, -bl / 2 + 0.55));
+    lid.position.set(SC.x, 0.45 + bh + 0.08, SC.z);
+    s.add(lid);
+    this.refs.sarcLid = lid;
+    this.refs.sarcLidBase = lid.position.clone();
+    // the mummy lies inside (head north). holder → pivot (at the hips) → person
+    const mummy = makeMummy();
+    const holder = new THREE.Group();
+    const pivot = new THREE.Group();
+    holder.add(pivot);
+    pivot.add(mummy.group);
+    mummy.group.position.y = -0.92;
+    pivot.rotation.x = -Math.PI / 2;
+    mummy.anim.sit = 0;
+    mummy.setMode('liesit');
+    mummy.update(0);
+    holder.position.set(SC.x, 0.45 + th + 0.16, SC.z + 0.05);
+    s.add(holder);
+    this.refs.mummy = { person: mummy, holder, pivot, home: holder.position.clone() };
+    this.addUpdater((dt) => mummy.update(dt));
+
+    // Anubis statues guarding the coffin (one knocked over by a certain dinosaur)
+    const anubis = () => {
+      const a = new THREE.Group();
+      a.add(P.box(1.0, 0.7, 1.4, darkStone, 0, 0, 0));
+      a.add(P.box(0.62, 1.2, 0.5, basalt, 0, 0.7, -0.1));
+      a.add(P.box(0.66, 0.5, 0.9, basalt, 0, 0.7, 0.15)); // lap
+      for (const sd of [-1, 1]) a.add(P.box(0.18, 0.6, 0.2, basalt, sd * 0.2, 0.7, 0.55)); // shins
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.07, 6, 16), gold);
+      collar.rotation.x = Math.PI / 2;
+      collar.position.set(0, 1.86, -0.1);
+      a.add(collar);
+      const head = new THREE.Group();
+      head.add(P.box(0.38, 0.36, 0.42, basalt, 0, 0, 0));
+      head.add(P.box(0.18, 0.14, 0.42, basalt, 0, 0.04, 0.34)); // snout
+      for (const sd of [-1, 1]) {
+        const ear = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.42, 4), basalt);
+        ear.position.set(sd * 0.12, 0.5, -0.06);
+        head.add(ear);
+        const eye = P.box(0.06, 0.03, 0.02, gold, sd * 0.1, 0.22, 0.21);
+        head.add(eye);
+      }
+      head.position.set(0, 1.9, -0.05);
+      a.add(head);
+      a.scale.setScalar(1.5);
+      return P.shadowAll(a);
+    };
+    for (const sd of [-1, 1]) {
+      this.add(anubis(), SC.x + sd * 3.4, 0, SC.z - 2.6);
+      this.addBoxCollider(SC.x + sd * 3.4, SC.z - 2.6, 1.6, 2.2);
+    }
+    const fallen = anubis();
+    if (n) {
+      this.add(fallen, 35.4, 0.75, -15.4, 0);
+      fallen.rotation.set(0.15, -0.6, Math.PI / 2);
+      fallen.updateMatrixWorld(true);
+      const bb = new THREE.Box3().setFromObject(fallen);
+      this.addCollider(bb.min.x + 0.2, bb.max.x - 0.2, bb.min.z + 0.2, bb.max.z - 0.2);
+    } else {
+      this.add(fallen, 35.6, 0, -15.4, -Math.PI / 2);
+      this.addBoxCollider(35.6, -15.4, 2.2, 1.6);
+    }
+
+    // obelisk
+    const ob = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.5, 6, 4, 1), sandstone);
+    ob.rotation.y = Math.PI / 4;
+    ob.position.set(36.6, 3.3, -34.2);
+    ob.castShadow = true;
+    s.add(ob);
+    const tip = new THREE.Mesh(new THREE.ConeGeometry(0.33, 0.6, 4), gold);
+    tip.rotation.y = Math.PI / 4;
+    tip.position.set(36.6, 6.6, -34.2);
+    s.add(tip);
+    s.add(P.box(1.4, 0.3, 1.4, darkStone, 36.6, 0, -34.2));
+    this.addBoxCollider(36.6, -34.2, 1.4, 1.4);
+    // pyramid model in a case
+    const pyr = new THREE.Group();
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.6, 4), P.mat('pyr', { color: 0xe0c48a, roughness: 0.8 }));
+    cone.rotation.y = Math.PI / 4;
+    cone.position.y = 0.3;
+    pyr.add(cone);
+    this.add(P.makeDisplayCase(1.4, 0.9, 1.4, pyr), 19.6, 0, -34.4);
+    this.addBoxCollider(19.6, -34.4, 1.5, 1.5);
+    // canopic jars on a low table
+    s.add(P.box(0.7, 0.7, 2.4, darkStone, 16.2, 0, -31.6));
+    this.addCollider(15.8, 16.6, -32.85, -30.35);
+    ['jackal', 'falcon', 'baboon', 'human'].forEach((kind, i) => {
+      const j = new THREE.Group();
+      j.add(new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.08, 0.32, 12), P.mat('alabaster', { color: 0xe9e0cc, roughness: 0.5 })));
+      const hd = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), [gold, basalt, P.mat('alabaster', { color: 0xe9e0cc, roughness: 0.5 }), darkStone][i]);
+      hd.position.y = 0.22;
+      j.add(hd);
+      j.position.set(16.2, 0.86, -32.35 + i * 0.5);
+      s.add(j);
+    });
+
+    // plaques
+    const plaque = (title, body, x, z, ry) => this.add(P.makePlaqueStand(title, body, { bg: '#2a1c0c', accent: '#d4a43a' }), x, 0, z, ry);
+    plaque('EGYPTIAN NUMBERS', 'Ancient Egyptians counted with lines:\n| = 1    || = 2    ||| = 3    |||| = 4\n(10 was a little upside-down U. Fancy.)', 17.6, -20.8, -2.5);
+    plaque('THE MUMMY', 'Wrapped in about 20 layers of linen, 3,000 years ago.\nFavorite food: unknown. (Probably not donuts.)', 30.8, -20.6, 0);
+    plaque('THE ANKH', 'The Egyptian symbol of life. It looks like a key.\nIt is not a key. We checked.', 21.6, -14.6, Math.PI);
+    plaque('SCARAB BEETLE', 'Scarabs roll balls of poop across the sand.\nThe Egyptians thought this was beautiful. They were right.', 33.6, -31.6, -Math.PI / 2);
+
+    // braziers with flickering fire
+    this.refs.flames = [];
+    for (const [bx, bz] of [[18.2, -26.6], [23.0, -18.6], [21.0, -11.6], [33.0, -28.2]]) {
+      const br = new THREE.Group();
+      for (let i = 0; i < 3; i++) {
+        const a = (i / 3) * Math.PI * 2;
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.1, 5), gold);
+        leg.position.set(Math.cos(a) * 0.22, 0.52, Math.sin(a) * 0.22);
+        leg.rotation.set(Math.sin(a) * 0.2, 0, -Math.cos(a) * 0.2);
+        br.add(leg);
+      }
+      const bowl = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.2, 0.24, 14), gold);
+      bowl.position.y = 1.1;
+      br.add(bowl);
+      this.add(P.shadowAll(br, true, false), bx, 0, bz);
+      this.addBoxCollider(bx, bz, 0.7, 0.7);
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(0.22, 0.6, 8), new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+      flame.position.set(bx, 1.5, bz);
+      s.add(flame);
+      const fl = new THREE.PointLight(0xff9a40, n ? 7 : 2, 10, 2);
+      fl.position.set(bx, 1.9, bz);
+      s.add(fl);
+      this.refs.flames.push({ flame, light: fl, base: fl.intensity, ph: bx * 3.1 });
+    }
+    let ft = 0;
+    this.addUpdater((dt) => {
+      ft += dt;
+      for (const f of this.refs.flames) {
+        const k = 0.8 + Math.sin(ft * 13 + f.ph) * 0.1 + Math.sin(ft * 7.3 + f.ph * 2) * 0.1;
+        f.light.intensity = f.base * k;
+        f.flame.scale.set(1, 0.85 + k * 0.3, 1);
+        f.flame.rotation.y += dt * 2;
+      }
+    });
+
+    // signs
+    const sign = (text, x, y, z, ry) => {
+      const sg = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 1.1), new THREE.MeshStandardMaterial({ map: signTexture(text, { w: 1024, h: 220, bg: '#2a1c0c', fg: '#e9c46a', font: 'bold 104px Georgia, serif', border: '#d4a43a' }), emissive: 0xffe0a0, emissiveIntensity: n ? 0.12 : 0.02 }));
+      sg.position.set(x, y, z);
+      sg.rotation.y = ry;
+      s.add(sg);
+    };
+    sign('EGYPTIAN WING', 14.78, 5.6, SPOTS.egyptDoor.z, -Math.PI / 2);
+    sign('ROMAN EMPIRE', SPOTS.romanNorthDoor.x, 5.4, E.z1 - W2 - 0.01, Math.PI);
+    sign('EGYPTIAN WING', SPOTS.romanNorthDoor.x, 5.6, -8.78, 0);
+  }
+
   // ------------------------------------------------------------------ collectibles
   _collectibles() {
     if (!this.night) return;
@@ -605,6 +922,8 @@ export class Museum extends Level {
     this.addCollectible('roman_caligula', 24.75, 2.0, 8, 0);
     this.addCollectible('roman_chariot', 25, 1.55, 0, 3);
     this.addCollectible('roman_amphora', 38.3, 0.6, -6.6, 1);
+    this.addCollectible('egypt_jars', 16.4, 0.95, -29.6, 2);
+    this.addCollectible('egypt_obelisk', 38.0, 0.6, -36.0, 4);
   }
 
   // ------------------------------------------------------------------ day visitors
@@ -625,7 +944,7 @@ export class Museum extends Level {
       return new THREE.Vector3((a.minX + a.maxX) / 2, 0, a.maxZ);
     };
     for (let i = 0; i < 14; i++) {
-      const area = areas[i % 3 === 0 ? 0 : i % 3 === 1 ? 1 : 2];
+      const area = areas[i % areas.length];
       const v = makeVisitor(r);
       const p = pickPoint(area);
       v.group.position.copy(p);

@@ -156,7 +156,7 @@ export class Person {
       return { hip, knee, side: s };
     });
 
-    this.anim = { mode: 'idle', phase: 0, speed: 0, time: 0, talk: 0, blend: {} };
+    this.anim = { mode: 'idle', phase: 0, speed: 0, time: 0, talk: 0, sit: 0, blend: {} };
     batchJoints([hips, torso, head, ...this.arms.flatMap((a) => [a.sh, a.el, a.hand]), ...this.legs.flatMap((l) => [l.hip, l.knee])], [this.mouth]);
     this.update(0);
   }
@@ -178,7 +178,7 @@ export class Person {
     const t = a.time;
     const mode = a.mode;
     let freq = 0;
-    if (mode === 'walk') freq = a.speed / 1.5;
+    if (mode === 'walk' || mode === 'zombie') freq = a.speed / 1.5;
     if (mode === 'run') freq = a.speed / 3.2;
     a.phase += freq * Math.PI * 2 * dt;
     const ph = a.phase;
@@ -243,6 +243,34 @@ export class Person {
     } else if (mode === 'shrug') {
       target.arms = [[-0.2, -1.6, 0.6], [-0.2, -1.6, -0.6]];
       target.headRX = -0.1;
+    } else if (mode === 'zombie') {
+      // the classic mummy shuffle: stiff little steps, arms straight out
+      const s = Math.sin(ph);
+      target.legs = [[-0.25 * s, 0.1], [0.25 * s, 0.1]];
+      target.arms = [[-1.5 + 0.05 * s, -0.05, 0.08], [-1.5 - 0.05 * s, -0.05, -0.08]];
+      target.torsoRX = 0.06;
+      target.headRY = Math.sin(t * 1.3) * 0.12;
+      target.hipsY = 0.92 - Math.abs(s) * 0.02;
+    } else if (mode === 'liesit') {
+      // lying in a sarcophagus (sit = 0) → sitting up (sit = 1); the caller tilts the body
+      const k = a.sit;
+      target.legs = [[-1.55 * k, 0.05 * k], [-1.55 * k, 0.05 * k]];
+      target.arms = [[-1.5 * k, -1.9 * (1 - k), 0.35 * (1 - k)], [-1.5 * k, -1.9 * (1 - k), -0.35 * (1 - k)]];
+      target.headRX = 0.1 * (1 - k);
+    } else if (mode === 'munch') {
+      const k = (Math.sin(t * 9) + 1) / 2;
+      target.arms[1] = [-0.6 - 1.1 * k, -1.6 - 0.4 * k, -0.25];
+      target.arms[0] = [-0.2, -0.4, 0.1];
+      target.headRX = 0.12 * k;
+    } else if (mode === 'wave') {
+      target.arms[1] = [-2.7, -0.3, -0.5 + Math.sin(t * 10) * 0.45];
+      target.arms[0] = [0.05, -0.15, 0.1];
+      target.headRY = 0.15;
+      target.hipsY = 0.92 + Math.abs(Math.sin(t * 6)) * 0.04;
+    } else if (mode === 'sad') {
+      target.headRX = 0.45;
+      target.torsoRX = 0.15;
+      target.arms = [[0.1, -0.1, 0.05], [0.1, -0.1, -0.05]];
     }
     const k = dt ? 1 - Math.exp(-14 * dt) : 1;
     const L = (obj, prop, v) => { obj[prop] += (v - obj[prop]) * k; };
@@ -285,4 +313,49 @@ export function makeVisitor(r = Math.random) {
     sleeves: r() < 0.5 ? 'short' : 'long',
     scale: kid ? 0.62 + r() * 0.12 : 0.95 + r() * 0.1,
   });
+}
+
+// THE MUMMY. Wrapped head to toe, glowing eyes, very into donuts.
+function bandageTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const x = c.getContext('2d');
+  x.fillStyle = '#cdbf9c';
+  x.fillRect(0, 0, 128, 128);
+  for (let i = 0; i < 400; i++) { x.fillStyle = `rgba(70,50,25,${Math.random() * 0.16})`; x.fillRect(Math.random() * 128, Math.random() * 128, 2, 2); }
+  // overlapping wraps: a shadow line under each one, a lighter edge on top
+  for (let y = -128; y < 256; y += 14) {
+    x.strokeStyle = 'rgba(80,60,30,0.75)';
+    x.lineWidth = 3;
+    x.beginPath(); x.moveTo(0, y); x.lineTo(128, y + 34); x.stroke();
+    x.strokeStyle = 'rgba(255,250,235,0.35)';
+    x.lineWidth = 2;
+    x.beginPath(); x.moveTo(0, y + 4); x.lineTo(128, y + 38); x.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(2, 2);
+  return t;
+}
+
+export function makeMummy() {
+  const p = new Person({ shirt: 0xe3d8bc, pants: 0xd8ccae, skin: 0xe6dcc2, hair: 0xd8ccae, shoes: 0xd2c6a8, hairStyle: 'bald' });
+  const wrap = new THREE.MeshStandardMaterial({ map: bandageTexture(), color: 0xc9bea6, roughness: 1 });
+  const eyeMat = new THREE.MeshStandardMaterial({ color: 0xfff6b0, emissive: 0xffe066, emissiveIntensity: 3 });
+  const eyes = mat(0x111111, 0.3);
+  p.group.traverse((o) => {
+    if (!o.isMesh || o === p.mouth) return;
+    o.material = o.material === eyes ? eyeMat : wrap;
+  });
+  p.mouth.visible = false;
+  // a dark gap in the wraps around the eyes, and a loose bandage end
+  const gap = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.06, 0.03), new THREE.MeshStandardMaterial({ color: 0x1a120a, roughness: 1 }));
+  gap.position.set(0, 0.14, 0.112);
+  p.head.add(gap);
+  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.32, 0.01), wrap);
+  tail.position.set(0.1, -0.05, -0.14);
+  tail.rotation.set(0.3, 0, -0.25);
+  p.head.add(tail);
+  return p;
 }

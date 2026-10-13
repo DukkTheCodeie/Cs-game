@@ -1,4 +1,5 @@
 import { $, el, escapeHtml } from '../core/util.js';
+import { drawGlyph, GLYPHS, GLYPH_KEYS, PHARAOH_CODE } from '../world/glyphs.js';
 
 // Every puzzle opens in a modal panel. openPuzzle() resolves true when solved, false if closed.
 
@@ -94,7 +95,7 @@ const PUZZLES = {
     keys: '← → turn the wheel · Esc close',
     build({ game, body, solve }) {
       const SHIFT = 4;
-      const plain = 'NEXT PUZZLE: ROMAN HALL. KEY IS REX';
+      const plain = 'NEXT PUZZLE: EGYPT WING. KEY IS REX';
       const cipher = [...plain].map((c) => shiftChar(c, SHIFT)).join('');
       let shift = 0, solvedT = null;
       body.innerHTML = `
@@ -148,21 +149,98 @@ const PUZZLES = {
     },
   },
 
-  // ---------------------------------------------------------------- 2. Roman numerals
+  // ---------------------------------------------------------------- 2. Pharaoh's Lock (Egyptian Wing)
+  pharaoh: {
+    title: "PHARAOH'S LOCK",
+    sub: 'Four symbols, in the right order. The four pillars in this hall know the answer — count the lines on top of each one.',
+    keys: 'Click the symbols (or keys 1–8) · Backspace undo · Esc close',
+    build({ game, body, solve, panel }) {
+      const notes = game.save.solved.pillars || {};
+      const entered = [];
+      let done = false;
+      const icon = (kind, size = 56, color = '#1d3f8f') => {
+        const c = document.createElement('canvas');
+        c.width = c.height = size * 2;
+        drawGlyph(c.getContext('2d'), kind, size, size, size * 1.7, color);
+        return c;
+      };
+      const strokes = (n) => '<span class="strokes">' + '<i></i>'.repeat(n) + '</span>';
+      body.innerHTML = `
+        <div class="cartouche">${[1, 2, 3, 4].map((n) => `<div class="cslot"><div class="cg"></div>${strokes(n)}</div>`).join('')}</div>
+        <div class="glyph-grid">${GLYPH_KEYS.map((k, i) => `<button class="glyph" data-k="${k}"><span class="gi"></span><small>${i + 1} · ${GLYPHS[k]}</small></button>`).join('')}</div>
+        <div class="pillar-notes"><b>Your notes:</b> ${[1, 2, 3, 4].map((n) => `<span class="pn">${strokes(n)} <span class="pg" data-n="${n}">?</span></span>`).join('')}</div>`;
+      const slots = [...body.querySelectorAll('.cslot')];
+      body.querySelectorAll('.glyph').forEach((b) => {
+        b.querySelector('.gi').append(icon(b.dataset.k, 30));
+        b.onclick = () => add(b.dataset.k);
+      });
+      body.querySelectorAll('.pg').forEach((s) => {
+        const k = notes[s.dataset.n];
+        if (k) { s.textContent = ''; s.append(icon(k, 14, '#e9c46a')); s.title = GLYPHS[k]; }
+      });
+      slots.forEach((s, i) => (s.onclick = () => { if (i < entered.length && !done) { entered.splice(i); render(); game.audio.play('back'); } }));
+      const render = () => slots.forEach((s, i) => {
+        const g = $('.cg', s);
+        g.innerHTML = '';
+        if (entered[i]) g.append(icon(entered[i], 30, '#ffd98a'));
+        s.classList.toggle('filled', !!entered[i]);
+      });
+      const add = (k) => {
+        if (done || entered.length >= 4) return;
+        entered.push(k);
+        game.audio.play('click');
+        game.audio.play('tick', { delay: 0.05 });
+        render();
+        if (entered.length === 4) {
+          if (entered.every((g, i) => g === PHARAOH_CODE[i])) {
+            done = true;
+            panel.querySelector('.cartouche').classList.add('ok');
+            game.audio.play('sparkle');
+            setTimeout(solve, 800);
+          } else {
+            game.audio.play('error');
+            panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+            setTimeout(() => { if (!done) { entered.length = 0; render(); } }, 650);
+          }
+        }
+      };
+      return {
+        onKey(e) {
+          const m = /^(?:Digit|Numpad)([1-8])$/.exec(e.code);
+          if (m) add(GLYPH_KEYS[Number(m[1]) - 1]);
+          if (e.code === 'Backspace' && entered.length && !done) { e.preventDefault(); entered.pop(); render(); game.audio.play('back'); }
+        },
+        hints: () => [
+          'Find the four pillars in this hall. Walk up to each one and press USE (E) to read it — it goes in your notes.',
+          'The lines on top of a pillar tell you its place in the code: | is first, || is second, ||| third, |||| last.',
+          'The code is: BIRD, EYE, SNAKE, ANKH.',
+        ],
+      };
+    },
+  },
+
+  // ---------------------------------------------------------------- 3. Roman numerals
   roman: {
     title: 'AQVILA LOCK',
-    sub: '"ENTER THE YEAR THIS MVSEVM WAS FOVNDED, CITIZEN." — in normal numbers.',
+    sub: '"ENTER THE YEAR THIS MVSEVM WAS FOVNDED, CITIZEN." — in normal numbers. Each dial gets one piece of the Roman numeral.',
     keys: 'Click ▲▼ or type digits · Esc close',
     build({ game, body, solve, panel }) {
       const code = [1, 9, 7, 4];
+      const parts = ['M', 'CM', 'LXX', 'IV'];
+      const places = ['thousands', 'hundreds', 'tens', 'ones'];
       const val = [0, 0, 0, 0];
       let typed = 0, done = false;
-      body.innerHTML = `<div class="aquila">🦅 S · P · Q · R 🦅</div><div class="dials"></div><div class="help" style="text-align:center">Psst — the founding year is carved somewhere in this hall.</div>`;
+      body.innerHTML = `<div class="aquila">🦅 S · P · Q · R 🦅</div>
+        <div class="roman-year">FOUNDED IN <b>MCMLXXIV</b></div>
+        <div class="dials"></div>
+        <div class="numeral-key">${[['I', 1], ['V', 5], ['X', 10], ['L', 50], ['C', 100], ['D', 500], ['M', 1000]].map(([l, n]) => `<span><b>${l}</b> = ${n}</span>`).join('')}</div>
+        <div class="help" style="text-align:center">Add the letters up. A small letter <b>before</b> a bigger one is taken away: <b>IV</b> = 5 − 1 = 4.<br>A dial turns <b style="color:var(--mint)">green</b> when it's right!</div>`;
       const dials = $('.dials', body);
-      const nums = [];
+      const nums = [], dialEls = [];
       for (let i = 0; i < 4; i++) {
-        const d = el('div', 'dial', `<button class="up">▲</button><div class="num">0</div><button class="dn">▼</button>`);
+        const d = el('div', 'dial', `<div class="chunk">${parts[i]}</div><button class="up">▲</button><div class="num">0</div><button class="dn">▼</button><div class="place">${places[i]}</div>`);
         dials.append(d);
+        dialEls.push(d);
         const n = $('.num', d);
         nums.push(n);
         $('.up', d).onclick = () => set(i, val[i] + 1);
@@ -182,6 +260,9 @@ const PUZZLES = {
         nums[i].classList.remove('pop');
         void nums[i].offsetWidth;
         nums[i].classList.add('pop');
+        const ok = val[i] === code[i];
+        if (ok && !dialEls[i].classList.contains('ok')) game.audio.play('chime', { vol: 0.35 });
+        dialEls[i].classList.toggle('ok', ok);
         game.audio.play('tick');
         check();
       };
@@ -196,12 +277,12 @@ const PUZZLES = {
             }
           }
         },
-        hints: () => ['Look at the big stone tablet on the far (east) wall. The last line is the year.', 'Use the ROMAN NUMERALS 101 sign by the entrance. M = 1000, CM = 900...', 'MCMLXXIV = M (1000) + CM (900) + LXX (70) + IV (4) = 1974.'],
+        hints: () => ['M is 1000 — one thousand — so the first dial is 1.', 'CM is 1000 take away 100 = 900, so the second dial is 9. LXX is 50 + 10 + 10 = 70, so the third dial is 7.', 'IV is 5 take away 1 = 4. The year is 1 9 7 4.'],
       };
     },
   },
 
-  // ---------------------------------------------------------------- 3. Lights out (fuse box)
+  // ---------------------------------------------------------------- 4. Lights out (fuse box)
   lightsout: {
     title: 'FUSE BOX',
     sub: 'Switch ALL nine fuses ON to power the gate. Each switch also flips its neighbors (up, down, left, right).',
@@ -256,66 +337,6 @@ const PUZZLES = {
         },
         hints: () => ['Try pressing the switches in the CORNERS and the CENTER first.', 'The glowing dashed switch is part of the solution. Press it!', 'Keep asking — each hint shows another correct switch.'],
         onHint() { const sol = solution(); render(); if (sol.length) cells[sol[0]].classList.add('hint'); },
-      };
-    },
-  },
-
-  // ---------------------------------------------------------------- 4. Morse telegraph
-  morse: {
-    title: 'TELEGRAPH',
-    sub: 'An old telegraph lamp is blinking a word over and over. Decode it with the chart and type it in.',
-    keys: 'Type the word · Enter to submit · Esc close',
-    build({ game, body, solve, panel }) {
-      const CODES = { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..' };
-      const WORD = 'NAP';
-      body.innerHTML = `
-        <div class="morse-lamp"></div>
-        <div class="morse-tape"></div>
-        <div class="morse-chart">${Object.entries(CODES).map(([k, v]) => `<div><b>${k}</b> ${v}</div>`).join('')}</div>
-        <div class="morse-input"><input maxlength="8" spellcheck="false" autocomplete="off" placeholder="???"><button class="btn mint">SEND</button></div>
-        <div class="help" style="text-align:center;margin-top:8px">Short flash = dot ( . ) · Long flash = dash ( - )</div>`;
-      const lamp = $('.morse-lamp', body), tape = $('.morse-tape', body), input = $('input', body);
-      setTimeout(() => input.focus(), 50);
-      const U = 0.24;
-      const seq = [];
-      for (const ch of WORD) {
-        const code = CODES[ch];
-        [...code].forEach((sym, i) => {
-          seq.push({ on: true, d: sym === '.' ? U : U * 3, sym });
-          seq.push({ on: false, d: i < code.length - 1 ? U : U * 3, gap: i === code.length - 1 });
-        });
-      }
-      seq[seq.length - 1].d = U * 9;
-      seq[seq.length - 1].reset = true;
-      let idx = 0, timer = null, alive = true, tapeStr = '';
-      const lamp3d = game.level?.stations?.[1]?.lamp;
-      const step = () => {
-        if (!alive) return;
-        const s = seq[idx];
-        lamp.classList.toggle('on', s.on);
-        lamp3d?.setLamp(s.on);
-        if (s.on) { game.audio.play('beep', { dur: s.d }); tapeStr += s.sym; }
-        else if (s.gap) tapeStr += '   ';
-        tape.textContent = tapeStr;
-        if (s.reset) tapeStr = '';
-        idx = (idx + 1) % seq.length;
-        timer = setTimeout(step, s.d * 1000);
-      };
-      timer = setTimeout(step, 600);
-      const submit = () => {
-        const v = input.value.trim().toUpperCase();
-        if (v === WORD) { alive = false; lamp3d?.setLamp(false); solve(); }
-        else {
-          game.audio.play('error');
-          panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
-          input.select();
-        }
-      };
-      $('.morse-input .btn', body).onclick = submit;
-      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); e.stopPropagation(); });
-      return {
-        hints: () => ['The word has 3 letters. The tape under the lamp shows the dots and dashes.', 'The first letter is  - .  which is N.', 'N (-.) · A (.-) · P (.--.)  →  something you want to do right now...'],
-        dispose() { alive = false; clearTimeout(timer); lamp3d?.setLamp(false); },
       };
     },
   },

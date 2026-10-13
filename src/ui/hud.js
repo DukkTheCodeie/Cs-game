@@ -1,7 +1,8 @@
 import { $, el, clamp, angleDiff } from '../core/util.js';
 import { noiseDataURL } from '../world/textures.js';
 
-export const FRAGMENTS = ['REX', '1974', 'ZAP', 'NAP', 'DONUT', '???'];
+import { FRAGMENTS } from '../game/constants.js';
+export { FRAGMENTS };
 
 export class HUD {
   constructor(game) {

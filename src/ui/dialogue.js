@@ -26,6 +26,22 @@ export class Station {
     this.frame.classList.toggle('has-img', mode === 'img');
   }
 
+  // Show a photo, a silent looping reaction video, or (null) the cartoon.
+  showFace(media) {
+    const v = this.video;
+    if (media?.kind === 'video') {
+      this.setMode('video');
+      if (v.getAttribute('src') !== media.url) v.src = media.url;
+      v.muted = true;
+      v.loop = true;
+      v.play().catch(() => {});
+    } else {
+      if (!v.paused) v.pause();
+      v.loop = false;
+      if (media) { this.setMode('img'); if (this.img.getAttribute('src') !== media.url) this.img.src = media.url; } else this.setMode('canvas');
+    }
+  }
+
   update(dt) {
     this.t += dt;
     this.blinkT -= dt;
@@ -120,7 +136,8 @@ export class Dialogue {
     // in the menu, speech appears next to whoever is talking instead of over the buttons
     this.sub.dataset.place = st === this.tv ? 'tv' : this.fcRoot.classList.contains('menu-pos') ? 'left' : '';
     this.subName.textContent = name;
-    this.fullText = text;
+    // *stage directions* show without the asterisks
+    this.fullText = text.replace(/\*([^*]+)\*/g, '$1');
     this.typeT = 0;
     this.shown = -1;
     this.subText.textContent = '';
@@ -139,15 +156,15 @@ export class Dialogue {
       this.tvBubble?.(text);
     }
 
-    const media = clip ? await g.clips.resolve(clip) : null;
+    const media = await g.clips.forLine(clip, who, mood);
     if (token.skipped) return this._end(token, st);
-    const portrait = g.clips.portrait(who);
     const timeout = (s) => new Promise((r) => setTimeout(r, s * 1000));
 
-    if (media) {
+    if (media?.type === 'line') {
       st.setMode('video');
       const v = st.video;
       v.src = media.url;
+      v.loop = false;
       v.muted = false;
       v.volume = Math.min(1, g.save.settings.master * 1.1);
       v.currentTime = 0;
@@ -157,7 +174,7 @@ export class Dialogue {
       await Promise.race([ended, skipped, timeout(30)]);
       v.pause();
     } else {
-      if (portrait) { st.setMode('img'); st.img.src = portrait.url; } else st.setMode('canvas');
+      st.showFace(media);
       st.speaking = true;
       const est = 1.2 + text.length * 0.055;
       const voice = g.save.settings.voice || 'tts';
@@ -177,7 +194,7 @@ export class Dialogue {
       await Promise.race([done, skipped]);
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       st.speaking = false;
-      this.subText.textContent = text;
+      this.subText.textContent = this.fullText;
       this.sub.classList.add('done');
       if (!token.skipped) await Promise.race([timeout(hold), skipped]);
     }
@@ -192,7 +209,7 @@ export class Dialogue {
       if (st === this.facecam) this.fcRoot.classList.add('off');
       else this.tvBubble?.(null);
       st.speaking = false;
-      st.setMode(this.game.clips.portrait(st.who) ? 'img' : 'canvas');
+      st.showFace(st === this.facecam ? null : this.game.clips.face(st.who, st.mood));
     }
   }
 
@@ -201,10 +218,10 @@ export class Dialogue {
       const clean = text.replace(/\*[^*]+\*/g, '').replace(/—/g, ', ').replace(/MUSE-OS/g, 'Muse O S');
       const u = new SpeechSynthesisUtterance(clean);
       const vs = this.voices;
-      const prefs = { guard: 0, dev: 1, aaron: 2, museos: 3 };
+      const prefs = { guard: 0, dev: 1, aaron: 2, museos: 3, mummy: 1 };
       u.voice = vs[(prefs[who] ?? 0) % vs.length];
-      u.pitch = { guard: 1.05, dev: 0.85, aaron: 1.3, museos: 0.4 }[who] ?? 1;
-      u.rate = { guard: 1.08, dev: 1.0, aaron: 1.12, museos: 0.88 }[who] ?? 1;
+      u.pitch = { guard: 1.05, dev: 0.85, aaron: 1.3, museos: 0.4, mummy: 0.1 }[who] ?? 1;
+      u.rate = { guard: 1.08, dev: 1.0, aaron: 1.12, museos: 0.88, mummy: 0.75 }[who] ?? 1;
       u.volume = Math.min(1, (this.game.save.settings.master ?? 0.8) * 1.1);
       let started = false;
       u.onstart = () => { started = true; };

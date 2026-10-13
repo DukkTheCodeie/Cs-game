@@ -458,7 +458,7 @@ export class AudioEngine {
   // ---------- voices ----------
   babble(text, who, dest) {
     if (!this.ctx) return 0;
-    const base = { guard: 210, dev: 150, aaron: 260, museos: 520, narrator: 180 }[who] || 200;
+    const base = { guard: 210, dev: 150, aaron: 260, mummy: 120, museos: 520, narrator: 180 }[who] || 200;
     const type = who === 'museos' ? 'sine' : who === 'dev' ? 'sawtooth' : 'triangle';
     let t = this.now + 0.02;
     const words = String(text).split(/\s+/);
@@ -652,6 +652,24 @@ const TRACKS = {
         a.pluck(t, mtof(lead[(st / 2) % 8] + (bar === 1 ? -4 : bar === 2 ? -2 : bar === 3 ? -5 : 0)), 0.14, 0.05, out, 'square');
       }
       if (st === 0 && bar === 0) a.tone({ type: 'sawtooth', f: mtof(76), f2: mtof(64), t, d: spb * 8, g: 0.03, dest: out, filter: { f: 2500 } });
+    },
+  },
+  egypt: {
+    bpm: 96, vol: 1.2,
+    step(a, s, t, spb, out) {
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      if (s % 64 === 0) a.pad(t, [38, 45, 50], spb * 64, 0.026, out, 520);
+      // hand drum: DUM . . tek tek . DUM . . . tek . tek . tek .
+      if (st === 0 || st === 6) a.kick(t, st === 0 ? 0.26 : 0.18, out);
+      if ([3, 4, 10, 12, 14].includes(st)) a.hat(t, st === 12 ? 0.05 : 0.03, out);
+      // plucked melody on an "Egyptian" scale (D E♭ F♯ G A B♭ C D)
+      const scale = [62, 63, 66, 67, 69, 70, 72, 74];
+      const phrase = [[0, -1, 2, -1, 3, 2, 1, 0], [4, -1, 3, 2, 3, -1, 1, 2], [4, 5, 4, 3, 2, -1, 3, 1], [2, 1, 0, -1, 1, -1, 0, -1]][bar];
+      if (st % 2 === 0 && Math.floor(s / 64) % 2 === 1) {
+        const n = phrase[st / 2];
+        if (n >= 0) a.pluck(t, mtof(scale[n]), 0.35, 0.045, out);
+      }
+      if (st === 8 && bar === 3) a.tone({ type: 'sine', f: mtof(74), f2: mtof(72), t, a: 0.3, d: 2, g: 0.03, dest: out, vib: 6, vibRate: 5, send: 0.4 });
     },
   },
   maze: {

@@ -2,7 +2,7 @@ import { $, $$, el, sleep } from '../core/util.js';
 import { Station } from './dialogue.js';
 import { CONFIG } from '../config.js';
 import { CHAPTERS } from '../game/chapters.js';
-import { openClipStudio } from './clipstudio.js';
+import { TOTAL_DONUTS } from '../game/constants.js';
 
 export class Menu {
   constructor(game) {
@@ -27,9 +27,10 @@ export class Menu {
     st.who = 'dev';
     st.mood = 'happy';
     this.game.dialogue.tv = st;
-    const p = this.game.clips.portrait('dev');
-    st.setMode(p ? 'img' : 'canvas');
-    if (p) st.img.src = p.url;
+    // your photo / reaction video (if you added one) — updates when the file check finishes
+    const idle = () => { if (this.speaker && !this.game.dialogue.current) st.showFace(this.game.clips.face('dev', st.mood)); };
+    idle();
+    this._offClips = this.game.clips.onChange(idle);
     let pokes = 0;
     sp.addEventListener('click', () => {
       if (this.busy || this.game.dialogue.current) return;
@@ -39,6 +40,8 @@ export class Menu {
   }
 
   _removeSpeaker() {
+    this._offClips?.();
+    this._offClips = null;
     this.speaker?.remove();
     this.speaker = null;
     this.game.dialogue.tv = null;
@@ -55,11 +58,10 @@ export class Menu {
       <div class="menu-left">
         <div class="logo">${t1.replace(/O/, '<span class="donut-o"></span>')}<span class="l2">${t2.replace(/^O/, '<span class="donut-o"></span>')}</span></div>
         <div class="tagline">One night. One password. Way too many donuts.</div>
-        <div class="menu-badges">${save.flags.kicked ? '<span class="menu-badge">🏁 YOU BEAT THE GAME (KIND OF)</span>' : ''}${save.donuts.length ? `<span class="menu-badge ${save.donuts.length >= 14 ? 'gold' : 'dim'}">🍩 ${save.donuts.length}/14 donuts${save.donuts.length >= 14 ? ' — DONUT HUNTER' : ''}</span>` : ''}</div>
+        <div class="menu-badges">${save.flags.kicked ? '<span class="menu-badge">🏁 YOU BEAT THE GAME (KIND OF)</span>' : ''}${save.donuts.length ? `<span class="menu-badge ${save.donuts.length >= TOTAL_DONUTS ? 'gold' : 'dim'}">🍩 ${save.donuts.length}/${TOTAL_DONUTS} donuts${save.donuts.length >= TOTAL_DONUTS ? ' — DONUT HUNTER' : ''}</span>` : ''}</div>
         ${cont ? `<button class="btn menu-btn pink" data-act="continue">▶ CONTINUE <small>${cont.name}</small></button>` : ''}
         <button class="btn menu-btn ${cont ? '' : 'pink'}" data-act="new">${cont ? 'NEW GAME' : '▶ PLAY'} <small>Prologue</small></button>
         <button class="btn menu-btn" data-act="chapters">CHAPTERS <small>${reached.length}/${CHAPTERS.length}</small></button>
-        <button class="btn menu-btn mint" data-act="clips">🎬 CLIP STUDIO <small>put yourself in the game</small></button>
         <button class="btn menu-btn" data-act="settings">SETTINGS</button>
         <button class="btn menu-btn ghost" data-act="controls">CONTROLS</button>
         <button class="btn menu-btn ghost" data-act="credits">CREDITS</button>
@@ -99,7 +101,6 @@ export class Menu {
     else if (act === 'continue') g.startChapter(g.save.chapter);
     else if (act === 'chapters') this.chapters();
     else if (act === 'settings') this.settings();
-    else if (act === 'clips') openClipStudio(g);
     else if (act === 'credits') this.credits();
     else if (act === 'controls') this.controls();
   }
@@ -108,8 +109,10 @@ export class Menu {
     const g = this.game;
     const m = modal(`<h2>CHAPTERS</h2><div class="sub">Replay any part of the night you've reached.</div><div class="chapters"></div>`);
     const list = $('.chapters', m.panel);
+    // a chapter is open once you've reached it — or any chapter after it (new chapters unlock for old saves)
+    const furthest = Math.max(0, ...CHAPTERS.map((c, i) => (g.save.reached.includes(c.id) ? i : 0)));
     CHAPTERS.forEach((c, i) => {
-      const ok = g.save.reached.includes(c.id) || i === 0;
+      const ok = i <= furthest;
       const b = el('button', `btn chapter-btn ${ok ? '' : 'locked'}`, `<span>${c.name}</span><small>${ok ? c.blurb : '🔒 locked'}</small>`);
       b.onclick = () => { m.close(); g.audio.play('select'); g.startChapter(c.id); };
       list.append(b);
@@ -150,7 +153,7 @@ export class Menu {
     let armed = null;
     reset.onclick = () => {
       if (!armed) {
-        reset.textContent = 'Click again to erase progress, donuts and the ending (clips are kept)';
+        reset.textContent = 'Click again to erase progress, donuts and the ending';
         reset.style.borderColor = 'var(--red)';
         armed = setTimeout(() => { armed = null; reset.textContent = 'Reset save data'; reset.style.borderColor = ''; }, 4000);
         return;
@@ -189,9 +192,9 @@ export class Menu {
         The Security Guard: <b style="color:var(--gold)">you</b><br>
         The T-Rex: <b>a bunch of cylinders</b><br>
         Aaron: <b>Aaron</b><br>
+        The Mummy: <b>a guy who really likes donuts</b><br>
         Donuts eaten during development: <b>too many</b><br><br>
-        Built with three.js. Every sound and song is synthesized in your browser.<br>
-        Record yourself in the 🎬 CLIP STUDIO to replace the cartoon actors!
+        Built with three.js. Every sound and song is synthesized in your browser.
       </p>`);
   }
 
@@ -246,6 +249,7 @@ export class Menu {
     await sleep(700);
     this.speaker.classList.add('angry');
     g.dialogue.tv.mood = 'angry';
+    g.dialogue.tv.showFace(g.clips.face('dev', 'angry'));
     await g.say('dev03');
     g.audio.playMusic('angry', 0.1);
     g.shake(0.2, 2);

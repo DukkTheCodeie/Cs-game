@@ -32,24 +32,28 @@ export class Runner extends Level {
   constructor(game) {
     super(game);
     const s = this.scene;
-    s.background = new THREE.Color(0x05040a);
-    s.fog = new THREE.Fog(0x05040a, 25, 120);
+    // a well-lit gallery so you can see every obstacle coming (the haze ahead is lighter than black)
+    s.background = new THREE.Color(0x231d30);
+    s.fog = new THREE.Fog(0x231d30, 40, 150);
     this.ownsCamera = true;
     this.surface = 'carpet';
     this.rng = mulberry32(1974);
 
-    s.add(new THREE.HemisphereLight(0x8890c0, 0x2a1a14, 1.3));
-    s.add(new THREE.AmbientLight(0xffffff, 0.25));
-    this.headLight = new THREE.PointLight(0xffd8a0, 60, 40, 1.6);
+    s.add(new THREE.HemisphereLight(0xc8d0ff, 0x5a4434, 1.8));
+    s.add(new THREE.AmbientLight(0xffffff, 0.4));
+    this.headLight = new THREE.PointLight(0xffe2b8, 70, 50, 1.5);
     s.add(this.headLight);
+    // lights the next stretch of hallway so obstacles are easy to read
+    this.aheadLight = new THREE.PointLight(0xfff0d8, 90, 60, 1.5);
+    s.add(this.aheadLight);
     this.alarm = new THREE.PointLight(0xff2020, 0, 30, 1.5);
     s.add(this.alarm);
 
     this.mats = {
       floor: new THREE.MeshStandardMaterial({ map: tex('marble'), roughness: 0.3 }),
       carpet: new THREE.MeshStandardMaterial({ map: tex('carpet'), roughness: 0.9 }),
-      wall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x6b5a7a, roughness: 0.85 }),
-      ceil: new THREE.MeshStandardMaterial({ color: 0x18141c, roughness: 1 }),
+      wall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x8c7c9a, roughness: 0.85 }),
+      ceil: new THREE.MeshStandardMaterial({ color: 0x2c2634, roughness: 1 }),
       lamp: new THREE.MeshBasicMaterial({ color: 0xfff0c8 }),
       frame: new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: 0.8, roughness: 0.35 }),
     };
@@ -528,6 +532,7 @@ export class Runner extends Level {
 
     // lights
     this.headLight.position.set(st.x * 0.4, 5.5, st.z - 7);
+    this.aheadLight.position.set(0, 6, st.z - 30);
     st.alarmT += dt;
     this.alarm.position.set(0, 6, st.z + 6);
     this.alarm.intensity = st.phase === 'run' ? (Math.sin(st.alarmT * 8) > 0 ? 25 : 4) : 0;
