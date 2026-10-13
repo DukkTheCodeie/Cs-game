@@ -61,13 +61,19 @@ export class Level {
       return l;
     });
     const lamps = [];
-    const scan = () => this.scene.traverse((o) => {
+    const take = (o) => {
       if (!o.isPointLight || o.userData.pool || o.userData.shared || !(o.distance > 0 && o.distance <= maxRange)) return;
+      // lights riding on the camera (the flashlight's fill) move on to the next level with it: leave them alone
+      for (let p = o.parent; p; p = p.parent) if (p.isCamera) return;
       o.userData.shared = true;
+      o.userData.wp = new THREE.Vector3();
       o.visible = false;
       lamps.push(o);
-    });
+    };
+    const scan = () => this.scene.traverse(take);
     scan();
+    // a lamp added mid-cutscene joins the pool before it's ever drawn, so the light count never changes
+    this.scene.addEventListener('childadded', (e) => e.child.traverse(take));
     let scanT = 0;
     const near = [];
     this.addUpdater((dt) => {
@@ -76,10 +82,11 @@ export class Level {
       near.length = 0;
       for (const l of lamps) {
         if (!(l.intensity > 0) || !l.parent) continue;
-        let shown = true;
-        for (let p = l.parent; p; p = p.parent) if (!p.visible) { shown = false; break; }
-        if (!shown) continue;
-        const wp = l.getWorldPosition(new THREE.Vector3());
+        // only lamps still in this scene, with every group above them shown
+        let p = l.parent;
+        while (p.visible && p.parent) p = p.parent;
+        if (p !== this.scene || !p.visible) continue;
+        const wp = l.getWorldPosition(l.userData.wp);
         near.push([l, wp.distanceTo(cam) - l.distance, wp]);
       }
       near.sort((a, b) => a[1] - b[1]);
