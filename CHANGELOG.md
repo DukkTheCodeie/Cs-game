@@ -32,6 +32,7 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
   lock wants the symbols from the smallest number to the biggest. Wrong guesses zap your donut meter.
 - Number locks (the Roman dials and the archive number locks) no longer turn each dial green when it's
   right, so you can't just click until it turns green. Set the whole code and press **UNLOCK**.
+- The memory lock's pads have shapes on them too (● ▲ ■ ★), so you don't need to tell the colors apart.
 
 **Screens and controls**
 - Chat boxes now show on top of the login computer, so you can read them in the prologue and the ending.
@@ -44,6 +45,8 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
   you come back (asleep? eaten?), what's new in this version, and a few surprise appearances in the game.
 - Fixed flickering surfaces (the Egyptian mural, the sarcophagus corners, the office desk, where the
   keyboard was buried inside the desk) and sharper far-away detail.
+- Smoother on slower computers: the museum's small lamps share a few real lights (about 10 lights instead
+  of 18), and the T-Rex's big reveal no longer causes a little stutter.
 - The version number now shows in the menu, pause screen and credits.
 - Optional anonymous play counting (see the README).
 

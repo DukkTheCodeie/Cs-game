@@ -466,7 +466,8 @@ const PUZZLES = {
       const NAMES = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
       const NOTES = [392, 523, 659, 784];
       const seq = Array.from({ length: len }, () => Math.floor(Math.random() * 4));
-      body.innerHTML = `<div class="simon">${NAMES.map((nm, i) => `<button class="pad p${i}" data-i="${i}"><span>${i + 1}</span></button>`).join('')}</div>
+      const SHAPES = ['●', '▲', '■', '★']; // so you don't need to tell the colors apart
+      body.innerHTML = `<div class="simon">${NAMES.map((nm, i) => `<button class="pad p${i}" data-i="${i}" aria-label="${nm}"><b>${SHAPES[i]}</b><span>${i + 1}</span></button>`).join('')}</div>
         <div class="simon-status">Watch closely…</div>
         <div class="help" style="text-align:center"><button class="btn small simon-replay">↻ Show me again</button></div>`;
       const pads = [...body.querySelectorAll('.pad')];
@@ -523,8 +524,8 @@ const PUZZLES = {
         },
         hints: () => [
           'Say the colors out loud while they flash: "red, blue, blue..." — it helps!',
-          `It starts with ${seq.slice(0, 2).map((i) => NAMES[i]).join(', ')}.`,
-          `The whole order is: ${seq.map((i) => NAMES[i]).join(', ')}.`,
+          `It starts with ${seq.slice(0, 2).map((i) => `${NAMES[i]} ${SHAPES[i]}`).join(', ')}.`,
+          `The whole order is: ${seq.map((i) => `${NAMES[i]} ${SHAPES[i]}`).join(', ')}.`,
         ],
         dispose() { alive = false; },
       };

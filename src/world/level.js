@@ -49,6 +49,52 @@ export class Level {
     return b;
   }
 
+  // Lots of small lamps are expensive: the GPU works through every light for every pixel, even ones far
+  // away or switched off. This gives a fixed number of real lights to whichever small lamps (range up
+  // to maxRange) are nearest the camera, and hides the lamps themselves. Lamps added later (in cutscenes)
+  // are picked up too, so the number of lights never changes and shaders never recompile mid-scene.
+  shareLights(count = 8, maxRange = 16) {
+    const pool = Array.from({ length: count }, () => {
+      const l = new THREE.PointLight(0xffffff, 0, 1, 2);
+      l.userData.pool = true;
+      this.scene.add(l);
+      return l;
+    });
+    const lamps = [];
+    const scan = () => this.scene.traverse((o) => {
+      if (!o.isPointLight || o.userData.pool || o.userData.shared || !(o.distance > 0 && o.distance <= maxRange)) return;
+      o.userData.shared = true;
+      o.visible = false;
+      lamps.push(o);
+    });
+    scan();
+    let scanT = 0;
+    const near = [];
+    this.addUpdater((dt) => {
+      if ((scanT -= dt) <= 0) { scanT = 0.25; scan(); }
+      const cam = this.game.camera.position;
+      near.length = 0;
+      for (const l of lamps) {
+        if (!(l.intensity > 0) || !l.parent) continue;
+        let shown = true;
+        for (let p = l.parent; p; p = p.parent) if (!p.visible) { shown = false; break; }
+        if (!shown) continue;
+        const wp = l.getWorldPosition(new THREE.Vector3());
+        near.push([l, wp.distanceTo(cam) - l.distance, wp]);
+      }
+      near.sort((a, b) => a[1] - b[1]);
+      pool.forEach((pl, i) => {
+        const e = near[i];
+        if (!e) { pl.intensity = 0; return; }
+        pl.position.copy(e[2]);
+        pl.color.copy(e[0].color);
+        pl.intensity = e[0].intensity;
+        pl.distance = e[0].distance;
+        pl.decay = e[0].decay;
+      });
+    });
+  }
+
   // How tall each collider is, from the meshes standing on the floor inside it (so the flashlight knows
   // you can see over a low platform or a bench). Call before the static meshes are merged.
   measureColliders() {

@@ -99,6 +99,8 @@ export class Museum extends Level {
       ...r.secrets.flatMap((sc) => [sc.panel, sc.mover].filter(Boolean)),
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
     batchStatic(this.scene, (o) => dynamic.has(o));
+    // the small lamps (braziers, consoles, screens, the T-Rex's eye...) share 8 real lights
+    this.shareLights(8, 16);
   }
 
   // ------------------------------------------------------------------ lights

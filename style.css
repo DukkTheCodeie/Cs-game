@@ -287,6 +287,8 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .pad.p2 { background: radial-gradient(circle at 40% 35%, #9dffb4, #2aa84a); }
 .pad.p3 { background: radial-gradient(circle at 40% 35%, #fff09a, #d4aa1a); }
 .pad.lit { filter: brightness(1.35) saturate(1.2); box-shadow: 0 0 34px rgba(255, 255, 255, 0.55); transform: scale(1.04); }
+.pad { position: relative; }
+.pad b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46px; line-height: 1; color: rgba(255, 255, 255, 0.85); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); pointer-events: none; }
 .pad:active { transform: scale(0.95); }
 .simon-status { text-align: center; font: 900 20px var(--body); color: var(--gold); min-height: 28px; }
 .tile { border-radius: 8px; cursor: pointer; background-size: 300% 300%; transition: transform 0.12s; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.3); position: relative; }
@@ -517,6 +519,7 @@ body:has(.computer-modal) #dialogue { padding-bottom: 14px; }
   .lights { grid-template-columns: repeat(3, 56px); gap: 8px; padding: 10px; } .light { width: 56px; height: 56px; }
   .slider { width: min(220px, 60vh); }
   .simon { grid-template-columns: repeat(2, 76px); gap: 8px; padding: 8px; margin: 6px auto 4px; } .pad { width: 76px; height: 76px; font-size: 14px; } .simon-status { font-size: 16px; min-height: 20px; }
+  .pad b { font-size: 30px; }
   .lights.n4 { grid-template-columns: repeat(4, 46px); gap: 6px; } .lights.n4 .light { width: 46px; height: 46px; }
   .panel .sub { font-size: 13px; margin-bottom: 6px; }
   .pz-caesar { display: flex; gap: 12px; align-items: center; }
