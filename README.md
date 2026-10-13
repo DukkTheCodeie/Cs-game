@@ -8,7 +8,7 @@ The first one is in the Dino exhibit. You like the Dino exhibit. What could go w
 
 ## ▶ How to play
 
-**Just open `index.html`** in Chrome, Edge or Firefox (double-click it). No install needed.
+**Just open `https://hudsoonvid.github.io/Cs-game`** in Chrome, Edge or Firefox (double-click it). No install needed.
 
 Or put it online for free with GitHub Pages: repo **Settings → Pages → Deploy from a branch → `main` / root**.
 Then anyone can play at `https://<your-username>.github.io/<repo-name>/`.
