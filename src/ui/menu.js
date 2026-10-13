@@ -10,6 +10,7 @@ export class Menu {
     this.root = $('#menu');
     this.speaker = null;
     this.open = false;
+    this.pokes = 0; // how many times you've poked the dev's TV (the lines go round in order)
   }
 
   _buildSpeaker() {
@@ -31,11 +32,11 @@ export class Menu {
     const idle = () => { if (this.speaker && !this.game.dialogue.current) st.showFace(this.game.clips.face('dev', st.mood)); };
     idle();
     this._offClips = this.game.clips.onChange(idle);
-    let pokes = 0;
+    const POKES = ['dev06', 'dev07', 'dev08', 'dev09', 'dev10', 'dev11', 'dev13', 'dev14', 'dev15', 'dev16', 'dev12'];
     sp.addEventListener('click', () => {
       if (this.busy || this.game.dialogue.current) return;
       this.game.audio.play('static', { dur: 0.15 });
-      this.game.say(pokes++ % 2 ? 'dev07' : 'dev06');
+      this.game.say(POKES[this.pokes++ % POKES.length]);
     });
   }
 
@@ -83,11 +84,25 @@ export class Menu {
       save.flags.backAgain = true;
       g.persist();
       setTimeout(() => this.open && g.say('dev05'), 1200);
+    } else if (g.devQuip) {
+      const id = g.devQuip;
+      setTimeout(() => this.open && !this.busy && g.say(id), 1200);
+    } else if (save.donuts.length >= TOTAL_DONUTS && !save.flags.devDonuts) {
+      save.flags.devDonuts = true;
+      g.persist();
+      setTimeout(() => this.open && !this.busy && g.say('dev18'), 1200);
     }
+    g.devQuip = null;
+    // sitting on the menu for a while
+    clearTimeout(this.idleT);
+    this.idleT = setTimeout(() => {
+      if (this.open && !this.busy && !g.dialogue.current && !$('#modal-root').children.length) g.say('dev19');
+    }, 40000);
   }
 
   hide() {
     this.open = false;
+    clearTimeout(this.idleT);
     this.root.classList.add('off');
     this._removeSpeaker();
     this.game.dialogue.stop();
@@ -100,7 +115,7 @@ export class Menu {
     if (act === 'new') g.startChapter('intro');
     else if (act === 'continue') g.startChapter(g.save.chapter);
     else if (act === 'chapters') this.chapters();
-    else if (act === 'settings') this.settings();
+    else if (act === 'settings') this.settings(() => { if (!this.saidMusic && this.open) { this.saidMusic = true; g.say('dev20'); } });
     else if (act === 'credits') this.credits();
     else if (act === 'controls') this.controls();
   }

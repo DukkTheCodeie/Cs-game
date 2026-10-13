@@ -307,12 +307,16 @@ const HAIRS = [0x2b1d14, 0x111111, 0x8b5a2b, 0xd9b26a, 0x6b3b1f, 0x999999];
 export function makeVisitor(r = Math.random) {
   const pickR = (arr) => arr[Math.floor(r() * arr.length)];
   const kid = r() < 0.35;
-  return new Person({
+  const scale = kid ? 0.62 + r() * 0.12 : 0.95 + r() * 0.1;
+  const p = new Person({
     shirt: pickR(SHIRTS), pants: pickR(PANTS), skin: pickR(SKINS), hair: pickR(HAIRS),
     hairStyle: r() < 0.4 ? 'long' : r() < 0.1 ? 'bald' : 'short',
     sleeves: r() < 0.5 ? 'short' : 'long',
-    scale: kid ? 0.62 + r() * 0.12 : 0.95 + r() * 0.1,
+    scale,
   });
+  p.kid = kid;
+  p.height = 1.75 * scale;
+  return p;
 }
 
 // THE MUMMY. Wrapped head to toe, glowing eyes, very into donuts.

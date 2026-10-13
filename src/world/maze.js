@@ -19,7 +19,8 @@ import { ShelfBuilder, shelfMaterials } from './shelves.js';
 
 export const CELL = 3.2;
 export const HANDMADE = 3;
-const W = 7, BAND = 5, H = 3.0, T = 0.3, TT = 0.64;
+const W = 5, BAND = 4, H = 3.0, T = 0.3, TT = 0.64; // sections of 5 × 4 rooms
+const ENTRY_C = 2; // the hole you come in through is in the middle column
 const LIGHT_POOL = 6; // real lights shared by every lamp in the archives (see the constructor)
 export const KEY_COLORS = [['red', 0xff4545], ['blue', 0x4aa8ff], ['yellow', 0xffd23f], ['green', 0x55e07a]];
 const GEN_KINDS = ['lightsout', 'caesar', 'roman', 'slider', 'simon', 'keys'];
@@ -95,7 +96,7 @@ export class Maze extends Level {
   // ---------------------------------------------------------------- layout (logic only, cached)
   layout(b) {
     if (this.layouts[b]) return this.layouts[b];
-    const entryC = b === 0 ? 3 : this.layout(b - 1).exit.c;
+    const entryC = b === 0 ? ENTRY_C : this.layout(b - 1).exit.c;
     const rng = mulberry32(4242 + b * 7919);
     const north = [], east = [];
     for (let r = 0; r < BAND; r++) { north.push(new Array(W).fill(true)); east.push(new Array(W).fill(true)); }
@@ -116,7 +117,7 @@ export class Maze extends Level {
       stack.push({ c: n.c, r: n.r });
     }
     // a few loops so it's less frustrating
-    for (let k = 0; k < 4; k++) {
+    for (let k = 0; k < 3; k++) {
       const r = Math.floor(rng() * (BAND - 1)), c = Math.floor(rng() * (W - 1));
       if (rng() < 0.5) east[r][c] = false; else north[r][c] = false;
     }
@@ -159,13 +160,13 @@ export class Maze extends Level {
     const kind = this.gateKind(k);
     const d = Math.max(0, k - HANDMADE); // difficulty
     const rng = mulberry32(31337 + k * 101);
-    if (k < HANDMADE) return kind === 'keys' ? { count: 3 } : {};
+    if (k < HANDMADE) return kind === 'keys' ? { count: 3 } : kind === 'slider' ? { moves: 22 } : {};
     if (kind === 'lightsout') {
       const n = d >= 6 ? 4 : 3;
       const count = Math.min(n * n - 2, 3 + Math.floor(d / 2) + (n === 4 ? 1 : 0));
       return { n, presses: shuffle([...Array(n * n).keys()], rng).slice(0, count) };
     }
-    if (kind === 'slider') return { moves: 26 + 6 * d };
+    if (kind === 'slider') return { moves: 24 + 5 * d };
     if (kind === 'roman') return { year: 1000 + Math.floor(rng() * 2999), title: 'VAULT LOCK' };
     if (kind === 'caesar') return { text: CIPHER_LINES[Math.floor(rng() * CIPHER_LINES.length)], shift: 1 + Math.floor(rng() * 9) };
     if (kind === 'simon') return { length: Math.min(10, 4 + Math.floor(d / 2)) };
@@ -175,7 +176,7 @@ export class Maze extends Level {
 
   // ---------------------------------------------------------------- walls (for the map + logic)
   northWall(c, R) {
-    if (R < 0) return c !== 3;
+    if (R < 0) return c !== ENTRY_C;
     const b = Math.floor(R / BAND), r = R % BAND, L = this.layout(b);
     if (r < BAND - 1) return L.north[r][c];
     return c === this.layout(b + 1).entry.c ? 'gate' : true;
@@ -293,8 +294,8 @@ export class Maze extends Level {
     group.add(ce);
 
     // where the eye peeks in, and where the secret shelf is (both on the outer walls)
-    const peekRow = R0 + 1 + Math.floor(rng() * 3), peekWest = rng() < 0.5;
-    const secRow = R0 + 1 + Math.floor(rng() * 3);
+    const peekRow = R0 + 1 + Math.floor(rng() * (BAND - 2)), peekWest = rng() < 0.5;
+    const secRow = R0 + 1 + Math.floor(rng() * (BAND - 2));
     let secWest = rng() < 0.5;
     if (secRow === peekRow && secWest === peekWest) secWest = !secWest;
     const segKey = (x, z) => `${x.toFixed(2)},${z.toFixed(2)}`;
@@ -373,7 +374,7 @@ export class Maze extends Level {
     const deadCell = take(L.dead) || take(L.far); // (the keys may have used up the dead ends)
     if (deadCell) {
       const p = this.cellPos(deadCell.c, R0 + deadCell.r);
-      this._donut(band, handmade ? `maze_${b}_0` : `gen_${b}_0`, p.x, 0.9, p.z, (b * 2) % 5, handmade ? 20 : Math.max(6, 18 - 3 * (b - HANDMADE)), own);
+      this._donut(band, handmade ? `maze_${b}_0` : `gen_${b}_0`, p.x, 0.9, p.z, (b * 2) % 5, handmade ? 20 : Math.max(4, 16 - 4 * (b - HANDMADE)), own);
     }
     if (secretSeg) this._secretShelf(band, b, secretSeg, secWest, col, own, owned, handmade);
 
@@ -621,7 +622,7 @@ export class Maze extends Level {
     bx.fillText('???', 64, 68);
     const boxMat = owned(new THREE.MeshStandardMaterial({ map: canvasTexture(bc), emissive: 0xff2a8a, emissiveIntensity: 0.25, roughness: 0.7 }));
     const strange = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.36, 0.42), boxMat);
-    strange.position.set(inward * 0.18, 0.8 + 0.0175 + 0.18, 0);
+    strange.position.set(inward * 0.17, 0.8 + 0.0175 + 0.18, 0); // (just behind the uprights, not flush with them)
     unit.add(strange);
     unit.position.set(sg.x, 0, sg.z);
     g.add(unit);
@@ -638,7 +639,7 @@ export class Maze extends Level {
     for (const sd of [-1, 1]) col(ox - depth / 2, ox + depth / 2, sg.z + sd * (half + 0.1) - 0.1, sg.z + sd * (half + 0.1) + 0.1);
     const lamp = this._lamp(0xff77cc, 0, 4.5, ox, 2.2, sg.z, own);
     g.add(P.box(0.5, 0.5, 0.5, P.mat('crateWood', { color: 0x8a5a33, roughness: 0.8 }), ox, 0, sg.z));
-    this._donut(band, handmade ? `maze_${b}_1` : `gen_${b}_1`, ox, 0.95, sg.z, 3, handmade ? 25 : Math.max(8, 22 - 3 * (b - HANDMADE)), own);
+    this._donut(band, handmade ? `maze_${b}_1` : `gen_${b}_1`, ox, 0.95, sg.z, 3, handmade ? 25 : Math.max(6, 20 - 4 * (b - HANDMADE)), own);
     const it = own(this.addInteractable({ id, pos: new THREE.Vector3(sg.x + inward * 0.4, 1.0, sg.z), prompt: 'Pull the strange box', enabled: true, radius: 2.0 }));
     const sec = own({ id, it, unit, collider, lamp, opened: false });
     this.secrets.push(sec);
@@ -688,8 +689,9 @@ export class Maze extends Level {
   }
 
   drawMap(ctx, player) {
-    const S = 12, pad = 8;
+    const pad = 8;
     const cw = ctx.canvas.width, ch = ctx.canvas.height;
+    const S = Math.floor((cw - pad * 2) / W);
     const rowsVis = Math.floor((ch - pad * 2) / S);
     const pr = Math.round(-player.pos.z / CELL);
     const top = Math.max(rowsVis - 2, pr + Math.floor(rowsVis * 0.55));

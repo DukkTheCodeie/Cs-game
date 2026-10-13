@@ -152,7 +152,7 @@ async function intro(g) {
     await g.wait(2.2);
     g.hud.caption('');
     g.fadeIn(2);
-    g.audio.playMusic('menu');
+    g.audio.playMusic('office');
     g.camTo([-15.2, 2.0, 2.2], [-18.4, 1.1, -0.1], 7, Ease.sine);
     await g.wait(1.5);
     await g.say('guard01');
@@ -242,7 +242,7 @@ async function dino(g, lvl, mode) {
   nightSetup(g, lvl);
   g.setClock(0, true);
   g.hud.setFade(0, 0.8);
-  g.audio.playMusic('explore');
+  g.audio.playMusic('dino');
   g.setMode('explore');
   g.objective('Go to the Dinosaur Hall', SPOTS.dinoDoor);
   if (fromIntro || mode === 'fresh') {
@@ -302,7 +302,7 @@ async function dino(g, lvl, mode) {
   await g.until(() => lookingAt(g, new THREE.Vector3(SPOTS.trex.x, 2.5, SPOTS.trex.z), 0.86) || g.sched.time - t0 > 9);
   g.audio.play('sting');
   g.audio.play('heartbeat', { delay: 0.4 });
-  g.audio.playMusic('tension');
+  g.audio.playMusic('hunt');
   g.objective('');
   await g.say('guard11');
   await g.say('guard12');
@@ -324,7 +324,7 @@ async function egypt(g, lvl) {
     g.player.setPose(SPOTS.egyptDoor.x - 3, SPOTS.egyptDoor.z, -Math.PI / 2);
     g.setClock(40, true);
     g.hud.setFade(0, 0.8);
-    g.audio.playMusic('tension');
+    g.audio.playMusic('tomb');
     g.setMode('explore');
   }
   g.checkpoint('egypt');
@@ -444,7 +444,7 @@ async function mummyScene(g, lvl) {
     await g.wait(0.6);
     // ...and it SITS UP
     g.audio.play('growl', { vol: 0.35 });
-    g.audio.playMusic('tension');
+    g.audio.playMusic('tomb');
     await g.tween(1.5, (k) => {
       M.pivot.rotation.x = (-Math.PI / 2) * (1 - k);
       M.person.anim.sit = k;
@@ -541,7 +541,7 @@ async function roman(g, lvl, mode) {
     g.player.setPose(SPOTS.romanNorthDoor.x, -12.5, Math.PI);
     g.setClock(62, true);
     g.hud.setFade(0, 0.8);
-    g.audio.playMusic('tension');
+    g.audio.playMusic('roman');
     g.setMode('explore');
   }
   g.checkpoint('roman');
@@ -552,7 +552,7 @@ async function roman(g, lvl, mode) {
     minX: 12.6, maxX: 40, minZ: -9, maxZ: 9,
     onEnter: () => {
       g.hud.titleCard('CHAPTER 3', 'ALL ROADS');
-      g.audio.playMusic('explore');
+      g.audio.playMusic('roman');
       g.objective('Crack the Roman lock (it\'s at the far end)', SPOTS.romanPanel);
       lvl.refs.panel2It.enabled = true;
       g.wait(2).then(() => g.say('guard15'));
@@ -733,8 +733,8 @@ async function chase(g, _lvl, mode) {
 // The archives are the last part of the night, and they never end. After the three hand-made gates
 // the puzzles are generated, the donut meter drains faster in every new section and the rewards
 // get smaller — so sooner or later you run out of donuts and fall asleep.
-const drainFor = (band) => 0.48 * (1 + 0.25 * Math.max(0, band - (HANDMADE - 1)));
-const rewardFor = (k) => (k < HANDMADE ? 35 : Math.max(6, 30 - 5 * (k - HANDMADE)));
+const drainFor = (band) => 0.48 * (1 + 0.4 * Math.max(0, band - (HANDMADE - 1)));
+const rewardFor = (k) => (k < HANDMADE ? 35 : Math.max(5, 26 - 6 * (k - HANDMADE)));
 const ENDLESS_LINES = [['guard43', 'museos15'], ['museos16'], ['guard45', 'museos17'], ['museos18'], ['museos15'], ['guard43', 'museos16']];
 
 async function maze(g) {
@@ -896,6 +896,7 @@ async function maze(g) {
         if (id.startsWith('museos')) g.audio.play('radio');
         await g.say(id);
       }
+      if (k === HANDMADE + 1) await g.say('dev22'); // the dev pops in to brag about the endless archives
     }
   };
 }
@@ -919,6 +920,7 @@ async function sleepEnding(g) {
     for (const c of [0.7, 0.2, 0.85, 0.4, 1]) { g.hud.setLids(c, 0.5); await g.wait(0.6); }
     g.audio.play('radio');
     await g.say('museos19');
+    await g.say('dev23');
     g.audio.play('yawn');
     g.hud.setFade(1, 1.5);
     await g.wait(1.6);
@@ -1025,7 +1027,7 @@ async function morning(g) {
   await g.cutscene(async () => {
     g.computer.open();
     await g.wait(0.5);
-    await g.computer.type('REXMUMMY1974ZAPDONUT', { visible: true, speed: 0.08 });
+    await g.computer.type('REXMUMMY1974ZAPDONUT', { speed: 0.08 });
     await g.wait(0.4);
     await g.computer.press('login');
     g.computer.showDenied(g.save.fragments);

@@ -123,8 +123,62 @@ export const LINES = {
   dev05: { who: 'dev', mood: 'annoyed', text: "...Oh. You're back. Fine. You can play it again. But NO complaining." },
   dev06: { who: 'dev', mood: 'annoyed', text: 'Stop poking the TV.' },
   dev07: { who: 'dev', mood: 'happy', text: "Psst. There's a MUMMY in this game now. I made it at three in the morning." },
+  // poking the TV (they go round in order)
+  dev08: { who: 'dev', mood: 'confused', text: "Why do you keep clicking me? I'm a TV. ...Kind of." },
+  dev09: { who: 'dev', mood: 'happy', text: 'Fun fact: I made every sound in this game with code. Even the munching.' },
+  dev10: { who: 'dev', mood: 'cool', text: "The archives never end. I wrote an algorithm for that. I'm not sorry." },
+  dev11: { who: 'dev', mood: 'hungry', text: 'Got any donuts? Asking for a friend. The friend is me.' },
+  dev12: { who: 'dev', mood: 'annoyed', text: "Okay, that's a LOT of pokes. I'm counting, you know." },
+  dev13: { who: 'dev', mood: 'scared', text: "Please don't tell the T-Rex where I live." },
+  dev14: { who: 'dev', mood: 'sleepy', text: "I made this game at three in the morning. It's still three in the morning. Help." },
+  dev15: { who: 'dev', mood: 'shocked', text: 'Wait, have you found the secret rooms? There are EIGHT of them!' },
+  dev16: { who: 'dev', mood: 'sad', text: 'Nobody ever reads the plaques. I wrote SO many plaques.' },
+  // back at the menu
+  dev17: { who: 'dev', mood: 'annoyed', text: 'You fell asleep? In MY game? ...Rude. Try again.' },
+  dev18: { who: 'dev', mood: 'shocked', text: 'You found ALL the donuts?! Even I can\'t do that. And I hid them!' },
+  dev19: { who: 'dev', mood: 'sleepy', text: '...So are you gonna press play, or are we just staring at each other?' },
+  dev20: { who: 'dev', mood: 'happy', text: 'Did you turn the music up? Turn it up. I worked really hard on that music.' },
+  // popping into the game
+  dev21: { who: 'dev', mood: 'happy', text: 'Hey, you found one of my secret rooms! Take the donut. I insist.' },
+  dev22: { who: 'dev', mood: 'cool', text: 'Yeah, it never ends. The computer makes up new puzzles forever. Pretty cool, right?' },
+  dev23: { who: 'dev', mood: 'sad', text: "Aww. Sweet dreams, little guard. Don't worry, it's almost morning." },
 };
 for (const L of Object.values(LINES)) L.mood = moodOf(L.mood);
+
+// Morning visitors. Subtitles only, spoken in beeps, so they never need a recording (and they're not in
+// the clips list). One is picked at random each time you talk to someone, or bump into them.
+export const VISITOR_LINES = {
+  kid: [
+    'Is the T-Rex real? My brother says it comes alive at night.',
+    'Why is the dinosaur wearing a guard hat?',
+    "I'm gonna be a paleontologist. Or a donut taster.",
+    "My mom said don't touch anything. I touched four things.",
+    'Can I pet the mummy? Please? PLEASE?',
+    'Do you have a donut? You look like you have a donut.',
+    'You look really tired, mister.',
+    'I found a secret room once. Just kidding. ...Or AM I?',
+    'ROAR! ...Did I scare you? I scared you.',
+    'This is the best field trip EVER.',
+    'Why are there giant footprints going into the Egypt room?',
+    'I had a dream that the archives went on forever.',
+  ],
+  adult: [
+    "Excuse me, where's the gift shop?",
+    'Lovely museum. Is the T-Rex supposed to be wearing a hat?',
+    'Long night? You look like you slept in an exhibit.',
+    'The Egyptian Wing is new, right? That sarcophagus is fantastic.',
+    "I could've sworn that mummy moved.",
+    'Is the Roman Hall open? I want to see the gladiator shield.',
+    'My kid wants a donut. Do you have any? No? Okay.',
+    'These plaques are so well written. Somebody worked hard on these.',
+    'I heard the archives go on forever. Is that true?',
+    "Is there a Wi-Fi password? ...It's not donut123, is it?",
+    'Great security here. Very... relaxed.',
+    "Do you know where the restrooms are? ...Never mind, I'll follow the signs.",
+  ],
+  kidBump: ['Hey! Watch it!', 'Ow! You stepped on my shoe!', 'Mooom! The guard bumped me!', "Whoa! You're like a bulldozer!", 'Excuse YOU!', 'Rude!'],
+  adultBump: ['Oof! Excuse me!', 'Watch where you\'re going, please.', 'Whoa there! Easy!', 'Sorry! ...Oh wait, that was you.', 'Is running allowed in museums?', "My coffee! ...Oh, I don't have coffee. Never mind."],
+};
 
 // Which emotions each character actually uses (so you know what to act out).
 export const SPEAKER_EMOTIONS = {};

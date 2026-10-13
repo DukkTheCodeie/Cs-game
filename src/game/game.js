@@ -94,7 +94,8 @@ export class Game {
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
     setMaxAnisotropy(r.capabilities.getMaxAnisotropy());
-    this.camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 400);
+    // near plane at 10 cm (you never get closer to a wall than 32 cm): keeps far-away surfaces from flickering
+    this.camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 400);
     this.camLook = new THREE.Vector3();
     // Post-processing: bloom makes the T-Rex eyes, screens, signs and donuts glow.
     this.composer = new EffectComposer(r);
@@ -482,7 +483,7 @@ export class Game {
     if (!this.save.flags.secretLine) {
       this.save.flags.secretLine = true;
       this.persist();
-      this.wait(1.2).then(() => this.say('guard46'));
+      this.wait(1.2).then(async () => { await this.say('guard46'); await this.say('dev21'); });
     }
   }
 
@@ -523,7 +524,7 @@ export class Game {
     this.dialogue.stop();
     const v = await this._guard(showGameOver(this, { title, sub, buttons: [{ label: '↻ TRY AGAIN', value: 'retry', cls: 'pink' }, { label: 'MENU', value: 'menu', cls: 'ghost' }] }));
     if (v === 'retry') this.startChapter(this.save.chapter, { mode: 'continue' });
-    else this.toMenu();
+    else { this.devQuip = 'dev17'; this.toMenu(); }
   }
 
   resetHud() {

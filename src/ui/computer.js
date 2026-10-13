@@ -9,7 +9,7 @@ export class Computer {
 
   open() {
     this.close();
-    const m = (this.modal = el('div', 'modal'));
+    const m = (this.modal = el('div', 'modal computer-modal'));
     m.style.background = 'rgba(0,0,0,0.75)';
     m.innerHTML = `<div class="computer"><div class="screen"></div></div>`;
     $('#modal-root').append(m);
@@ -33,22 +33,38 @@ export class Computer {
         <div class="login-msg"></div>
       </div>`;
     this.dots = $('.dots', this.screen);
+    this.typed = '';
     this.msg = $('.login-msg', this.screen);
   }
 
-  async type(text, { visible = false, speed = 0.11 } = {}) {
+  // Like a real password box: each letter shows for a moment, then turns into a dot. If it's too long
+  // to fit, the start is cut off with "…" so you always see the newest letters.
+  _drawPw(revealLast = false) {
+    const MAX = 11;
+    const n = this.typed.length;
+    let shown = '•'.repeat(Math.max(0, n - 1)) + (n ? (revealLast ? this.typed[n - 1] : '•') : '');
+    if (shown.length > MAX) shown = '…' + shown.slice(-(MAX - 1));
+    this.dots.textContent = shown;
+  }
+
+  async type(text, { speed = 0.11 } = {}) {
     const g = this.game;
+    const final = this.typed + text;
     for (const ch of text) {
       if (g.sched.skipping) break;
-      this.dots.textContent += visible ? ch : '•';
+      this.typed += ch;
+      this._drawPw(true);
       g.audio.play('type');
       await g.wait(speed + Math.random() * 0.06);
     }
-    if (g.sched.skipping) this.dots.textContent = visible ? text : '•'.repeat(text.length);
+    this.typed = final;
+    if (g.sched.skipping) this._drawPw(false);
+    else g.wait(0.6).then(() => { if (this.dots && this.typed === final) this._drawPw(false); });
   }
 
   clear() {
-    if (this.dots) this.dots.textContent = '';
+    this.typed = '';
+    if (this.dots) this._drawPw();
   }
 
   setMsg(text, ok = false) {

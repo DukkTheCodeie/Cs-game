@@ -29,10 +29,16 @@ One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
-| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 2 |
-| 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 2 |
+| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 5 |
+| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 1 |
+| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 2 |
+| 🤔 **Confused** | Squint and tilt your head. "Huh?" | `dev-confused.jpg` | `dev-confused.mp4` | 1 |
+| 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 4 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `dev-angry.jpg` | `dev-angry.mp4` | 2 |
-| 😢 **Sad** | Big pout. Fake cry. | `dev-sad.jpg` | `dev-sad.mp4` | 1 |
+| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `dev-shocked.jpg` | `dev-shocked.mp4` | 2 |
+| 😱 **Scared** | Hands on your cheeks. Silent scream. | `dev-scared.jpg` | `dev-scared.mp4` | 1 |
+| 😢 **Sad** | Big pout. Fake cry. | `dev-sad.jpg` | `dev-sad.mp4` | 3 |
+| 😴 **Sleepy** | Huge yawn, eyes half closed. | `dev-sleepy.jpg` | `dev-sleepy.mp4` | 2 |
 
 One photo for everything: `dev.jpg` (used for any emotion you didn't make).
 
@@ -148,6 +154,22 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `dev05.mp4` | 😒 Annoyed | ...Oh. You're back. Fine. You can play it again. But NO complaining. |
 | `dev06.mp4` | 😒 Annoyed | Stop poking the TV. |
 | `dev07.mp4` | 😄 Happy | Psst. There's a MUMMY in this game now. I made it at three in the morning. |
+| `dev08.mp4` | 🤔 Confused | Why do you keep clicking me? I'm a TV. ...Kind of. |
+| `dev09.mp4` | 😄 Happy | Fun fact: I made every sound in this game with code. Even the munching. |
+| `dev10.mp4` | 😎 Cool | The archives never end. I wrote an algorithm for that. I'm not sorry. |
+| `dev11.mp4` | 🤤 Hungry | Got any donuts? Asking for a friend. The friend is me. |
+| `dev12.mp4` | 😒 Annoyed | Okay, that's a LOT of pokes. I'm counting, you know. |
+| `dev13.mp4` | 😱 Scared | Please don't tell the T-Rex where I live. |
+| `dev14.mp4` | 😴 Sleepy | I made this game at three in the morning. It's still three in the morning. Help. |
+| `dev15.mp4` | 😲 Shocked | Wait, have you found the secret rooms? There are EIGHT of them! |
+| `dev16.mp4` | 😢 Sad | Nobody ever reads the plaques. I wrote SO many plaques. |
+| `dev17.mp4` | 😒 Annoyed | You fell asleep? In MY game? ...Rude. Try again. |
+| `dev18.mp4` | 😲 Shocked | You found ALL the donuts?! Even I can't do that. And I hid them! |
+| `dev19.mp4` | 😴 Sleepy | ...So are you gonna press play, or are we just staring at each other? |
+| `dev20.mp4` | 😄 Happy | Did you turn the music up? Turn it up. I worked really hard on that music. |
+| `dev21.mp4` | 😄 Happy | Hey, you found one of my secret rooms! Take the donut. I insist. |
+| `dev22.mp4` | 😎 Cool | Yeah, it never ends. The computer makes up new puzzles forever. Pretty cool, right? |
+| `dev23.mp4` | 😢 Sad | Aww. Sweet dreams, little guard. Don't worry, it's almost morning. |
 
 ## 🧢 Aaron
 
