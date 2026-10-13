@@ -9,6 +9,7 @@
   --mint: #6dff9e;
   --red: #ff3b3b;
   --sky: #6dc2ff;
+  --sand: #e8c99a;
   --text: #f3ecdc;
   --dim: #9aa3b8;
   --title: 'Bungee', 'Arial Black', Impact, sans-serif;
@@ -18,6 +19,9 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; background: #000; color: var(--text); font-family: var(--body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+/* No pinch or double-tap zoom anywhere in the game (it zooms the whole page, or the page the game is
+   embedded in). One-finger scrolling in menus still works. */
+html { touch-action: pan-x pan-y; }
 canvas#game { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; outline: none; touch-action: none; }
 .off { display: none !important; }
 kbd { display: inline-block; min-width: 1.7em; padding: 0.1em 0.45em; border-radius: 6px; background: #f3ecdc; color: #111; font: 800 0.85em var(--body); box-shadow: 0 3px 0 #8a8270; text-align: center; }
@@ -143,6 +147,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #facecam[data-who='dev'] .fc-frame { border-color: var(--pink); }
 #facecam[data-who='aaron'] .fc-frame { border-color: var(--sky); }
 #facecam[data-who='museos'] .fc-frame { border-color: var(--mint); }
+#facecam[data-who='mummy'] .fc-frame { border-color: var(--sand); }
 .fc-frame canvas, .fc-frame img, .fc-frame video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .fc-frame img, .fc-frame video { display: none; }
 .fc-frame.has-img img { display: block; } .fc-frame.has-video video { display: block; }
@@ -154,6 +159,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #facecam[data-who='dev'] .fc-name { background: var(--pink); }
 #facecam[data-who='aaron'] .fc-name { background: var(--sky); }
 #facecam[data-who='museos'] .fc-name { background: var(--mint); }
+#facecam[data-who='mummy'] .fc-name { background: var(--sand); }
 .fc-rec { position: absolute; top: 10px; left: 12px; font: 800 11px var(--body); color: #ff4b4b; background: rgba(0, 0, 0, 0.6); padding: 2px 7px; border-radius: 6px; animation: rec 1s steps(2) infinite; display: none; }
 .fc-frame.has-video + .fc-name + .fc-rec { display: block; }
 @keyframes rec { 50% { opacity: 0.3; } }
@@ -163,6 +169,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #subtitle[data-who='dev'] .sub-name { color: var(--pink); }
 #subtitle[data-who='aaron'] .sub-name { color: var(--sky); }
 #subtitle[data-who='museos'] .sub-name { color: var(--mint); }
+#subtitle[data-who='mummy'] .sub-name { color: var(--sand); }
 #subtitle[data-who='museos'] .sub-text { font-family: var(--mono); font-size: calc(var(--sub-size) * 1.25); color: var(--mint); }
 .sub-text { font: 700 var(--sub-size) var(--body); line-height: 1.35; }
 .sub-next { position: absolute; right: 14px; bottom: 8px; color: var(--gold); opacity: 0; animation: nextBlink 0.8s infinite; }
@@ -226,6 +233,30 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .dial .num.pop { animation: numPop 0.18s; }
 @keyframes numPop { 50% { transform: translateY(-6px); } }
 .aquila { text-align: center; font: 22px var(--mono); color: var(--gold); letter-spacing: 0.2em; }
+.roman-year { text-align: center; font: 18px var(--mono); color: var(--dim); letter-spacing: 0.15em; margin-top: 6px; }
+.roman-year b { color: #fff; font-size: 30px; letter-spacing: 0.2em; }
+.dial .chunk { min-width: 64px; padding: 4px 8px; border-radius: 10px; text-align: center; font: 26px var(--mono); color: var(--gold); background: #1c1710; border: 2px dashed rgba(233, 196, 106, 0.5); }
+.dial .place { font: 800 12px var(--body); color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.dial.ok .num { color: #063d1c; background: linear-gradient(180deg, #b8ffd0, #2ecc71); box-shadow: 0 0 22px rgba(109, 255, 158, 0.7); }
+.dial.ok .chunk { border-style: solid; border-color: var(--mint); color: var(--mint); }
+.numeral-key { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin: 4px 0 8px; font: 20px var(--mono); color: var(--dim); }
+.numeral-key b { color: var(--gold); }
+.cartouche { display: flex; justify-content: center; gap: 10px; margin: 14px auto 16px; padding: 12px 26px; width: max-content; max-width: 100%; border: 4px solid var(--gold); border-radius: 60px; background: linear-gradient(180deg, #3a2a12, #1e150a); box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6); transition: box-shadow 0.3s, border-color 0.3s; }
+.cartouche.ok { border-color: var(--mint); box-shadow: 0 0 30px rgba(109, 255, 158, 0.6); }
+.cslot { width: 66px; height: 92px; border-radius: 12px; border: 2px dashed rgba(233, 196, 106, 0.45); display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 6px 0; cursor: pointer; }
+.cslot.filled { border-style: solid; background: rgba(233, 196, 106, 0.08); }
+.cslot .cg { height: 60px; display: flex; align-items: center; }
+.cslot .cg canvas, .glyph .gi canvas { width: 60px; height: 60px; }
+.strokes { display: inline-flex; gap: 3px; vertical-align: middle; }
+.strokes i { display: block; width: 4px; height: 16px; border-radius: 2px; background: #d9573a; }
+.glyph-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.glyph { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 8px; border-radius: 14px; border: 2px solid #8a6a2a; background: linear-gradient(180deg, #ecd9a8, #cfb57a); cursor: pointer; color: #3a2a12; font: 800 13px var(--body); }
+.glyph:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4); }
+.glyph:active { transform: scale(0.95); }
+.pillar-notes { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 16px; font: 800 14px var(--body); color: var(--dim); }
+.pillar-notes .pn { display: inline-flex; align-items: center; gap: 6px; }
+.pillar-notes .pg { display: inline-flex; min-width: 28px; justify-content: center; color: var(--gold); font-size: 18px; }
+.pillar-notes .pg canvas { width: 28px; height: 28px; }
 .shake { animation: shake 0.4s; }
 @keyframes shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
 
@@ -239,15 +270,18 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .light:active { transform: scale(0.94); }
 .light.hint { outline: 4px dashed var(--gold); outline-offset: 4px; }
 
-.morse-lamp { width: 120px; height: 120px; margin: 10px auto; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #4a3010, #1a0f00); border: 6px solid #6b5020; transition: background 0.05s, box-shadow 0.05s; }
-.morse-lamp.on { background: radial-gradient(circle at 40% 35%, #fff2b0, #ffaa33); box-shadow: 0 0 60px rgba(255, 170, 51, 0.9); }
-.morse-chart { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 4px 10px; font: 20px var(--mono); color: #222; background: #efe6cf; border-radius: 12px; padding: 12px 14px; margin: 12px 0; }
-.morse-chart b { color: #8a1022; }
-.morse-input { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
-.morse-input input, .pw-input { font: 32px var(--mono); width: 220px; text-align: center; letter-spacing: 0.3em; text-transform: uppercase; background: #050505; color: var(--mint); border: 2px solid var(--mint); border-radius: 12px; padding: 6px 10px; outline: none; }
-.morse-tape { text-align: center; font: 30px var(--mono); color: var(--gold); min-height: 36px; letter-spacing: 0.12em; }
 
 .slider { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; width: min(330px, 80vw); aspect-ratio: 1; margin: 16px auto; padding: 4px; border-radius: 14px; background: #2a1a12; border: 4px solid var(--gold); }
+.lights.n4 { grid-template-columns: repeat(4, 64px); gap: 10px; } .lights.n4 .light { width: 64px; height: 64px; }
+.simon { display: grid; grid-template-columns: repeat(2, 120px); gap: 14px; justify-content: center; margin: 16px auto 10px; padding: 16px; border-radius: 24px; background: #15121f; border: 3px solid #3a3352; width: max-content; }
+.pad { width: 120px; height: 120px; border-radius: 22px; border: 3px solid rgba(0, 0, 0, 0.5); cursor: pointer; filter: brightness(0.55) saturate(0.8); transition: filter 0.08s, transform 0.08s; display: flex; align-items: flex-end; justify-content: flex-end; padding: 8px 12px; font: 900 18px var(--body); color: rgba(255, 255, 255, 0.7); }
+.pad.p0 { background: radial-gradient(circle at 40% 35%, #ff8a8a, #d42a2a); }
+.pad.p1 { background: radial-gradient(circle at 40% 35%, #8ac8ff, #2a6fd4); }
+.pad.p2 { background: radial-gradient(circle at 40% 35%, #9dffb4, #2aa84a); }
+.pad.p3 { background: radial-gradient(circle at 40% 35%, #fff09a, #d4aa1a); }
+.pad.lit { filter: brightness(1.35) saturate(1.2); box-shadow: 0 0 34px rgba(255, 255, 255, 0.55); transform: scale(1.04); }
+.pad:active { transform: scale(0.95); }
+.simon-status { text-align: center; font: 900 20px var(--body); color: var(--gold); min-height: 28px; }
 .tile { border-radius: 8px; cursor: pointer; background-size: 300% 300%; transition: transform 0.12s; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.3); position: relative; }
 .tile.empty { background: #120a06 !important; cursor: default; box-shadow: inset 0 0 12px #000; }
 .tile.hint { outline: 4px dashed var(--mint); outline-offset: -4px; }
@@ -338,7 +372,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #kicked .err { color: var(--red); }
 #kicked .btn { margin-top: 30px; opacity: 0; animation: appear 1s 6s forwards; font-family: var(--mono); font-size: 18px; }
 
-/* ---------------------------------------------------------------- settings / chapters / clip studio */
+/* ---------------------------------------------------------------- settings / chapters / controls */
 .setting { display: grid; grid-template-columns: 180px 1fr 60px; gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.06); font-weight: 800; }
 .setting input[type='range'] { width: 100%; accent-color: var(--gold); }
 .setting select { background: #111; color: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 6px; font: 700 15px var(--body); }
@@ -346,13 +380,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .chapters { display: grid; gap: 10px; }
 .chapter-btn { text-align: left; display: flex; justify-content: space-between; }
 .chapter-btn.locked { opacity: 0.35; pointer-events: none; }
-.clip-list { display: flex; flex-direction: column; gap: 8px; }
 .clip-group { font: 15px var(--title); color: var(--gold); margin: 14px 0 4px; }
-.clip-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.06); }
-.clip-row .line { font-weight: 800; }
-.clip-row .meta { font-size: 12px; color: var(--dim); font-weight: 700; margin-top: 2px; }
-.clip-row .meta .ok { color: var(--mint); }
-.clip-row .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .rec-stage { display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .rec-stage video { width: min(520px, 100%); aspect-ratio: 4 / 3; background: #000; border-radius: 16px; border: 3px solid var(--pink); object-fit: cover; transform: scaleX(-1); }
 .rec-stage video.playback { transform: none; }
@@ -408,7 +436,6 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
   .panel-foot { margin-top: 12px; }
   .dial .num { height: 64px; font-size: 44px; }
   .light { width: 70px; height: 70px; } .lights { grid-template-columns: repeat(3, 70px); margin: 10px auto; }
-  .morse-lamp { width: 80px; height: 80px; }
 }
 
 /* ---------------------------------------------------------------- phones in landscape */
@@ -462,16 +489,21 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
   .cipher-text .ch { width: 24px; height: 32px; font-size: 18px; } .cipher-text .ch small { font-size: 13px; }
   .lights { grid-template-columns: repeat(3, 56px); gap: 8px; padding: 10px; } .light { width: 56px; height: 56px; }
   .slider { width: min(220px, 60vh); }
-  .morse-chart { font-size: 15px; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); padding: 6px 10px; }
+  .simon { grid-template-columns: repeat(2, 76px); gap: 8px; padding: 8px; margin: 6px auto 4px; } .pad { width: 76px; height: 76px; font-size: 14px; } .simon-status { font-size: 16px; min-height: 20px; }
+  .lights.n4 { grid-template-columns: repeat(4, 46px); gap: 6px; } .lights.n4 .light { width: 46px; height: 46px; }
   .panel .sub { font-size: 13px; margin-bottom: 6px; }
   .pz-caesar { display: flex; gap: 12px; align-items: center; }
   .pz-caesar .terminal { flex: 1; padding: 8px; }
   .pz-caesar > .help { display: none; }
   .pz-caesar .wheel-wrap { gap: 6px; margin: 0; }
   .pz-caesar .rotbtn { width: 44px; height: 44px; font-size: 18px; }
-  .pz-morse .morse-lamp { width: 54px; height: 54px; margin: 4px auto; }
-  .pz-morse .morse-input input { font-size: 22px; width: 150px; }
   .dials { margin: 8px 0; } .dial .num { height: 54px; font-size: 36px; } .dial button { height: 30px; }
+  .dial .chunk { font-size: 20px; padding: 2px 6px; } .roman-year b { font-size: 22px; } .numeral-key { font-size: 16px; margin: 2px 0 4px; }
+  .pz-roman > .help, .pz-roman .aquila, .pz-roman .roman-year { display: none; }
+  .pz-roman .dial .num { height: 44px; font-size: 30px; } .pz-roman .dial button { height: 26px; } .pz-roman .dial .place { font-size: 10px; } .pz-roman .dials { margin: 4px 0; gap: 10px; }
+  .cartouche { margin: 4px auto 6px; padding: 4px 16px; } .cslot { width: 50px; height: 62px; } .cslot .cg { height: 42px; } .cslot .cg canvas { width: 42px; height: 42px; }
+  .glyph-grid { grid-template-columns: repeat(8, 1fr); gap: 4px; } .glyph { padding: 4px 2px; font-size: 10px; } .glyph .gi canvas { width: 38px; height: 38px; }
+  .pillar-notes { margin-top: 6px; font-size: 12px; }
   .solved-banner { padding: 6px; } .solved-banner .big { font-size: 28px; } .solved-banner .frag-reveal { font-size: 36px; margin: 6px auto; }
 }
 

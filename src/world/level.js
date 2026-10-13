@@ -151,8 +151,9 @@ export class Level {
         const dx = p.pos.x - c.obj.position.x, dz = p.pos.z - c.obj.position.z;
         if (dx * dx + dz * dz < 1.1 * 1.1 && Math.abs(c.obj.position.y - 1) < 1.6) {
           c.taken = true;
-          this.scene.remove(c.obj);
-          g.collectDonut(c.id);
+          c.obj.parent?.remove(c.obj);
+          g.collectDonut(c.id, c.amount);
+          this.onCollected?.(c);
         }
       }
     }

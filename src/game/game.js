@@ -17,9 +17,10 @@ import { openPuzzle } from '../puzzles/puzzles.js';
 import { Player } from './player.js';
 import { Museum, SPOTS } from '../world/museum.js';
 import { CHAPTERS, START, runChapter, tipFor } from './chapters.js';
+import { TOTAL_DONUTS, FRAGMENTS, DONUT_IDS } from './constants.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
-export const TOTAL_DONUTS = 14;
+export { TOTAL_DONUTS };
 
 function defaultSave() {
   return {
@@ -34,7 +35,14 @@ function loadSave() {
   try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) d.settings.shake = false; } catch (_) { /* ignore */ }
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-    if (s) return { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) }, flags: { ...(s.flags || {}) } };
+    if (s) {
+      const save = { ...d, ...s, settings: { ...d.settings, ...(s.settings || {}) }, flags: { ...(s.flags || {}) } };
+      // older versions had a NAP fragment (the telegraph puzzle is gone)
+      save.fragments = (save.fragments || []).filter((f) => FRAGMENTS.includes(f));
+      // donuts that moved into secret rooms (or don't exist anymore) don't count
+      save.donuts = (save.donuts || []).filter((d) => DONUT_IDS.includes(d));
+      return save;
+    }
   } catch (_) { /* ignore */ }
   return d;
 }
@@ -188,7 +196,7 @@ export class Game {
 
   // ------------------------------------------------------------ boot
   async boot() {
-    await this.clips.init();
+    this.clips.init();
     this.menuLevel = new Museum(this, { time: 'night' });
     this.menuLevel.persistent = true;
     this.setLevel(this.menuLevel);
@@ -454,27 +462,43 @@ export class Game {
     this.hud.setFragments(this.save.fragments);
   }
 
-  collectDonut(id) {
-    if (!this.save.donuts.includes(id)) this.save.donuts.push(id);
-    this.persist();
-    this.meter.add(20);
+  collectDonut(id, amount = 20) {
+    this.meter.add(amount);
     this.audio.play('munch');
     this.audio.play('pickup');
-    this.hud.toast(`🍩 Donut found! <b>+20%</b> <span style="opacity:.7">(${this.save.donuts.length}/${TOTAL_DONUTS} hidden donuts)</span>`);
+    // donuts deep in the endless archives keep you awake, but they aren't part of the collection
+    if (!DONUT_IDS.includes(id)) { this.hud.toast(`🍩 Donut! <b>+${amount}%</b>`); return; }
+    if (!this.save.donuts.includes(id)) this.save.donuts.push(id);
+    this.persist();
+    this.hud.toast(`🍩 Donut found! <b>+${amount}%</b> <span style="opacity:.7">(${this.save.donuts.length}/${TOTAL_DONUTS} hidden donuts)</span>`);
     if (this.save.donuts.length === TOTAL_DONUTS) {
       setTimeout(() => { this.hud.toast('🏆 <b>DONUT HUNTER</b> — you found every hidden donut!', 'gold'); this.audio.play('chime'); }, 1200);
     }
   }
 
-  async openPuzzle(kind, fragment) {
+  // A secret room was opened (museum or archives).
+  foundSecret() {
+    this.hud.toast('🤫 You found a <b>secret room</b>!', 'pink');
+    if (!this.save.flags.secretLine) {
+      this.save.flags.secretLine = true;
+      this.persist();
+      this.wait(1.2).then(() => this.say('guard46'));
+    }
+  }
+
+  // fragment = a password piece (or null for the endless archives), reward = donut meter %
+  async openPuzzle(kind, fragment, { params, reward = 35, banner } = {}) {
     this.setMode('puzzle');
-    const ok = await this._guard(openPuzzle(this, kind, { fragment }));
+    const rewardText = reward >= 30 ? '+1 DONUT 🍩' : `+${reward}% DONUT 🍩 <span style="opacity:.7">(the archive donuts are getting smaller…)</span>`;
+    const ok = await this._guard(openPuzzle(this, kind, { fragment, params, banner, rewardText }));
     this.setMode('explore');
     if (ok) {
-      this.meter.add(35);
+      this.meter.add(reward);
       this.audio.play('munch', { delay: 0.2 });
-      this.addFragment(fragment);
-      this.hud.toast(`🧩 Puzzle solved! <b>+1 donut</b> · fragment <b style="color:var(--mint)">${fragment}</b>`, 'mint');
+      if (fragment) {
+        this.addFragment(fragment);
+        this.hud.toast(`🧩 Puzzle solved! <b>+1 donut</b> · fragment <b style="color:var(--mint)">${fragment}</b>`, 'mint');
+      } else this.hud.toast(`🧩 Puzzle solved! <b>+${reward}%</b> 🍩 · no fragment here...`, 'mint');
     }
     return ok;
   }
@@ -545,7 +569,7 @@ export class Game {
     const st = START[id];
     if (mode === 'fresh') {
       this.save.fragments = st.fragments.slice();
-      if (['intro', 'dino', 'roman', 'chase', 'maze'].includes(id)) this.save.solved = {};
+      if (['intro', 'dino', 'egypt', 'roman', 'chase', 'maze'].includes(id)) this.save.solved = {};
       this.meter.set(st.meter);
     } else if (mode === 'continue') {
       this.meter.set(Math.max(60, st.meter * 0.85));

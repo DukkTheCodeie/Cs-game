@@ -42,10 +42,14 @@ export class Input {
     });
     addEventListener('mouseup', (e) => { this.down.delete('Mouse' + e.button); if (e.button === 0) this.dragging = false; });
 
-    // Never let the browser zoom the page over the game view: a trackpad pinch arrives as
-    // ctrl+wheel, and Safari sends its own gesture events.
-    canvas.addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
-    for (const type of ['gesturestart', 'gesturechange']) canvas.addEventListener(type, (e) => e.preventDefault());
+    // Never let the browser zoom the page (or the page the game is embedded in): a trackpad pinch
+    // arrives as ctrl+wheel, Safari sends its own gesture events, and two fingers on a touchscreen
+    // are a pinch wherever they land.
+    addEventListener('wheel', (e) => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+    for (const type of ['gesturestart', 'gesturechange']) document.addEventListener(type, (e) => e.preventDefault(), { passive: false });
+    const noPinch = (e) => { if (e.touches.length > 1 && e.cancelable) e.preventDefault(); };
+    addEventListener('touchstart', noPinch, { passive: false });
+    addEventListener('touchmove', noPinch, { passive: false });
 
     if (this.isTouch) this._setupTouch();
   }
