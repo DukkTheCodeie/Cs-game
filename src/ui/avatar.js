@@ -201,7 +201,19 @@ function mouth(x, cx, cy, talk, mood, t) {
     return;
   }
   if (mood === 'sad') {
-    if (open) { x.beginPath(); x.ellipse(cx, cy + 4, 14, 3 + talk * 10, 0, 0, TAU); x.fill(); x.stroke(); }
+    if (open) {
+      // one downturned mouth that opens as they talk: both lips stay arched like a frown, so the
+      // opening is a sad crescent (not an "o" with a frown drawn over it)
+      const w = 16 + talk * 2, my = cy + 12, cy2 = my + talk * 4;
+      x.beginPath();
+      x.moveTo(cx - w, cy2);
+      x.quadraticCurveTo(cx, my - 18 - talk * 6, cx + w, cy2);
+      x.quadraticCurveTo(cx, my - 13 + talk * 10, cx - w, cy2);
+      x.closePath();
+      x.fill();
+      x.stroke();
+      return;
+    }
     x.strokeStyle = '#2a1010';
     x.lineWidth = 3.5;
     x.beginPath(); x.arc(cx, cy + 22, 18, 1.2 * Math.PI, 1.8 * Math.PI); x.stroke();

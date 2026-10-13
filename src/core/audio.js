@@ -406,6 +406,20 @@ export class AudioEngine {
       case 'buzz':
         this.tone({ type: 'sawtooth', f: 120, t, d: 0.25, g: 0.05 * v, filter: { f: 800 } });
         break;
+      case 'cheer': // a crowd: layered shouts (bands of noise swelling and fading) and a few whistles
+        for (let i = 0; i < 7; i++) this.noise({ t: t + R() * 0.4, a: 0.25 + R() * 0.3, d: 1.2 + R() * 1.2, g: 0.05 * v, type: 'bandpass', f: 700 + R() * 1600, q: 1.5 + R() * 2, send: 0.3 });
+        for (let i = 0; i < 2; i++) if (R() < 0.8) this.tone({ type: 'sine', f: 2200 + R() * 600, f2: 2900 + R() * 400, t: t + 0.2 + R() * 0.8, a: 0.02, d: 0.35, g: 0.02 * v, vib: 12, vibRate: 9 });
+        break;
+      case 'carby': { // a car driving past outside: tires and engine swell, then fade as it goes
+        const dur = opts.dur || 3;
+        this.noise({ t, a: dur * 0.5, d: dur * 0.5, g: 0.08 * v, type: 'lowpass', f: 300, f2: 180, q: 0.7, brown: true });
+        this.noise({ t, a: dur * 0.5, d: dur * 0.5, g: 0.025 * v, type: 'bandpass', f: 900, f2: 500, q: 0.8 });
+        this.tone({ type: 'sawtooth', f: 70, f2: 52, t, a: dur * 0.5, d: dur * 0.5, g: 0.012 * v, filter: { f: 300 } });
+        break;
+      }
+      case 'honk':
+        for (const f of [440, 554]) this.tone({ type: 'square', f, t, a: 0.01, d: 0.28, g: 0.02 * v, filter: { f: 1800 } });
+        break;
       case 'sting':
         this.tone({ type: 'sawtooth', f: mtof(45), t, a: 0.01, d: 2.2, g: 0.12 * v, filter: { f: 900 }, send: 0.5 });
         this.tone({ type: 'sawtooth', f: mtof(46), t, a: 0.01, d: 2.2, g: 0.1 * v, filter: { f: 900 }, send: 0.5 });
@@ -787,6 +801,27 @@ const TRACKS = {
       if (st % 4 === 2) a.hat(t, 0.03, out);
       if (st === 4 || st === 12) a.snare(t, 0.06, out);
       if (st % 8 === 0) a.kick(t, 0.25, out);
+    },
+  },
+  // the morning parade: a brass band march (oom-pah tuba, snare rudiments, brass stabs, a trumpet tune)
+  parade: {
+    bpm: 118, vol: 1.3,
+    step(a, s, t, spb, out) {
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      const chords = [[60, 64, 67], [55, 59, 62, 65], [60, 64, 67], [53, 57, 60]];
+      const r = [48, 43, 48, 41][bar], ch = chords[bar];
+      if (st % 4 === 0) a.kick(t, st === 0 ? 0.32 : 0.22, out);
+      if ([0, 2, 3, 6, 8, 10, 11, 14].includes(st)) a.snare(t, st % 8 === 0 ? 0.07 : st % 2 ? 0.025 : 0.04, out);
+      if (st % 8 === 0) a.bass(t, mtof(r - 12), spb * 3, 0.12, out, 600);
+      if (st % 8 === 4) a.bass(t, mtof(r - 5), spb * 3, 0.1, out, 600);
+      if (st % 4 === 2) ch.forEach((m) => a.tone({ type: 'sawtooth', f: mtof(m), t, a: 0.01, d: spb * 1.2, g: 0.012, dest: out, filter: { f: 1800, q: 0.8 } }));
+      const tune = [[67, 72, 76, 79, 76, 72, 76, 72], [74, 71, 74, 77, 74, 71, 67, -1], [76, 79, 84, 79, 76, 79, 76, 72], [77, 76, 74, 72, 71, 74, 72, -1]][bar];
+      if (st % 2 === 0) {
+        const n = tune[st / 2];
+        if (n > 0) a.tone({ type: 'square', f: mtof(n), t, a: 0.015, d: spb * 1.7, g: 0.02, dest: out, filter: { f: 2600, q: 0.7 }, vib: 4, vibRate: 6 });
+      }
+      if (s % 64 === 0) a.noise({ t, d: 1.2, g: 0.05, type: 'highpass', f: 5000, q: 0.6, dest: out });
+      if (Math.floor(s / 64) % 2 === 1 && st % 4 === 0 && tune[st / 2] > 0) a.tone({ type: 'sine', f: mtof(tune[st / 2] + 12), t, a: 0.002, d: 0.5, g: 0.02, dest: out });
     },
   },
   meta: {

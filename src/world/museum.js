@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { Level, boxUV } from './level.js';
+import { Level, boxUV, worldBoxUV } from './level.js';
 import { tex, signTexture, makeCanvas, canvasTexture, plaqueTexture } from './textures.js';
+import { surface } from './surfaces.js';
 import * as P from './props.js';
 import { TRex } from './trex.js';
 import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
@@ -9,7 +10,8 @@ import { drawCCTV } from './screens.js';
 import { mulberry32, lerp } from '../core/util.js';
 import { collide } from '../game/player.js';
 import { VISITOR_LINES } from '../game/script.js';
-import { batchStatic } from './batch.js';
+import { batchStatic, bakeColors } from './batch.js';
+import * as X from './exhibits.js';
 
 // The City Museum of Natural History. Layout (meters, y up, north = -z):
 //   Security office  x[-20,-12] z[-5,5]
@@ -35,6 +37,21 @@ export const SPOTS = {
 };
 
 export const EGYPT = { x0: 15.42, x1: 39, z0: -37, z1: -9.42, h: 8.5 };
+
+// Things morning visitors walk up to and look at: [x, z, nearest, farthest they stand, look-at x, z]
+const POIS = [
+  // lobby
+  [0, 4.2, 1.6, 2.6], [11.4, 5.9, 1.6, 2.6], [2.5, -1.5, 1.5, 3.5], [-11.8, -5.3, 1.6, 2.8], [8.6, -9.8, 1.6, 2.6], [3.2, 5.6, 1.0, 1.8],
+  // Dinosaur Hall: around the platform (looking at the King), the other skeletons, cases, the dig site
+  [0, -22.4, 0.8, 2.2, 0, -31], [-4.6, -30, 0.8, 2.2, 0, -31], [4.6, -30, 0.8, 2.2, 0, -31], [0, -37.6, 0.8, 2.0, 0, -31],
+  [-10, -19, 2.0, 3.0], [10, -20, 2.2, 3.2], [10, -40, 1.4, 2.6], [-10, -40, 1.4, 2.6], [-11.6, -12.9, 2.6, 3.6], [14.6, -37, 1.6, 3.0], [-4, -44.1, 1.2, 2.2], [4, -44.1, 1.2, 2.2], [-14.6, -33, 1.6, 3.0],
+  // Roman Hall
+  [25, 0, 2.4, 3.4], [19.25, -8, 1.4, 2.4], [30.25, -8, 1.4, 2.4], [19.25, 8, 1.4, 2.4], [24.75, 8, 1.4, 2.4], [30.25, 8, 1.4, 2.4],
+  [35.6, -6, 1.6, 2.6], [35.6, 6, 1.6, 2.6], [14.3, -5.4, 1.4, 2.4], [14.4, 5.4, 1.4, 2.4], [31, -3.4, 1.0, 2.0], [39.8, 0, 2.6, 3.6],
+  // Egyptian Wing
+  [27.5, -25, 3.6, 4.6], [19.2, -29.4, 1.5, 2.5], [31.6, -33.4, 1.5, 2.5], [36.4, -19.6, 1.5, 2.5], [18.4, -15.2, 1.5, 2.5], [37.3, -31, 1.8, 2.8],
+  [16.35, -21.5, 1.2, 2.2], [16.35, -26.5, 1.2, 2.2], [28.2, -14.6, 1.3, 2.3], [30.4, -11.2, 1.2, 2.2], [36.6, -34.2, 1.4, 2.4], [19.6, -34.4, 1.4, 2.4],
+];
 
 // The eight secret rooms. `axis`/`at`: which wall (along z at x = at, or along x at z = at);
 // `from`/`to`: the opening along the wall; `side`: which way the room is from the wall.
@@ -68,20 +85,40 @@ export class Museum extends Level {
     s.background = new THREE.Color(this.night ? 0x020308 : 0xbfd2e6);
     s.fog = this.night ? new THREE.FogExp2(0x03050b, 0.028) : new THREE.Fog(0xcfdbe8, 40, 140);
 
+    // every wall, floor and ceiling has its own painted surface, with a bump map for depth
+    const surf = (name, o = {}) => {
+      const t = surface(name);
+      if (o.repeatY) t.map.repeat.y = t.bump.repeat.y = o.repeatY;
+      return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bump, bumpScale: o.bump ?? 1.5, color: o.color ?? 0xffffff, roughness: o.roughness ?? 0.85, metalness: o.metalness ?? 0 });
+    };
+    const n = this.night;
     this.mats = {
-      officeWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xb9b19a, roughness: 0.9 }),
-      lobbyWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x8f98a6, roughness: 0.85 }),
-      dinoWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x7a6e5e, roughness: 0.9 }),
-      romanWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xb47c5c, roughness: 0.85 }),
-      sandWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xc9a46c, roughness: 0.9 }),
-      wood: new THREE.MeshStandardMaterial({ map: tex('wood'), roughness: 0.7 }),
-      marble: new THREE.MeshStandardMaterial({ map: tex('marble'), roughness: 0.25, metalness: 0.05 }),
-      stone: new THREE.MeshStandardMaterial({ map: tex('stone'), roughness: 0.8 }),
-      mosaic: new THREE.MeshStandardMaterial({ map: tex('mosaic'), roughness: 0.6 }),
+      officeWall: surf('cmu', { color: 0xf0eadb, bump: 1.2 }),
+      lobbyWall: surf('ashlar', { color: 0xeae5db, bump: 1.2, roughness: 0.8 }),
+      dinoWall: surf('rustic', { color: 0xd2c7b5, bump: 2.5, roughness: 0.92 }),
+      romanWall: surf('fresco', { repeatY: 3 / 4.5, bump: 0.6, roughness: 0.75 }),
+      sandWall: surf('sandblock', { color: 0xf2e4ca, bump: 1.6 }),
+      wood: surf('planks', { roughness: 0.6, bump: 1 }),
+      marble: surf('marbleFloor', { roughness: 0.22, metalness: 0.05, bump: 1 }),
+      stone: surf('flagstone', { roughness: 0.8, bump: 1.8 }),
+      mosaic: surf('mosaic', { roughness: 0.55, bump: 1.2 }),
+      sandFloor: surf('sandslab', { roughness: 0.85, bump: 1.6 }),
+      lobbyCeil: surf('coffer', { color: n ? 0x55504a : 0xddd7cb, bump: 2, roughness: 0.9 }),
+      romanCeil: surf('coffer', { color: n ? 0x5a4a40 : 0xe8d2bb, bump: 2, roughness: 0.9 }),
+      starCeil: surf('stars', { color: n ? 0x6a7090 : 0xffffff, bump: 0.5, roughness: 0.9 }),
       ceiling: new THREE.MeshStandardMaterial({ map: tex('ceiling'), roughness: 0.9, color: 0x9a968e }),
-      darkCeil: new THREE.MeshStandardMaterial({ color: this.night ? 0x1d1b1a : 0xb9b3a6, roughness: 1 }),
+      darkCeil: new THREE.MeshStandardMaterial({ color: n ? 0x1d1b1a : 0xb9b3a6, roughness: 1 }),
       trim: new THREE.MeshStandardMaterial({ color: 0x2a2420, roughness: 0.6 }),
     };
+    // baseboards and door frames, by wall
+    const tm = (color, roughness, metalness = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness });
+    this.trimFor = new Map([
+      [this.mats.officeWall, tm(0x4a4b52, 0.7)],
+      [this.mats.lobbyWall, tm(0x2a2c32, 0.3, 0.05)],
+      [this.mats.dinoWall, tm(0x3a281c, 0.55)],
+      [this.mats.romanWall, tm(0xe6ded0, 0.4)],
+      [this.mats.sandWall, tm(0x8a6a40, 0.85)],
+    ]);
 
     this._lights();
     this._office();
@@ -89,16 +126,19 @@ export class Museum extends Level {
     this._dino();
     this._roman();
     this._egypt();
+    this._details();
     this._collectibles();
     this._secretRooms();
     if (!this.night) this._visitors();
-    this.measureColliders();
     // merge everything that never moves (walls, props, signs...) → far fewer draw calls
     const r = this.refs;
     const dynamic = new Set([r.trex.group, r.guard.group, r.donutBox, r.deskFlashlight, r.footprints, r.sarcLid, r.mummy.holder, ...r.flames.map((f) => f.flame),
       ...r.secrets.flatMap((sc) => [sc.panel, sc.mover].filter(Boolean)),
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
-    batchStatic(this.scene, (o) => dynamic.has(o));
+    const moves = (o) => dynamic.has(o) || o.userData.dynamic === true;
+    this.measureColliders(moves);
+    bakeColors(this.scene, moves);
+    batchStatic(this.scene, moves);
     // the small lamps (braziers, consoles, screens, the T-Rex's eye...) share 8 real lights
     this.shareLights(8, 16);
   }
@@ -263,15 +303,15 @@ export class Museum extends Level {
   _lobby() {
     const m = this.mats, s = this.scene;
     this.floor(-12, 12, -10, 10, m.marble, 0, 4);
-    this.ceiling(-12, 12, -10, 10, 8, m.darkCeil);
-    this.wallX(-10, -12, 12, 8, m.lobbyWall, [{ c: 0, w: 6, h: 6.2 }], 3);
+    this.ceiling(-12, 12, -10, 10, 8, m.lobbyCeil, 4);
+    this.wallX(-10, -12, 12, 8, [m.dinoWall, m.lobbyWall], [{ c: 0, w: 6, h: 6.2, frame: true, frameW: 0.35 }], 3);
     this.wallZ(12, -10, -9, 8, m.lobbyWall, [], 3);
     this.wallZ(12, 9, 10, 8, m.lobbyWall, [], 3);
-    this.wallZ(-12, -10, 10, 8, m.lobbyWall, [{ c: 0, w: 2.2, h: 2.4 }, ...this._secretOpenings('z', -12)], 3);
-    // south wall: entrance + windows (we build it manually so windows glow)
-    this.wallX(10, -12, 12, 8, m.lobbyWall, [{ c: -7.5, w: 4, h: 6.5 }, { c: 0, w: 6, h: 4.2 }, { c: 7.5, w: 4, h: 6.5 }], 3);
+    this.wallZ(-12, -10, 10, 8, [m.officeWall, m.lobbyWall], [{ c: 0, w: 2.2, h: 2.4, frame: true, frameW: 0.14 }, ...this._secretOpenings('z', -12)], [2, 3]);
+    // south wall: entrance + windows (nothing on the outside: that's the front of the building)
+    this.wallX(10, -12, 12, 8, m.lobbyWall, [{ c: -7.5, w: 4, h: 6.5, frame: true }, { c: 0, w: 6, h: 4.2, frame: true }, { c: 7.5, w: 4, h: 6.5, frame: true }], 3, { noTrim: 1 });
     // window glass glow + mullions
-    const winMat = new THREE.MeshBasicMaterial({ color: this.night ? 0x1c2e5a : 0xf2f6ff, toneMapped: !this.night });
+    const winMat = P.MATS.glass(); // see-through: the city is out there
     for (const wx of [-7.5, 7.5]) {
       const wg = new THREE.Mesh(new THREE.PlaneGeometry(4, 6.5), winMat);
       wg.position.set(wx, 3.25, 10.1);
@@ -285,20 +325,26 @@ export class Museum extends Level {
     // fake floor sill colliders for windows
     this.addCollider(-9.5, -5.5, 9.8, 10.2);
     this.addCollider(5.5, 9.5, 9.8, 10.2);
-    // entrance glass doors (locked)
-    const glass = P.MATS.glass();
-    for (const dx of [-1.5, 1.5]) {
-      const door = P.box(2.9, 4.1, 0.08, glass, dx, 0, 10);
-      door.castShadow = false;
-      s.add(door);
-      s.add(P.box(0.08, 4.1, 0.1, P.MATS.metal(), dx - 1.45, 0, 10));
-      s.add(P.box(0.06, 0.5, 0.12, P.MATS.brass(), dx + (dx < 0 ? 1.3 : -1.3), 1.1, 9.92));
+    // entrance glass doors, hinged at the sides: locked at night, propped open in the morning
+    const glass = P.MATS.glass(), metal = P.MATS.metal();
+    for (const side of [-1, 1]) {
+      const hinge = new THREE.Group();
+      hinge.position.set(side * 3, 0, 10);
+      const door = new THREE.Group();
+      const c = -side * 1.5; // the door's middle, from the hinge
+      const pane = P.box(2.84, 4.04, 0.04, glass, c, 0.03, 0);
+      pane.castShadow = false;
+      door.add(pane);
+      for (const ex of [-1.44, 1.44]) door.add(P.box(0.08, 4.1, 0.1, metal, c + ex, 0, 0));
+      for (const ey of [0, 4.02]) door.add(P.box(2.96, 0.08, 0.1, metal, c, ey, 0));
+      door.add(P.box(0.06, 0.5, 0.12, P.MATS.brass(), c - side * 1.2, 1.1, -0.08));
+      door.add(P.box(0.06, 0.5, 0.12, P.MATS.brass(), c - side * 1.2, 1.1, 0.08));
+      hinge.add(door);
+      if (!this.night) hinge.rotation.y = -side * (Math.PI / 2 - 0.08); // swung out onto the steps
+      s.add(hinge);
+      if (!this.night) this.addCollider(side * 3 - 0.08, side * 3 + 0.08, 10.1, 12.95);
     }
-    const outside = new THREE.Mesh(new THREE.PlaneGeometry(6, 4.2), winMat);
-    outside.position.set(0, 2.1, 10.3);
-    outside.rotation.y = Math.PI;
-    s.add(outside);
-    this.addCollider(-3, 3, 9.8, 10.2);
+    if (this.night) this.addCollider(-3, 3, 9.8, 10.2);
     // archive door (closed, decorative)
     // (the STAFF ONLY door itself is a secret — see _secretRooms)
     const asign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshStandardMaterial({ map: signTexture('ARCHIVES\nSTAFF ONLY', { w: 256, h: 64, bg: '#a01818', fg: '#fff', font: 'bold 22px Arial' }) }));
@@ -319,13 +365,23 @@ export class Museum extends Level {
     // info desk
     const desk = new THREE.Group();
     desk.add(P.box(4.6, 1.1, 1.0, m.trim));
-    desk.add(P.box(4.8, 0.08, 1.2, P.MATS.marble(), 0, 1.1, 0));
+    desk.add(P.box(4.8, 0.08, 1.2, P.mat('deskTop', { color: 0x8f877a, roughness: 0.55 }), 0, 1.1, 0));
+    // a bell, a stack of maps and a little ticket sign on top
+    const bell = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), P.MATS.brass());
+    bell.position.set(1.2, 1.18, -0.3);
+    desk.add(bell);
+    for (let i = 0; i < 3; i++) desk.add(P.box(0.22, 0.012, 0.3, P.mat('brochure' + i, { color: [0x2a4f7a, 0xc9a24a, 0x9c1c1c][i], roughness: 0.7 }), -1.3 + i * 0.26, 1.18, -0.25));
+    const tk = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.2), new THREE.MeshStandardMaterial({ map: signTexture('TICKETS', { w: 256, h: 102, bg: '#2a2420', fg: '#c9a24a', font: 'bold 50px Georgia, serif', border: '#c9a24a' }), roughness: 0.5 }));
+    tk.position.set(0, 1.32, -0.45);
+    tk.rotation.y = Math.PI;
+    desk.add(tk);
+    desk.add(P.box(0.5, 0.2, 0.04, P.MATS.black(), 0, 1.12, -0.42));
     const front = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 0.5), new THREE.MeshStandardMaterial({ map: signTexture('INFORMATION', { w: 512, h: 80, bg: '#2a2420', fg: '#c9a24a', font: 'bold 48px Georgia, serif' }) }));
     front.position.set(0, 0.62, -0.51);
     front.rotation.y = Math.PI;
     desk.add(front);
     P.shadowAll(desk);
-    this.add(desk, 0, 0, 4.2);
+    this.add(desk, 0, 0, 4.2, Math.PI); // facing the front doors
     this.addBoxCollider(0, 4.2, 4.8, 1.2);
     // columns
     for (const cx of [-8, 8]) for (const cz of [-6, 6]) {
@@ -337,7 +393,7 @@ export class Museum extends Level {
       this.add(P.makeBench(2.2), bx, 0, 0, Math.PI / 2);
       this.addBoxCollider(bx, 0, 2.2, 0.55, Math.PI / 2);
     }
-    for (const [px, pz] of [[-11, -9], [11, -9], [-11, 9], [11, 9], [-4.2, -9], [4.2, -9]]) {
+    for (const [px, pz] of [[-11, -9], [11, -9], [-4.2, -9], [4.2, -9]]) {
       this.add(P.makeFern(px * 7 + pz), px, 0, pz);
       this.addBoxCollider(px, pz, 0.6, 0.6);
     }
@@ -355,8 +411,7 @@ export class Museum extends Level {
     s.add(banner);
     // museum map board
     const map = P.makeWallPlaque('MUSEUM MAP', '↑ North: Dinosaur Hall (→ Egyptian Wing)\n→ East: Roman Empire\n← West: Security Office\n↓ South: Exit (locked at night)', 2.4, 1.6, { bg: '#16202e', fg: '#dfe8ff', accent: '#6dc2ff' });
-    map.position.set(11.78, 2.2, 6.5);
-    map.rotation.y = -Math.PI / 2;
+    map.position.set(8.6, 2.2, -9.77);
     s.add(map);
     // exit signs
     for (const [x, y, z, ry] of [[0, 4.55, 9.77, Math.PI], [-11.75, 2.65, 0, Math.PI / 2]]) {
@@ -551,11 +606,11 @@ export class Museum extends Level {
   _roman() {
     const m = this.mats, s = this.scene;
     this.floor(12, 40, -9, 9, m.mosaic, 0, 4);
-    this.ceiling(12, 40, -9, 9, 9, m.darkCeil);
+    this.ceiling(12, 40, -9, 9, 9, m.romanCeil, 4);
     this.wallX(-9, 12, 40, 9, m.romanWall, [{ c: SPOTS.romanNorthDoor.x, w: 3.2, h: 4.4 }], 3);
     this.wallX(9, 12, 40, 9, m.romanWall, this._secretOpenings('x', 9), 3);
     this.wallZ(40, -9, 9, 9, m.romanWall, this._secretOpenings('z', 40), 3);
-    this.wallZ(12, -9, 9, 9, m.romanWall, [{ c: 0, w: 6, h: 6.2 }], 3);
+    this.wallZ(12, -9, 9, 9, [m.lobbyWall, m.romanWall], [{ c: 0, w: 6, h: 6.2, frame: true, frameW: 0.35 }], 3);
     // border stripes on floor
     const stripeMat = new THREE.MeshStandardMaterial({ color: 0x8c3b2a, roughness: 0.7 });
     for (const z of [-3.2, 3.2]) s.add(P.box(24, 0.012, 0.3, stripeMat, 26, 0, z));
@@ -639,14 +694,14 @@ export class Museum extends Level {
     const s = this.scene, n = this.night;
     const E = EGYPT;
     const sandWall = this.mats.sandWall;
-    const sandFloor = new THREE.MeshStandardMaterial({ map: tex('stone'), color: 0xd8b98a, roughness: 0.85 });
+    const sandFloor = this.mats.sandFloor;
     const sandstone = P.mat('sandstone', { color: 0xc8a978, roughness: 0.85 });
     const darkStone = P.mat('egyptDark', { color: 0x8a7350, roughness: 0.9 });
     const basalt = P.mat('basalt', { color: 0x1b1a1f, roughness: 0.35, metalness: 0.2 });
     const gold = P.MATS.brass();
     const lapis = P.mat('lapis', { color: 0x1f3d8a, roughness: 0.5 });
     this.floor(E.x0, E.x1, E.z0, E.z1, sandFloor, 0, 3);
-    this.ceiling(E.x0, E.x1, E.z0, E.z1, E.h, this.mats.darkCeil);
+    this.ceiling(E.x0, E.x1, E.z0, E.z1, E.h, this.mats.starCeil, 3);
     this.wallZ(E.x0, E.z0, E.z1, E.h, sandWall, [{ c: SPOTS.egyptDoor.z, w: 3.2, h: 4.4 }], 3);
     this.wallZ(E.x1, E.z0, E.z1, E.h, sandWall, this._secretOpenings('z', E.x1), 3);
     this.wallX(E.z0, E.x0, E.x1, E.h, sandWall, this._secretOpenings('x', E.z0), 3);
@@ -931,6 +986,152 @@ export class Museum extends Level {
     sign('EGYPTIAN WING', SPOTS.romanNorthDoor.x, 5.6, -8.78, 0);
   }
 
+  // ------------------------------------------------------------------ more to look at in every room
+  _details() {
+    const s = this.scene, n = this.night;
+    const put = (obj, x, y, z, ry = 0) => this.add(obj, x, y, z, ry);
+    const col = (x, z, w, d, ry = 0) => this.addBoxCollider(x, z, w, d, ry);
+    const label = (text, w = 0.9) => new THREE.Mesh(new THREE.PlaneGeometry(w, w * 0.2), new THREE.MeshStandardMaterial({ map: signTexture(text, { w: 512, h: 102, bg: '#1c1a17', fg: '#e9cf8a', font: 'bold 40px Georgia, serif', border: '#c9a24a' }), roughness: 0.6 }));
+
+    // ---- security office
+    put(X.makeFilingCabinet(), -12.52, 0, -4.4, -Math.PI / 2);
+    col(-12.52, -4.4, 0.5, 0.62, -Math.PI / 2);
+    put(X.makeWaterCooler(), -12.45, 0, 3.7, -Math.PI / 2);
+    col(-12.45, 3.7, 0.4, 0.4);
+    put(X.makeCoffeeStation(), -16.1, 0, 4.55, Math.PI);
+    col(-16.1, 4.55, 0.9, 0.45);
+    put(X.makeBulletinBoard(), -18.5, 2.68, 4.77, Math.PI);
+    put(X.makeWhiteboard(), -14.6, 1.75, -4.77);
+    put(X.makeIncidentSign(), -12.23, 2.25, -2.4, -Math.PI / 2);
+    put(X.makeTrashBin(), -17.1, 0, -1.55);
+    col(-17.1, -1.55, 0.45, 0.45);
+
+    // ---- lobby
+    const pt = X.makePterosaur(3);
+    pt.scale.setScalar(1.15);
+    put(pt, 2.5, 5.6, -1.5, 0.6);
+    s.add(X.hangFrom(pt, 8, [new THREE.Vector3(0, 0.15, 0), new THREE.Vector3(2.4, 0.1, -0.3), new THREE.Vector3(-2.4, 0.1, -0.3)]));
+    for (const [x, z] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) put(X.makePendant(1.2, !n), x, 8, z);
+    // a queue to the info desk, a donation box, and a (permanently) wet floor
+    for (const qx of [-1.3, 1.3]) {
+      for (const qz of [5.5, 6.7, 7.9]) put(P.makeStanchion(), qx, 0, qz);
+      for (const qz of [5.5, 6.7]) { const rp = P.makeRope(1.2); rp.position.set(qx, 0, qz); rp.rotation.y = -Math.PI / 2; s.add(rp); }
+      this.addCollider(qx - 0.08, qx + 0.08, 5.3, 8.1);
+    }
+    const rug = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 4.8), new THREE.MeshStandardMaterial({ map: tex('carpet', 1, 2), roughness: 0.95 }));
+    rug.rotation.x = -Math.PI / 2;
+    rug.position.set(0, 0.006, 7.35);
+    rug.receiveShadow = true;
+    s.add(rug);
+    put(X.makeDonationBox(), 3.2, 0, 5.6, Math.PI);
+    col(3.2, 5.6, 0.5, 0.5);
+    put(X.makeWetFloorSign(), -3.4, 0, 2.2, 0.4);
+    col(-3.4, 2.2, 0.4, 0.4);
+    // the gift shop
+    put(X.makeGiftShelf(1), 11.52, 0, 4.7, -Math.PI / 2);
+    put(X.makeGiftShelf(2), 11.52, 0, 7.05, -Math.PI / 2);
+    this.addCollider(11.25, 11.8, 3.65, 8.1);
+    put(X.makeShopCounter(), 10.0, 0, 5.9, -Math.PI / 2);
+    col(10.0, 5.9, 2.3, 0.8, -Math.PI / 2);
+    put(X.makePostcardRack(), 9.2, 0, 8.6);
+    col(9.2, 8.6, 0.6, 0.6);
+    put(X.makeHangingSign('GIFT SHOP', 2.4, 0.55), 11.77, 3.0, 5.9, -Math.PI / 2);
+    // portraits of very important people, a drinking fountain, bins, big plants
+    put(X.makePainting(11, 'portrait'), -11.77, 3.4, -7.0, Math.PI / 2);
+    put(X.makePainting(12, 'portrait'), -11.77, 3.4, -3.6, Math.PI / 2);
+    put(X.makePainting(13, 'landscape', 1.6), -11.77, 3.4, 3.4, Math.PI / 2);
+    put(X.makeWaterFountain(), -11.62, 0, -5.3, Math.PI / 2);
+    col(-11.62, -5.3, 0.4, 0.55);
+    for (const [bx, bz] of [[-6, 1.75], [6, -1.75]]) { put(X.makeTrashBin(), bx, 0, bz); col(bx, bz, 0.45, 0.45); }
+    for (const [px, pz, seed] of [[-10.9, 8.9, 7], [10.9, 8.9, 8]]) { put(X.makeCycad(seed, 1.9), px, 0, pz); col(px, pz, 0.9, 0.9); }
+
+    // ---- Dinosaur Hall
+    for (const z of [-13.5, -24, -35, -44.5]) put(X.makeTruss(29.6, 1.1), 0, 11.6, z);
+    for (const z of [-24, -35]) for (const x of [-9, 0, 9]) put(X.makePendant(0.6, !n), x, 11.6, z);
+    const pt1 = X.makePterosaur(5);
+    pt1.scale.setScalar(1.3);
+    put(pt1, -6.5, 8.6, -16.5, 2.2);
+    s.add(X.hangFrom(pt1, 13, [new THREE.Vector3(0, 0.15, 0), new THREE.Vector3(2.4, 0.1, -0.3), new THREE.Vector3(-2.4, 0.1, -0.3)]));
+    const pt2 = X.makePterosaur(8);
+    pt2.scale.setScalar(1.2);
+    put(pt2, 6.8, 9.2, -40.5, -2.4);
+    s.add(X.hangFrom(pt2, 13, [new THREE.Vector3(0, 0.15, 0), new THREE.Vector3(2.4, 0.1, -0.3), new THREE.Vector3(-2.4, 0.1, -0.3)]));
+    // fossil slabs on the side walls, a timeline, a height chart
+    const fossil = (i, x, z, ry) => { const f = X.makeFossilFrame(i); f.scale.setScalar(1.45); put(f, x, 2.05, z, ry); };
+    [-42, -38.4, -34.8, -25.6, -22.2].forEach((z, i) => fossil(i, -14.77, z, Math.PI / 2));
+    [-20.2, -16.9, -13.6].forEach((z, i) => fossil(5 + i, 14.77, z, -Math.PI / 2));
+    put(X.makeTimeline(), 14.77, 3.3, -37, -Math.PI / 2);
+    put(X.makeHeightChart(), -6.2, 1.98, -10.23, Math.PI);
+    // a dig site for kids, prehistoric plants, benches facing the King
+    put(X.makeDigSite(), -11.6, 0, -12.9);
+    this.addCollider(-13.6, -9.6, -14.6, -11.2);
+    put(P.makePlaqueStand('DIG SITE', 'Real sand! Fake bones. Kids only.\n(Guards: no digging on the clock.)'), -9.0, 0, -12.9, Math.PI / 2);
+    col(-9.0, -12.9, 0.3, 0.3);
+    for (const [px, pz, seed, h] of [[-13.7, -44.4, 21, 1.6], [-13.8, -16.6, 22, 1.3], [13.7, -11.4, 23, 1.5]]) { put(X.makeCycad(seed, h), px, 0, pz); col(px, pz, 0.9, 0.9); }
+    for (const [bx, bz] of [[-5.5, -17.2], [7.6, -15.6]]) { put(P.makeBench(2.4), bx, 0, bz); col(bx, bz, 2.4, 0.55); }
+    // two cases in front of the mural: eggs, and a tooth the size of a banana
+    const nest = new THREE.Group();
+    const nm = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.1, 8, 18), P.mat('caseNest', { color: 0x6a4a2a, roughness: 0.95 }));
+    nm.rotation.x = Math.PI / 2;
+    nm.position.y = 0.1;
+    nest.add(nm);
+    for (let i = 0; i < 4; i++) {
+      const egg = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), P.mat('caseEgg', { color: 0xd8c8a4, roughness: 0.7 }));
+      egg.scale.set(1, 1.35, 1);
+      egg.position.set(Math.cos(i * 1.6) * 0.12, 0.2, Math.sin(i * 1.6) * 0.12);
+      nest.add(egg);
+    }
+    const tooth = new THREE.Group();
+    const tm = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.34, 10), P.mat('caseTooth', { color: 0xe9dfc3, roughness: 0.5 }));
+    tm.position.y = 0.32;
+    tm.rotation.z = 0.25;
+    tooth.add(tm);
+    tooth.add(P.box(0.18, 0.12, 0.18, P.MATS.black()));
+    for (const [cx, inner, text] of [[-4, nest, 'DINOSAUR EGGS'], [4, tooth, 'T. REX TOOTH (ACTUAL SIZE)']]) {
+      put(P.makeDisplayCase(1.4, 0.8, 0.8, inner), cx, 0, -44.1);
+      col(cx, -44.1, 1.5, 0.9);
+      const lb = label(text);
+      lb.position.set(cx, 0.55, -43.69);
+      s.add(lb);
+    }
+
+    // ---- Roman Hall
+    put(X.makeStatue('point', 3, 0xece6da, 'THE ORATOR'), 35.6, 0, -6.0);
+    put(X.makeStatue('shrug', 4, 0xe8e2d8, 'THE PHILOSOPHER\n(NO IDEA)'), 35.6, 0, 6.0, Math.PI);
+    for (const sz of [-6, 6]) col(35.6, sz, 1.0, 1.0);
+    put(X.makeLegionary(), 14.3, 0, -5.4, Math.PI / 2);
+    col(14.3, -5.4, 1.0, 1.0);
+    put(P.makeDisplayCase(1.4, 0.7, 1.2, X.makeColosseum()), 14.4, 0, 5.4, Math.PI / 2);
+    col(14.4, 5.4, 1.4, 1.2, Math.PI / 2);
+    const cl = label('THE COLOSSEUM (TINY)');
+    cl.position.set(15.01, 0.55, 5.4);
+    cl.rotation.y = Math.PI / 2;
+    s.add(cl);
+    put(X.makeFlatCase(1.2, 0.7, X.makeCoins()), 31.0, 0, -3.4);
+    col(31.0, -3.4, 1.25, 0.75);
+    for (const cz of [-3.6, 3.6]) { put(X.makeCandelabrum(n), 14.5, 0, cz); col(14.5, cz, 0.5, 0.5); }
+
+    // ---- Egyptian Wing
+    for (const cz of [-21.5, -26.5]) { put(X.makeCatStatue(), 16.35, 0, cz, Math.PI / 2); col(16.35, cz, 0.55, 0.75, Math.PI / 2); }
+    put(X.makeSphinx(), 37.3, 0, -31.0, -Math.PI / 2);
+    col(37.3, -31.0, 1.1, 2.3, -Math.PI / 2);
+    put(X.makeFlatCase(1.3, 0.7, X.makePapyrus()), 30.4, 0, -11.2);
+    col(30.4, -11.2, 1.35, 0.75);
+    const boat = X.makeBoatModel();
+    boat.rotation.y = Math.PI / 2;
+    const boatHolder = new THREE.Group();
+    boatHolder.add(boat);
+    put(P.makeDisplayCase(1.5, 0.9, 0.9, boatHolder), 28.2, 0, -14.6);
+    col(28.2, -14.6, 1.6, 1.0);
+    const bl = label('A BOAT FOR THE AFTERLIFE');
+    bl.position.set(28.2, 0.55, -14.14);
+    s.add(bl);
+    for (const [px, pz, seed] of [[16.3, -36.3, 41], [38.2, -36.2, 42], [38.2, -10.2, 43], [16.3, -10.3, 44]]) {
+      put(X.makePapyrusPlant(seed), px, 0, pz);
+      col(px, pz, 0.7, 0.7);
+    }
+  }
+
   // ------------------------------------------------------------------ collectibles
   _collectibles() {
     if (!this.night) return;
@@ -1033,8 +1234,18 @@ export class Museum extends Level {
       panel.add(knob);
     } else {
       panel.position.set(px, 0, pz);
-      panel.add(new THREE.Mesh(alongZ ? boxUV(T, S.h, len, 3) : boxUV(len, S.h, T, 3), wallMat));
+      // texture coordinates from where it sits in the world, so the fake wall lines up with the real one
+      const pg = alongZ ? new THREE.BoxGeometry(T, S.h, len) : new THREE.BoxGeometry(len, S.h, T);
+      worldBoxUV(pg, new THREE.Vector3(px, S.h / 2, pz), S.wall === 'officeWall' ? 2 : 3);
+      panel.add(new THREE.Mesh(pg, wallMat));
       panel.children[0].position.y = S.h / 2;
+      // and the same baseboard as the wall it's pretending to be
+      const trim = this.trimFor.get(wallMat);
+      if (trim) for (const sd of [-1, 1]) {
+        const bb = new THREE.Mesh(alongZ ? new THREE.BoxGeometry(0.03, 0.16, len) : new THREE.BoxGeometry(len, 0.16, 0.03), trim);
+        bb.position.set(alongZ ? sd * (T / 2 + 0.015) : 0, 0.08, alongZ ? 0 : sd * (T / 2 + 0.015));
+        panel.add(bb);
+      }
     }
     s.add(panel);
     const col = colAt(S.from, S.to, -face, face);
@@ -1315,9 +1526,22 @@ export class Museum extends Level {
       };
       this.visitors.push(vis);
     }
+    const inArea = (a, x, z) => x >= a.minX - 1 && x <= a.maxX + 1 && z >= a.minZ - 1 && z <= a.maxZ + 1;
     const newRoute = (vis) => {
       // usually somewhere in their own hall, sometimes off to another one
       const area = r() < 0.2 ? areas[Math.floor(r() * areas.length)] : vis.area;
+      // most of the time: walk up to something interesting and have a look at it
+      const pois = POIS.filter(([x, z]) => inArea(area, x, z));
+      if (pois.length && r() < 0.75) {
+        const [px, pz, r0, r1, lx = px, lz = pz] = pois[Math.floor(r() * pois.length)];
+        for (let k = 0; k < 8; k++) {
+          const a = r() * Math.PI * 2, d = r0 + r() * (r1 - r0);
+          const to = new THREE.Vector3(px + Math.sin(a) * d, 0, pz + Math.cos(a) * d);
+          const route = nav.path(vis.p.group.position, to);
+          if (route && route.length) { vis.route = route; vis.area = area; vis.look = [lx, lz]; return; }
+        }
+      }
+      vis.look = null;
       for (let k = 0; k < 6; k++) {
         const to = nav.randomSpot(area, r);
         const route = to && nav.path(vis.p.group.position, to);
@@ -1346,10 +1570,18 @@ export class Museum extends Level {
           if (vis.busy <= 0) { vis.faceYaw = null; vis.wait = 1 + r() * 2; vis.p.setMode('idle'); }
         } else if (vis.wait > 0) {
           vis.wait -= dt;
-          vis.p.setMode('idle');
-          if (vis.wait <= 0) newRoute(vis);
+          vis.p.setMode(vis.pose || 'idle');
+          if (vis.lookYaw != null) turnTo(grp, vis.lookYaw, dt, 4);
+          if (vis.wait <= 0) { vis.pose = null; vis.lookYaw = null; newRoute(vis); }
         } else if (!vis.route.length) {
+          // arrived: if it was to see something, face it (and maybe point it out to someone)
           vis.wait = 2 + r() * 5;
+          if (vis.look) {
+            vis.lookYaw = Math.atan2(vis.look[0] - grp.position.x, vis.look[1] - grp.position.z);
+            vis.pose = r() < 0.3 ? 'point' : 'idle';
+            vis.wait += 2;
+            vis.look = null;
+          }
         } else {
           const wp = vis.route[0];
           tmp.copy(wp).sub(grp.position);

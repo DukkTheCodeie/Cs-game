@@ -15,6 +15,20 @@ export function boxUV(w, h, d, scale = 2) {
   return g;
 }
 
+// Texture coordinates from world position (1 repeat = `scale` meters) for a box placed at `at`, so
+// stone courses and painted bands line up across every piece of a wall, above doors and around corners.
+export function worldBoxUV(geo, at, scale = 2) {
+  const p = geo.attributes.position, n = geo.attributes.normal, uv = geo.attributes.uv;
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i) + at.x, y = p.getY(i) + at.y, z = p.getZ(i) + at.z;
+    if (Math.abs(n.getY(i)) > 0.5) uv.setXY(i, x / scale, z / scale);
+    else if (Math.abs(n.getX(i)) > 0.5) uv.setXY(i, z / scale, y / scale);
+    else uv.setXY(i, x / scale, y / scale);
+  }
+  uv.needsUpdate = true;
+  return geo;
+}
+
 export function planeUV(w, h, scale = 2) {
   const g = new THREE.PlaneGeometry(w, h);
   const uv = g.attributes.uv;
@@ -104,23 +118,33 @@ export class Level {
 
   // How tall each collider is, from the meshes standing on the floor inside it (so the flashlight knows
   // you can see over a low platform or a bench). Call before the static meshes are merged.
-  measureColliders() {
+  // `skip(obj)` leaves out things that move (and everything under them), like the T-Rex on its platform.
+  measureColliders(skip = () => false) {
     const boxes = [];
     const bb = new THREE.Box3();
     this.scene.updateMatrixWorld(true);
-    this.scene.traverse((o) => {
+    const walk = (o) => {
+      if (o !== this.scene && skip(o)) return;
+      measure(o);
+      for (const c of o.children) walk(c);
+    };
+    const measure = (o) => {
       if (!o.isMesh || !o.geometry?.attributes?.position) return;
       const m = Array.isArray(o.material) ? o.material[0] : o.material;
       if (m?.transparent && !m.depthWrite) return; // light beams, glows, decals: not solid
       if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
       bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
-      if (bb.min.y > 0.1 || bb.max.y - bb.min.y < 0.02) return; // only things that stand on the floor
-      boxes.push([bb.min.x, bb.max.x, bb.min.z, bb.max.z, bb.max.y]);
-    });
+      if (bb.max.y - bb.min.y < 0.02) return;
+      boxes.push([bb.min.x, bb.max.x, bb.min.z, bb.max.z, bb.min.y, bb.max.y]);
+    };
+    walk(this.scene);
     for (const c of this.colliders) {
-      let top = 0;
-      for (const [x0, x1, z0, z1, y1] of boxes) {
-        if (y1 > top && x1 > c.minX + 0.02 && x0 < c.maxX - 0.02 && z1 > c.minZ + 0.02 && z0 < c.maxZ - 0.02) top = y1;
+      // start from the floor and keep stacking: a column's base, then its shaft, then its capital...
+      const mine = boxes.filter(([x0, x1, z0, z1]) => x1 > c.minX + 0.02 && x0 < c.maxX - 0.02 && z1 > c.minZ + 0.02 && z0 < c.maxZ - 0.02);
+      let top = 0, grew = true;
+      while (grew) {
+        grew = false;
+        for (const [, , , , y0, y1] of mine) if (y0 <= top + 0.12 && y1 > top) { top = y1; grew = true; }
       }
       c.top = top || Infinity;
     }
@@ -160,15 +184,20 @@ export class Level {
     return c;
   }
 
-  // Walls: along X at fixed z, or along Z at fixed x. Openings: [{c, w, h}]
-  wallX(z, x1, x2, h, material, openings = [], scale = 2) {
-    this._wall('x', z, x1, x2, h, material, openings, scale);
+  // Walls: along X at fixed z, or along Z at fixed x. Openings: [{c, w, h, frame}]
+  // `material` (and `scale`) can be [side toward -z/-x, side toward +z/+x] for a wall between two rooms.
+  // When the level sets `trimFor` (wall material → trim material), walls get baseboards on both faces
+  // (opts.noTrim = -1 or 1 skips one side, e.g. the outside), and openings with `frame: true` get a
+  // door frame.
+  wallX(z, x1, x2, h, material, openings = [], scale = 2, opts = {}) {
+    this._wall('x', z, x1, x2, h, material, openings, scale, opts);
   }
-  wallZ(x, z1, z2, h, material, openings = [], scale = 2) {
-    this._wall('z', x, z1, z2, h, material, openings, scale);
+  wallZ(x, z1, z2, h, material, openings = [], scale = 2, opts = {}) {
+    this._wall('z', x, z1, z2, h, material, openings, scale, opts);
   }
-  _wall(axis, fixed, a1, a2, h, material, openings, scale) {
+  _wall(axis, fixed, a1, a2, h, material, openings, scale, opts = {}) {
     const T = this.wallT;
+    const sides = Array.isArray(material) ? material : [material, material];
     const segs = [];
     let cur = Math.min(a1, a2);
     const end = Math.max(a1, a2);
@@ -179,20 +208,69 @@ export class Level {
       cur = b;
     }
     if (cur < end) segs.push([cur, end, 0, h]);
+    // one box, or two half-thickness boxes when the two sides differ
+    const scales = Array.isArray(scale) ? scale : [scale, scale];
+    const parts = sides[0] === sides[1] ? [[sides[0], 0, T, scales[1]]] : [[sides[0], -T / 4, T / 2, scales[0]], [sides[1], T / 4, T / 2, scales[1]]];
     for (const [s, e, y0, y1] of segs) {
       const len = e - s, mid = (s + e) / 2, hh = y1 - y0;
-      const geo = axis === 'x' ? boxUV(len, hh, T, scale) : boxUV(T, hh, len, scale);
-      const m = new THREE.Mesh(geo, material);
-      if (axis === 'x') m.position.set(mid, y0 + hh / 2, fixed);
-      else m.position.set(fixed, y0 + hh / 2, mid);
-      m.receiveShadow = true;
-      m.castShadow = y0 > 0;
-      this.scene.add(m);
+      for (const [mat, off, t, sc] of parts) {
+        const geo = axis === 'x' ? new THREE.BoxGeometry(len, hh, t) : new THREE.BoxGeometry(t, hh, len);
+        const m = new THREE.Mesh(geo, mat);
+        if (axis === 'x') m.position.set(mid, y0 + hh / 2, fixed + off);
+        else m.position.set(fixed + off, y0 + hh / 2, mid);
+        worldBoxUV(geo, m.position, sc);
+        m.receiveShadow = true;
+        m.castShadow = y0 > 0;
+        this.scene.add(m);
+      }
       if (y0 === 0) {
         if (axis === 'x') this.addCollider(s, e, fixed - T / 2, fixed + T / 2);
         else this.addCollider(fixed - T / 2, fixed + T / 2, s, e);
+        this._trimStrip(axis, fixed, s, e, sides, opts, 0, 0.16, 0.03);
       }
     }
+    for (const op of openings) if (op.frame) this._doorFrame(axis, fixed, op, sides, opts);
+  }
+
+  // A strip of trim along a wall face (baseboard), on each side that has a trim material.
+  _trimStrip(axis, fixed, s, e, sides, opts, y, hgt, depth) {
+    if (!this.trimFor) return;
+    const T = this.wallT;
+    sides.forEach((mat, k) => {
+      const dir = k ? 1 : -1, tm = this.trimFor.get(mat);
+      if (!tm || opts.noTrim === dir) return;
+      const off = fixed + dir * (T / 2 + depth / 2);
+      const geo = axis === 'x' ? new THREE.BoxGeometry(e - s, hgt, depth) : new THREE.BoxGeometry(depth, hgt, e - s);
+      const m = new THREE.Mesh(geo, tm);
+      if (axis === 'x') m.position.set((s + e) / 2, y + hgt / 2, off);
+      else m.position.set(off, y + hgt / 2, (s + e) / 2);
+      m.receiveShadow = true;
+      this.scene.add(m);
+    });
+  }
+
+  // Jambs and a lintel around a doorway, on both faces of the wall.
+  _doorFrame(axis, fixed, op, sides, opts) {
+    if (!this.trimFor) return;
+    const T = this.wallT, fw = op.frameW || 0.2, fd = 0.06;
+    sides.forEach((mat, k) => {
+      const dir = k ? 1 : -1, tm = this.trimFor.get(mat);
+      if (!tm || opts.noTrim === dir) return;
+      const off = fixed + dir * (T / 2 + fd / 2);
+      const piece = (u, y, w, hgt) => {
+        const geo = axis === 'x' ? new THREE.BoxGeometry(w, hgt, fd) : new THREE.BoxGeometry(fd, hgt, w);
+        const m = new THREE.Mesh(geo, tm);
+        if (axis === 'x') m.position.set(u, y, off);
+        else m.position.set(off, y, u);
+        m.castShadow = true;
+        m.receiveShadow = true;
+        this.scene.add(m);
+      };
+      const a = op.c - op.w / 2, b = op.c + op.w / 2;
+      piece(a - fw / 2, (op.h + fw) / 2, fw, op.h + fw);
+      piece(b + fw / 2, (op.h + fw) / 2, fw, op.h + fw);
+      piece(op.c, op.h + fw / 2, op.w + fw * 2, fw);
+    });
   }
 
   floor(x1, x2, z1, z2, material, y = 0, scale = 2) {
@@ -256,6 +334,7 @@ export class Level {
         const mats = Array.isArray(o.material) ? o.material : [o.material];
         for (const m of mats) {
           if (m.map && !m.map.userData?.keep) m.map.dispose();
+          if (m.bumpMap && !m.bumpMap.userData?.keep) m.bumpMap.dispose();
           m.dispose();
         }
       }

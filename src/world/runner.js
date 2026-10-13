@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Level, boxUV, planeUV } from './level.js';
 import { tex, paintingTexture, signTexture } from './textures.js';
+import { surface } from './surfaces.js';
 import * as P from './props.js';
 import { TRex, buildSkull, trexMats } from './trex.js';
 import { makeGuard } from './people.js';
@@ -50,9 +51,9 @@ export class Runner extends Level {
     s.add(this.alarm);
 
     this.mats = {
-      floor: new THREE.MeshStandardMaterial({ map: tex('marble'), roughness: 0.3 }),
+      floor: (() => { const t = surface('marbleFloor'); return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bump, bumpScale: 1, roughness: 0.25, metalness: 0.05 }); })(),
       carpet: new THREE.MeshStandardMaterial({ map: tex('carpet'), roughness: 0.9 }),
-      wall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x8c7c9a, roughness: 0.85 }),
+      wall: (() => { const t = surface('ashlar'); return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bump, bumpScale: 1.2, color: 0xc4b6d2, roughness: 0.8 }); })(),
       ceil: new THREE.MeshStandardMaterial({ color: 0x2c2634, roughness: 1 }),
       lamp: new THREE.MeshBasicMaterial({ color: 0xfff0c8 }),
       frame: new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: 0.8, roughness: 0.35 }),

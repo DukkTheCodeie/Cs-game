@@ -128,6 +128,9 @@ export const LINES = {
   guard57: { who: 'guard', mood: 'happy', text: 'Another key! Somebody down here is REALLY bad at keeping track of keys.' },
   guard58: { who: 'guard', mood: 'sleepy', text: 'My eyes... are closing... all by themselves...' },
   museos32: { who: 'museos', mood: 'normal', text: 'Warning: sugar level critical. I recommend a donut. Or twelve.' },
+  // the city outside
+  guard59: { who: 'guard', mood: 'sleepy', text: "Look at that. The whole city's asleep. Lucky city." },
+  guard60: { who: 'guard', mood: 'shocked', text: 'A PARADE?! Is that a giant DONUT?! Nobody tells me ANYTHING around here.' },
 
   // ---------------- Chapter 6: morning
   guard28: { who: 'guard', mood: 'confused', text: "Mmh... huh? It's MORNING?!" },
@@ -135,6 +138,7 @@ export const LINES = {
   aaron02: { who: 'aaron', mood: 'annoyed', text: 'Dude. Did you sleep in the dinosaur exhibit? Again?' },
   guard30: { who: 'guard', mood: 'shocked', text: 'Aaron! The T-Rex was ALIVE! It chased me! There was a MUMMY! And the archives NEVER END!' },
   aaron03: { who: 'aaron', mood: 'cool', text: "Sure, buddy. Also, your computer's been beeping all morning. You should probably log in." },
+  aaron04: { who: 'aaron', mood: 'happy', text: "Oh, and there's a parade outside today. Floats, a marching band, the works. Front doors are open if you want a look." },
   museos11: { who: 'museos', mood: 'normal', text: 'Fragments entered: five of six. You did not solve the puzzles.' },
   guard31: { who: 'guard', mood: 'angry', text: 'WHAT? I solved like FIVE puzzles!' },
   museos12: { who: 'museos', mood: 'normal', text: 'Five is not six. Goodbye.' },
@@ -153,7 +157,6 @@ export const LINES = {
   // poking the TV (they go round in order)
   dev08: { who: 'dev', mood: 'confused', text: "Why do you keep clicking me? I'm a TV. ...Kind of." },
   dev09: { who: 'dev', mood: 'happy', text: 'Fun fact: I made every sound in this game with code. Even the munching.' },
-  dev10: { who: 'dev', mood: 'cool', text: "The archives never end. I wrote an algorithm for that. I'm not sorry." },
   dev11: { who: 'dev', mood: 'hungry', text: 'Got any donuts? Asking for a friend. The friend is me.' },
   dev12: { who: 'dev', mood: 'annoyed', text: "Okay, that's a LOT of pokes. I'm counting, you know." },
   dev13: { who: 'dev', mood: 'scared', text: "Please don't tell the T-Rex where I live." },
@@ -167,7 +170,6 @@ export const LINES = {
   dev20: { who: 'dev', mood: 'happy', text: 'Did you turn the music up? Turn it up. I worked really hard on that music.' },
   // popping into the game
   dev21: { who: 'dev', mood: 'happy', text: 'Hey, you found one of my secret rooms! Take the donut. I insist.' },
-  dev22: { who: 'dev', mood: 'cool', text: 'Yeah, it never ends. The computer makes up new puzzles forever. Pretty cool, right?' },
   dev23: { who: 'dev', mood: 'sad', text: "Aww. Sweet dreams, little guard. Don't worry, it's almost morning." },
   // more of the dev in the menus
   dev24: { who: 'dev', mood: 'cool', text: 'Pro tip: you can sprint. It burns donuts, though. Just like real life.' },
@@ -176,7 +178,8 @@ export const LINES = {
   dev27: { who: 'dev', mood: 'annoyed', text: 'You turned the voices off? ...Fine. I will just type REALLY loudly.' },
   dev28: { who: 'dev', mood: 'sad', text: 'Fast graphics? My beautiful cylinders... they look so blurry now.' },
   dev29: { who: 'dev', mood: 'sleepy', text: "Okay, I'm taking a nap. Wake me up when you press play." },
-  dev30: { who: 'dev', mood: 'happy', text: 'New in this version: the visitors can talk now! Go bump into one. Actually, please don\'t.' },
+  dev30: { who: 'dev', mood: 'happy', text: "New in this version: there's a whole CITY outside! Look out the front windows. And in the morning... well. You'll see." },
+  dev33: { who: 'dev', mood: 'happy', text: 'Oh, you found my parade! I built every float myself. The donut one is my favorite. Obviously.' },
   dev32: { who: 'dev', mood: 'shocked', text: "You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again." },
   dev31: { who: 'dev', mood: 'shocked', text: 'Wait, you finished the whole game? And you came BACK? You must really like donuts.' },
 };
@@ -198,6 +201,8 @@ export const VISITOR_LINES = {
     'This is the best field trip EVER.',
     'Why are there giant footprints going into the Egypt room?',
     'I had a dream that the archives went on forever.',
+    'Can we go watch the parade? PLEEEASE?',
+    'I saw a float shaped like a T-Rex! Is it this T-Rex?',
   ],
   adult: [
     "Excuse me, where's the gift shop?",
@@ -212,6 +217,8 @@ export const VISITOR_LINES = {
     "Is there a Wi-Fi password? ...It's not donut123, is it?",
     'Great security here. Very... relaxed.',
     "Do you know where the restrooms are? ...Never mind, I'll follow the signs.",
+    'Is the parade today? I had no idea. Nobody tells me anything either.',
+    'You can see half the city from those front windows. Lovely view.',
   ],
   kidBump: ['Hey! Watch it!', 'Ow! You stepped on my shoe!', 'Mooom! The guard bumped me!', "Whoa! You're like a bulldozer!", 'Excuse YOU!', 'Rude!'],
   adultBump: ['Oof! Excuse me!', 'Watch where you\'re going, please.', 'Whoa there! Easy!', 'Sorry! ...Oh wait, that was you.', 'Is running allowed in museums?', "My coffee! ...Oh, I don't have coffee. Never mind."],

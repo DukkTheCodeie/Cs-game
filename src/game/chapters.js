@@ -115,6 +115,13 @@ function nightSetup(g, lvl) {
   for (const d of lvl.refs.boxDonuts) d.visible = false;
   lvl.refs.deskFlashlight.visible = false;
   setupMonitor(g, lvl, { mode: 'locked' });
+  // the first time you walk up to the front windows at night
+  lvl.addTrigger({ once: false, minX: -11, maxX: 11, minZ: 6.5, maxZ: 9.8, onEnter: () => {
+    if (g.save.flags.sawCity || g.dialogue.current || g.mode !== 'explore') return;
+    g.save.flags.sawCity = true;
+    g.persist();
+    g.say('guard59');
+  } });
 }
 
 // ================================================================== PROLOGUE
@@ -929,7 +936,6 @@ async function maze(g) {
         if (id.startsWith('museos')) g.audio.play('radio');
         await g.say(id);
       }
-      if (k === HANDMADE + 1) await g.say('dev22'); // the dev pops in to brag about the endless archives
     }
   };
 }
@@ -1049,6 +1055,9 @@ async function morning(g) {
     aaron.anim.talk = 3;
     aaron.setMode('shrug');
     await g.say('aaron03');
+    aaron.setMode('point');
+    aaron.anim.talk = 3;
+    await g.say('aaron04');
     aaron.setMode('idle');
   });
 
