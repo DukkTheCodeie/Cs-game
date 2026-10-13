@@ -1,5 +1,6 @@
 import { $, el, escapeHtml } from '../core/util.js';
-import { drawGlyph, GLYPHS, GLYPH_KEYS, PHARAOH_CODE } from '../world/glyphs.js';
+import { drawGlyph, drawNumeral, GLYPHS, GLYPH_KEYS, PHARAOH_CODE } from '../world/glyphs.js';
+import { EGYPT_PILLARS } from '../world/museum.js';
 
 // Every puzzle opens in a modal panel. openPuzzle() resolves true when solved, false if closed.
 
@@ -155,33 +156,46 @@ const PUZZLES = {
   // ---------------------------------------------------------------- 2. Pharaoh's Lock (Egyptian Wing)
   pharaoh: {
     title: "PHARAOH'S LOCK",
-    sub: 'Four symbols, in the right order. The four pillars in this hall know the answer — count the lines on top of each one.',
+    sub: 'Four symbols, from the SMALLEST number to the BIGGEST. Every pillar in this hall has a symbol and a number on it.',
     keys: 'Click the symbols (or keys 1–8) · Backspace undo · Esc close',
     build({ game, body, solve, panel }) {
       const notes = game.save.solved.pillars || {};
       const entered = [];
-      let done = false;
+      let done = false, locked = false;
       const icon = (kind, size = 56, color = '#1d3f8f') => {
         const c = document.createElement('canvas');
         c.width = c.height = size * 2;
         drawGlyph(c.getContext('2d'), kind, size, size, size * 1.7, color);
         return c;
       };
-      const strokes = (n) => '<span class="strokes">' + '<i></i>'.repeat(n) + '</span>';
+      const numeral = (value) => {
+        const c = document.createElement('canvas');
+        c.width = 120; c.height = 40;
+        drawNumeral(c.getContext('2d'), value, 60, 20, 30, '#ff9a6a');
+        return c;
+      };
       body.innerHTML = `
-        <div class="cartouche">${[1, 2, 3, 4].map((n) => `<div class="cslot"><div class="cg"></div>${strokes(n)}</div>`).join('')}</div>
+        <div class="cartouche">${['1st', '2nd', '3rd', '4th'].map((o) => `<div class="cslot"><div class="cg"></div><span class="cord">${o}</span></div>`).join('')}</div>
+        <div class="numeral-key"><span><b>|</b> = 1</span><span><b>∩</b> = 10</span><span>so <b>∩∩|||</b> = 23</span><span>smallest → biggest</span></div>
         <div class="glyph-grid">${GLYPH_KEYS.map((k, i) => `<button class="glyph" data-k="${k}"><span class="gi"></span><small>${i + 1} · ${GLYPHS[k]}</small></button>`).join('')}</div>
-        <div class="pillar-notes"><b>Your notes:</b> ${[1, 2, 3, 4].map((n) => `<span class="pn">${strokes(n)} <span class="pg" data-n="${n}">?</span></span>`).join('')}</div>`;
+        <div class="pillar-notes"><b>Your notes:</b> ${[3, 1, 4, 2].map((n) => `<span class="pn" data-n="${n}"><span class="pv">?</span><span class="pg"></span></span>`).join('')}</div>
+        <div class="lock-msg"></div>`;
       const slots = [...body.querySelectorAll('.cslot')];
+      const msg = $('.lock-msg', body);
       body.querySelectorAll('.glyph').forEach((b) => {
         b.querySelector('.gi').append(icon(b.dataset.k, 30));
         b.onclick = () => add(b.dataset.k);
       });
-      body.querySelectorAll('.pg').forEach((s) => {
-        const k = notes[s.dataset.n];
-        if (k) { s.textContent = ''; s.append(icon(k, 14, '#e9c46a')); s.title = GLYPHS[k]; }
+      // the pillars you've read: their number (still in Egyptian) and symbol, mixed up (not in code order!)
+      body.querySelectorAll('.pillar-notes .pn').forEach((s) => {
+        const p = EGYPT_PILLARS.find((q) => q.n === Number(s.dataset.n));
+        if (!notes[p.n]) return;
+        $('.pv', s).textContent = '';
+        $('.pv', s).append(numeral(p.value));
+        $('.pg', s).append(icon(notes[p.n], 14, '#e9c46a'));
+        s.title = GLYPHS[notes[p.n]];
       });
-      slots.forEach((s, i) => (s.onclick = () => { if (i < entered.length && !done) { entered.splice(i); render(); game.audio.play('back'); } }));
+      slots.forEach((s, i) => (s.onclick = () => { if (i < entered.length && !done && !locked) { entered.splice(i); render(); game.audio.play('back'); } }));
       const render = () => slots.forEach((s, i) => {
         const g = $('.cg', s);
         g.innerHTML = '';
@@ -189,34 +203,40 @@ const PUZZLES = {
         s.classList.toggle('filled', !!entered[i]);
       });
       const add = (k) => {
-        if (done || entered.length >= 4) return;
+        if (done || locked || entered.length >= 4) return;
         entered.push(k);
+        msg.textContent = '';
         game.audio.play('click');
         game.audio.play('tick', { delay: 0.05 });
         render();
-        if (entered.length === 4) {
-          if (entered.every((g, i) => g === PHARAOH_CODE[i])) {
-            done = true;
-            panel.querySelector('.cartouche').classList.add('ok');
-            game.audio.play('sparkle');
-            setTimeout(solve, 800);
-          } else {
-            game.audio.play('error');
-            panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
-            setTimeout(() => { if (!done) { entered.length = 0; render(); } }, 650);
-          }
+        if (entered.length < 4) return;
+        if (entered.every((g, i) => g === PHARAOH_CODE[i])) {
+          done = true;
+          panel.querySelector('.cartouche').classList.add('ok');
+          game.audio.play('sparkle');
+          setTimeout(solve, 800);
+          return;
         }
+        // wrong: the lock zaps you (so guessing every order isn't worth it)
+        locked = true;
+        const zap = Math.max(0, Math.min(4, Math.floor(game.meter.value - 5)));
+        if (zap) game.meter.add(-zap);
+        game.audio.play('error');
+        game.audio.play('buzz', { delay: 0.05 });
+        panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+        msg.innerHTML = `WRONG ORDER. The lock zaps you!${zap ? ` <b>−${zap}%</b> 🍩` : ''}`;
+        setTimeout(() => { if (!done) { entered.length = 0; render(); locked = false; } }, 2000);
       };
       return {
         onKey(e) {
           const m = /^(?:Digit|Numpad)([1-8])$/.exec(e.code);
           if (m) add(GLYPH_KEYS[Number(m[1]) - 1]);
-          if (e.code === 'Backspace' && entered.length && !done) { e.preventDefault(); entered.pop(); render(); game.audio.play('back'); }
+          if (e.code === 'Backspace' && entered.length && !done && !locked) { e.preventDefault(); entered.pop(); render(); game.audio.play('back'); }
         },
         hints: () => [
-          'Find the four pillars in this hall. Walk up to each one and press USE (E) to read it — it goes in your notes.',
-          'The lines on top of a pillar tell you its place in the code: | is first, || is second, ||| third, |||| last.',
-          'The code is: BIRD, EYE, SNAKE, ANKH.',
+          'Find the four pillars in this hall and press USE (E) on each one. They go in your notes.',
+          'Each ∩ is 10 and each | is 1. So ∩| is 11 and ∩∩|||| is 24. Put the symbols from the smallest number to the biggest.',
+          'BIRD is 13, EYE is 22, SNAKE is 24 and ANKH is 31. The code is BIRD, EYE, SNAKE, ANKH.',
         ],
       };
     },
@@ -239,7 +259,8 @@ const PUZZLES = {
         <div class="roman-year">${params.year ? 'THE CODE IS' : 'FOUNDED IN'} <b>${numeral}</b></div>
         <div class="dials"></div>
         <div class="numeral-key">${[['I', 1], ['V', 5], ['X', 10], ['L', 50], ['C', 100], ['D', 500], ['M', 1000]].map(([l, n]) => `<span><b>${l}</b> = ${n}</span>`).join('')}</div>
-        <div class="help" style="text-align:center">Add the letters up. A small letter <b>before</b> a bigger one is taken away: <b>IV</b> = 5 − 1 = 4.<br>A dial turns <b style="color:var(--mint)">green</b> when it's right!</div>`;
+        <div class="help" style="text-align:center">Add the letters up. A small letter <b>before</b> a bigger one is taken away: <b>IV</b> = 5 − 1 = 4.</div>
+        <div style="text-align:center"><button class="btn pink unlock">🔓 UNLOCK</button></div>`;
       const dials = $('.dials', body);
       const nums = [], dialEls = [];
       for (let i = 0; i < 4; i++) {
@@ -252,35 +273,46 @@ const PUZZLES = {
         $('.dn', d).onclick = () => set(i, val[i] - 1);
         n.addEventListener('wheel', (e) => { e.preventDefault(); set(i, val[i] + (e.deltaY > 0 ? -1 : 1)); }, { passive: false });
       }
-      const check = () => {
-        if (!done && val.every((v, i) => v === code[i])) {
+      const btn = $('.unlock', body);
+      let locked = false;
+      // the dials don't tell you which ones are right: you only find out when you try the whole code
+      const tryCode = () => {
+        if (done || locked) return;
+        if (val.every((v, i) => v === code[i])) {
           done = true;
-          game.audio.play('sparkle');
-          setTimeout(solve, 700);
+          dialEls.forEach((d) => d.classList.add('ok'));
+          btn.textContent = '🔓 UNLOCKED!';
+          game.audio.play('unlock');
+          game.audio.play('sparkle', { delay: 0.1 });
+          setTimeout(solve, 800);
+          return;
         }
+        locked = true;
+        game.audio.play('error');
+        panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+        btn.textContent = '✖ WRONG CODE';
+        btn.classList.add('wrong');
+        setTimeout(() => { locked = false; if (!done) { btn.textContent = '🔓 UNLOCK'; btn.classList.remove('wrong'); } }, 1500);
       };
+      btn.onclick = tryCode;
       const set = (i, v) => {
+        if (done) return;
         val[i] = (v + 10) % 10;
         nums[i].textContent = val[i];
         nums[i].classList.remove('pop');
         void nums[i].offsetWidth;
         nums[i].classList.add('pop');
-        const ok = val[i] === code[i];
-        if (ok && !dialEls[i].classList.contains('ok')) game.audio.play('chime', { vol: 0.35 });
-        dialEls[i].classList.toggle('ok', ok);
         game.audio.play('tick');
-        check();
       };
       return {
         onKey(e) {
           if (/^Digit\d$/.test(e.code) || /^Numpad\d$/.test(e.code)) {
+            if (locked) return;
             set(typed % 4, Number(e.code.slice(-1)));
             typed++;
-            if (typed % 4 === 0 && !val.every((v, i) => v === code[i])) {
-              game.audio.play('error');
-              panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
-            }
+            if (typed % 4 === 0) tryCode(); // typed all four digits: try them
           }
+          if (e.code === 'Enter' || e.code === 'NumpadEnter') tryCode();
         },
         hints: () => (params.year
           ? ['A dash (—) means that dial is 0. Count each piece: M = 1000, C = 100, X = 10, I = 1.', `${parts[0] || '—'} → ${code[0]} and ${parts[1] || '—'} → ${code[1]}.`, `The code is ${code.join(' ')}.`]
@@ -434,7 +466,8 @@ const PUZZLES = {
       const NAMES = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
       const NOTES = [392, 523, 659, 784];
       const seq = Array.from({ length: len }, () => Math.floor(Math.random() * 4));
-      body.innerHTML = `<div class="simon">${NAMES.map((nm, i) => `<button class="pad p${i}" data-i="${i}"><span>${i + 1}</span></button>`).join('')}</div>
+      const SHAPES = ['●', '▲', '■', '★']; // so you don't need to tell the colors apart
+      body.innerHTML = `<div class="simon">${NAMES.map((nm, i) => `<button class="pad p${i}" data-i="${i}" aria-label="${nm}"><b>${SHAPES[i]}</b><span>${i + 1}</span></button>`).join('')}</div>
         <div class="simon-status">Watch closely…</div>
         <div class="help" style="text-align:center"><button class="btn small simon-replay">↻ Show me again</button></div>`;
       const pads = [...body.querySelectorAll('.pad')];
@@ -491,8 +524,8 @@ const PUZZLES = {
         },
         hints: () => [
           'Say the colors out loud while they flash: "red, blue, blue..." — it helps!',
-          `It starts with ${seq.slice(0, 2).map((i) => NAMES[i]).join(', ')}.`,
-          `The whole order is: ${seq.map((i) => NAMES[i]).join(', ')}.`,
+          `It starts with ${seq.slice(0, 2).map((i) => `${NAMES[i]} ${SHAPES[i]}`).join(', ')}.`,
+          `The whole order is: ${seq.map((i) => `${NAMES[i]} ${SHAPES[i]}`).join(', ')}.`,
         ],
         dispose() { alive = false; },
       };

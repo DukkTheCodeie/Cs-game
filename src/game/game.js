@@ -18,6 +18,8 @@ import { Player } from './player.js';
 import { Museum, SPOTS } from '../world/museum.js';
 import { CHAPTERS, START, runChapter, tipFor } from './chapters.js';
 import { TOTAL_DONUTS, FRAGMENTS, DONUT_IDS } from './constants.js';
+import { VERSION } from '../version.js';
+import { logEvent } from '../core/analytics.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
 export { TOTAL_DONUTS };
@@ -94,7 +96,8 @@ export class Game {
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
     setMaxAnisotropy(r.capabilities.getMaxAnisotropy());
-    this.camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.05, 400);
+    // near plane at 10 cm (you never get closer to a wall than 32 cm): keeps far-away surfaces from flickering
+    this.camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 400);
     this.camLook = new THREE.Vector3();
     // Post-processing: bloom makes the T-Rex eyes, screens, signs and donuts glow.
     this.composer = new EffectComposer(r);
@@ -335,6 +338,10 @@ export class Game {
     document.body.classList.toggle('playing', mode !== 'menu' && mode !== 'boot');
     const explore = mode === 'explore';
     this.player.enabled = explore;
+    if (!explore) { // (the close-up dimming only follows you while you walk around)
+      this.player.nearDim = 1;
+      if (this.player.flashOn) this.player.spot.intensity = this.player.baseIntensity;
+    }
     this.hud.crosshair(explore);
     if (!explore) this.hud.setPrompt(null);
     this.input.showTouch(explore ? 'explore' : mode === 'runner' ? 'runner' : 'off');
@@ -354,7 +361,7 @@ export class Game {
     this.dialogue.setPaused(true);
     this.input.exitLock();
     this.audio.ctx?.suspend?.();
-    const m = (this.pauseModal = modal(`<h2>PAUSED</h2><div class="sub">${this.chapterName()}</div>
+    const m = (this.pauseModal = modal(`<h2>PAUSED</h2><div class="sub">${this.chapterName()} <span style="opacity:.55">· ${VERSION}</span></div>
       <div class="chapters">
         <button class="btn big pink" data-a="resume">▶ RESUME</button>
         <button class="btn" data-a="settings">SETTINGS</button>
@@ -366,7 +373,7 @@ export class Game {
     m.panel.querySelector('[data-a=settings]').onclick = () => { this.audio.ctx?.resume?.(); this.menu.settings(); };
     m.panel.querySelector('[data-a=controls]').onclick = () => this.menu.controls();
     m.panel.querySelector('[data-a=restart]').onclick = () => { this.paused = false; m.close(); this.startChapter(this.save.chapter || 'intro', { mode: 'continue' }); };
-    m.panel.querySelector('[data-a=menu]').onclick = () => { this.paused = false; m.close(); this.toMenu(); };
+    m.panel.querySelector('[data-a=menu]').onclick = () => { this.paused = false; m.close(); this.devQuip = 'dev26'; this.toMenu(); };
   }
 
   resume() {
@@ -482,7 +489,7 @@ export class Game {
     if (!this.save.flags.secretLine) {
       this.save.flags.secretLine = true;
       this.persist();
-      this.wait(1.2).then(() => this.say('guard46'));
+      this.wait(1.2).then(async () => { await this.say('guard46'); await this.say('dev21'); });
     }
   }
 
@@ -523,7 +530,7 @@ export class Game {
     this.dialogue.stop();
     const v = await this._guard(showGameOver(this, { title, sub, buttons: [{ label: '↻ TRY AGAIN', value: 'retry', cls: 'pink' }, { label: 'MENU', value: 'menu', cls: 'ghost' }] }));
     if (v === 'retry') this.startChapter(this.save.chapter, { mode: 'continue' });
-    else this.toMenu();
+    else { this.devQuip = /ASLEEP/.test(title) ? 'dev17' : 'dev32'; this.toMenu(); }
   }
 
   resetHud() {
@@ -553,6 +560,7 @@ export class Game {
 
   // ------------------------------------------------------------ chapters / menu
   async startChapter(id, { mode = 'fresh' } = {}) {
+    logEvent('chapter/' + id);
     this.runId++;
     this.paused = false;
     this.timeScale = 1;

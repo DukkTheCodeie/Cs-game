@@ -115,7 +115,8 @@ export class Dialogue {
     return this.sayRaw(L.who, L.text, { mood: L.mood, clip: LINES[id] ? id : null, ...opts });
   }
 
-  async sayRaw(who, text, { mood = 'normal', clip = null, hold = 0.35, showCam = true } = {}) {
+  // beeps: always speak in beeps (unless voices are off), e.g. the morning visitors; pitch: their voice
+  async sayRaw(who, text, { mood = 'normal', clip = null, hold = 0.35, showCam = true, beeps = false, pitch = 1, name: nameOverride = null } = {}) {
     const g = this.game;
     if (g.sched.skipping) return;
     this.skipLine();
@@ -124,11 +125,12 @@ export class Dialogue {
     const token = { skipped: false, skip: () => { token.skipped = true; skipFn(); } };
     this.current = token;
     document.body.classList.add('talking');
+    g.audio.duck(true);
 
     const st = this.stationFor(who);
     st.who = who;
     st.mood = mood;
-    const name = SPEAKERS[who]?.name() || who.toUpperCase();
+    const name = nameOverride || SPEAKERS[who]?.name() || who.toUpperCase();
     // subtitles
     const subsOn = g.save.settings.subtitles !== 'off';
     this.sub.classList.toggle('off', !subsOn);
@@ -177,7 +179,7 @@ export class Dialogue {
       st.showFace(media);
       st.speaking = true;
       const est = 1.2 + text.length * 0.055;
-      const voice = g.save.settings.voice || 'tts';
+      const voice = beeps ? (g.save.settings.voice === 'off' ? 'off' : 'beeps') : g.save.settings.voice || 'tts';
       let done;
       if (voice === 'tts' && 'speechSynthesis' in window && this.voices.length && !this.ttsBroken) {
         done = Promise.race([this._tts(who, text), timeout(est * 1.8 + 2)]).then((r) => {
@@ -188,7 +190,7 @@ export class Dialogue {
           }
         });
       } else if (voice !== 'off') {
-        const d = g.audio.babble(text, who);
+        const d = g.audio.babble(text, who, undefined, pitch);
         done = timeout(Math.max(d, 0.6));
       } else done = timeout(est);
       await Promise.race([done, skipped]);
@@ -205,6 +207,7 @@ export class Dialogue {
     if (this.current === token) {
       this.current = null;
       document.body.classList.remove('talking');
+      this.game.audio.duck(false);
       this.sub.classList.add('off');
       if (st === this.facecam) this.fcRoot.classList.add('off');
       else this.tvBubble?.(null);

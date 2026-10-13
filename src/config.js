@@ -8,5 +8,7 @@ export const CONFIG = {
   devName: 'THE DEV',
   // Game title on the menu (two lines)
   title: ['LOCKED', 'OUT'],
+  // GoatCounter code for anonymous play counting ('' = off). See game-config.js.
+  analytics: '',
   ...user,
 };

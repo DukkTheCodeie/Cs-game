@@ -86,7 +86,7 @@ button { font-family: var(--body); }
 @keyframes fragIn { 0% { transform: scale(2); opacity: 0; } 60% { transform: scale(0.9); opacity: 1; } }
 #donut-count { position: absolute; top: 96px; left: 18px; font: 800 14px var(--body); color: var(--pink); background: rgba(0, 0, 0, 0.5); padding: 4px 10px; border-radius: 10px; }
 #minimap { position: absolute; left: 18px; top: 100px; padding: 6px; border-radius: 10px; background: #c9b48a; box-shadow: 0 8px 24px rgba(0,0,0,0.6); transform: rotate(-1.5deg); }
-#minimap canvas { display: block; width: 100px; height: 220px; border-radius: 4px; }
+#minimap canvas { display: block; width: 100px; height: 150px; border-radius: 4px; }
 .mm-title { font: 11px var(--title); color: #3b2a1a; text-align: center; margin-bottom: 4px; }
 .mm-title span { font: 900 10px var(--body); background: #3b2a1a; color: #efe4c8; border-radius: 4px; padding: 0 4px; margin-left: 4px; }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: rgba(255, 255, 255, 0.75); box-shadow: 0 0 4px #000; transition: transform 0.15s, background 0.15s; }
@@ -257,6 +257,13 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .pillar-notes .pn { display: inline-flex; align-items: center; gap: 6px; }
 .pillar-notes .pg { display: inline-flex; min-width: 28px; justify-content: center; color: var(--gold); font-size: 18px; }
 .pillar-notes .pg canvas { width: 28px; height: 28px; }
+.pillar-notes .pv { display: inline-flex; min-width: 20px; justify-content: center; color: var(--gold); font-size: 18px; }
+.pillar-notes .pv canvas { width: 60px; height: 20px; }
+.cslot .cord { font: 800 11px var(--body); color: rgba(233, 196, 106, 0.75); }
+.lock-msg { min-height: 22px; margin-top: 8px; text-align: center; font: 800 15px var(--body); color: #ff8a8a; }
+.lock-msg b { color: var(--gold); }
+.unlock { margin-top: 6px; min-width: 190px; }
+.unlock.wrong { border-color: var(--red); color: #ffb0b0; background: #3a0d12; }
 .shake { animation: shake 0.4s; }
 @keyframes shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
 
@@ -280,6 +287,8 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .pad.p2 { background: radial-gradient(circle at 40% 35%, #9dffb4, #2aa84a); }
 .pad.p3 { background: radial-gradient(circle at 40% 35%, #fff09a, #d4aa1a); }
 .pad.lit { filter: brightness(1.35) saturate(1.2); box-shadow: 0 0 34px rgba(255, 255, 255, 0.55); transform: scale(1.04); }
+.pad { position: relative; }
+.pad b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 46px; line-height: 1; color: rgba(255, 255, 255, 0.85); text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); pointer-events: none; }
 .pad:active { transform: scale(0.95); }
 .simon-status { text-align: center; font: 900 20px var(--body); color: var(--gold); min-height: 28px; }
 .tile { border-radius: 8px; cursor: pointer; background-size: 300% 300%; transition: transform 0.12s; box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.3); position: relative; }
@@ -292,6 +301,11 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .solved-banner .frag-reveal { margin: 14px auto; font: 54px var(--mono); color: #fff; background: #071510; border: 2px solid var(--mint); border-radius: 14px; padding: 6px 22px; width: max-content; }
 
 /* ---------------------------------------------------------------- computer */
+/* The login computer sits below the chat boxes (38) and the skip button (31), so you can read what people
+   say about it. Its contents move to the top of the screen and the chat box drops to the bottom edge. */
+.modal.computer-modal { z-index: 30; }
+.modal.computer-modal .screen { justify-content: flex-start; padding-top: 3vh; }
+body:has(.computer-modal) #dialogue { padding-bottom: 14px; }
 .computer { width: min(900px, 100%); aspect-ratio: 16 / 10; max-height: calc(100vh - 40px); border-radius: 26px; padding: 22px; background: #1a1a1d; box-shadow: 0 0 0 4px #000, 0 40px 100px #000; animation: panelIn 0.4s; }
 .computer .screen { position: relative; width: 100%; height: 100%; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #0d2340, #2a0f3d); display: flex; align-items: center; justify-content: center; flex-direction: column; font-family: var(--body); }
 .computer .screen::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 4px); }
@@ -329,6 +343,9 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .menu-btn { text-align: left; width: 100%; font-size: 19px; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
 .menu-btn small { font-weight: 700; color: var(--dim); font-size: 13px; }
 .menu-foot { margin-top: 16px; color: var(--dim); font-size: 13px; font-weight: 700; }
+.menu-version { position: fixed; left: 14px; bottom: 10px; z-index: 36; color: var(--dim); font: 800 12px var(--body); text-decoration: none; opacity: 0.8; }
+.menu-version:hover { color: var(--gold); opacity: 1; }
+.boot-version { position: absolute; left: 14px; bottom: 10px; color: var(--dim); font: 800 12px var(--body); opacity: 0.7; }
 .menu-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 .menu-badges:empty { display: none; }
 .menu-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; background: var(--pink); color: #111; font: 12px var(--title); }
@@ -427,7 +444,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 @media (max-height: 640px) {
   .wheel { width: 190px; height: 190px; }
   .wheel-wrap { margin: 6px 0 0; }
-  #minimap canvas { width: 70px; height: 154px; }
+  #minimap canvas { width: 70px; height: 105px; }
   #facecam { width: 120px; }
   .panel { padding: 16px 20px; }
   .panel h2 { font-size: 24px; }
@@ -465,7 +482,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
   .frag { min-width: 28px; font-size: 16px; padding: 1px 5px; }
   #donut-count { top: 52px; left: 8px; }
   #minimap { top: 52px; left: 8px; padding: 4px; }
-  #minimap canvas { width: 56px; height: 123px; }
+  #minimap canvas { width: 56px; height: 84px; }
   .mm-title { display: none; }
   #prompt { top: calc(50% + 26px); font-size: 14px; padding: 6px 12px; }
   #controls-hint { font-size: 12px; gap: 6px 10px; padding: 6px 12px; bottom: 74px; left: 12px; transform: none; max-width: calc(100vw - 240px); justify-content: flex-start; }
@@ -480,6 +497,18 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
   #dialogue { padding-bottom: 46px; }
   :root { --sub-size: 15px; }
   #subtitle { padding: 8px 14px 10px; }
+  .computer { padding: 10px; border-radius: 16px; }
+  .modal.computer-modal .screen { padding-top: 8px; }
+  .login-box { padding: 10px 18px; gap: 6px; min-width: 0; }
+  .login-avatar { width: 40px; height: 40px; font-size: 22px; border-width: 2px; }
+  .login-user { font-size: 16px; }
+  .login-pw { width: 220px; height: 34px; font-size: 20px; }
+  .login-pw .caret { height: 20px; }
+  .login-btns .lb { padding: 6px 16px; font-size: 14px; }
+  .login-msg { min-height: 18px; font-size: 14px; }
+  .museos-hint { font-size: 18px; padding: 8px; }
+  .museos-hint .glitch { font-size: 30px; margin-bottom: 6px; }
+  .denied-text { font-size: 40px; }
   .sub-name { font-size: 12px; }
   #touch .tbtns { flex-direction: row; right: 12px; bottom: 12px; gap: 10px; }
   #touch .tbtn { width: 58px; height: 58px; font-size: 13px; }
@@ -490,6 +519,7 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
   .lights { grid-template-columns: repeat(3, 56px); gap: 8px; padding: 10px; } .light { width: 56px; height: 56px; }
   .slider { width: min(220px, 60vh); }
   .simon { grid-template-columns: repeat(2, 76px); gap: 8px; padding: 8px; margin: 6px auto 4px; } .pad { width: 76px; height: 76px; font-size: 14px; } .simon-status { font-size: 16px; min-height: 20px; }
+  .pad b { font-size: 30px; }
   .lights.n4 { grid-template-columns: repeat(4, 46px); gap: 6px; } .lights.n4 .light { width: 46px; height: 46px; }
   .panel .sub { font-size: 13px; margin-bottom: 6px; }
   .pz-caesar { display: flex; gap: 12px; align-items: center; }

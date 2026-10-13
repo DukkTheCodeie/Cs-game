@@ -45,6 +45,7 @@ export class Player {
     this.hasFlashlight = false;
     this.flickerT = 0;
     this.baseIntensity = 32;
+    this.nearDim = 1; // dims the beam when you're right up against something (so you can read it)
     this.swayX = 0;
     this.swayY = 0;
   }
@@ -117,13 +118,46 @@ export class Player {
   setFlash(on) {
     if (!this.hasFlashlight) on = false;
     this.flashOn = on;
-    this.spot.intensity = on ? this.baseIntensity : 0;
+    this.spot.intensity = on ? this.baseIntensity * this.nearDim : 0;
     this.fill.intensity = on ? 0.5 : 0;
     this.flModel.userData.lens.material.color.set(on ? 0xfff6dc : 0x333333);
   }
 
   flicker(duration = 1.2) {
     this.flickerT = duration;
+  }
+
+  // How far the flashlight beam travels before it hits a wall, a display or the floor (up to `max`).
+  beamDistance(colliders, max = 3) {
+    const f = this.forward();
+    const ox = this.pos.x, oz = this.pos.z, oy = this.height + this.eyeOffset;
+    let best = f.y < -0.05 ? Math.min(max, oy / -f.y) : max;
+    if (colliders) {
+      for (const b of colliders) {
+        if (!b.enabled) continue;
+        // ray vs. box (the boxes are walls and furniture: a floor plan, plus how tall each one is)
+        let t0 = 0, t1 = best;
+        if (Math.abs(f.x) < 1e-6) { if (ox < b.minX || ox > b.maxX) continue; } else {
+          let a = (b.minX - ox) / f.x, c = (b.maxX - ox) / f.x;
+          if (a > c) [a, c] = [c, a];
+          t0 = Math.max(t0, a); t1 = Math.min(t1, c);
+        }
+        if (Math.abs(f.z) < 1e-6) { if (oz < b.minZ || oz > b.maxZ) continue; } else {
+          let a = (b.minZ - oz) / f.z, c = (b.maxZ - oz) / f.z;
+          if (a > c) [a, c] = [c, a];
+          t0 = Math.max(t0, a); t1 = Math.min(t1, c);
+        }
+        // ...and only up to how tall the thing is (you can shine over a bench)
+        const top = b.top ?? Infinity;
+        if (Math.abs(f.y) < 1e-6) { if (oy > top) continue; } else {
+          let a = -oy / f.y, c = (top - oy) / f.y;
+          if (a > c) [a, c] = [c, a];
+          t0 = Math.max(t0, a); t1 = Math.min(t1, c);
+        }
+        if (t0 <= t1 && t0 < best) best = t0;
+      }
+    }
+    return best;
   }
 
   forward() {
@@ -172,12 +206,18 @@ export class Player {
       const surface = lvl?.surfaceAt ? lvl.surfaceAt(this.pos.x, this.pos.z) : lvl?.surface || 'marble';
       g.audio.play('step', { surface, vol: this.sprinting ? 1.2 : 0.9 });
     }
+    // up close, the beam dims so whatever it lights stays about as bright as it would from 3 m away
+    if (this.flashOn) {
+      const d = Math.max(0.2, this.beamDistance(colliders, 3));
+      const target = clamp(Math.pow(d / 3, 1.3), 0.1, 1);
+      this.nearDim += (target - this.nearDim) * Math.min(1, dt * 8);
+    }
+    const beam = this.baseIntensity * this.nearDim;
     // flashlight flicker
     if (this.flickerT > 0) {
       this.flickerT -= dt;
-      if (this.flashOn) this.spot.intensity = Math.random() < 0.45 ? rand(0, 8) : this.baseIntensity;
-      if (this.flickerT <= 0 && this.flashOn) this.spot.intensity = this.baseIntensity;
-    }
+      if (this.flashOn) this.spot.intensity = Math.random() < 0.45 ? rand(0, 8) * this.nearDim : beam;
+    } else if (this.flashOn) this.spot.intensity = beam;
     this.applyCamera(dt, speed);
   }
 

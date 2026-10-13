@@ -34,6 +34,9 @@ export class AudioEngine {
     this.master.connect(this.out);
     this.musicBus = ctx.createGain();
     this.musicBus.connect(this.master);
+    // music gets quieter while someone talks and under big sound effects (see duck())
+    this.musicDuck = ctx.createGain();
+    this.musicDuck.connect(this.musicBus);
     this.sfxBus = ctx.createGain();
     this.sfxBus.connect(this.master);
     this.ambBus = ctx.createGain();
@@ -244,6 +247,7 @@ export class AudioEngine {
     if (!this.ctx) return;
     const t = this.now + (opts.delay || 0);
     const v = opts.vol ?? 1;
+    if (LOUD_SFX.has(name) && v > 0.5) this._duckFor((opts.delay || 0) + 1.6);
     switch (name) {
       case 'step': {
         const surf = opts.surface || 'marble';
@@ -460,9 +464,9 @@ export class AudioEngine {
   }
 
   // ---------- voices ----------
-  babble(text, who, dest) {
+  babble(text, who, dest, pitch = 1) {
     if (!this.ctx) return 0;
-    const base = { guard: 210, dev: 150, aaron: 260, mummy: 120, museos: 520, narrator: 180 }[who] || 200;
+    const base = ({ guard: 210, dev: 150, aaron: 260, mummy: 120, museos: 520, narrator: 180, kid: 330, visitor: 190 }[who] || 200) * pitch;
     const type = who === 'museos' ? 'sine' : who === 'dev' ? 'sawtooth' : 'triangle';
     let t = this.now + 0.02;
     const words = String(text).split(/\s+/);
@@ -487,13 +491,16 @@ export class AudioEngine {
     if (this.trackName === name) return;
     const now = this.now;
     const old = this.track;
+    // the old song fades out first and the new one starts as it ends, so two songs never play over each other
+    const out = name ? Math.min(fade, 1.5) : fade;
+    const start = old ? now + out * 0.85 : now + 0.08;
     if (old) {
       old.dead = true;
       const g = old.gain.gain;
       g.cancelScheduledValues(now);
       g.setValueAtTime(g.value, now);
-      g.linearRampToValueAtTime(0, now + fade);
-      setTimeout(() => old.gain.disconnect(), fade * 1000 + 400);
+      g.linearRampToValueAtTime(0, now + out);
+      setTimeout(() => old.gain.disconnect(), out * 1000 + 400);
     }
     this.trackName = name;
     const def = TRACKS[name];
@@ -502,14 +509,36 @@ export class AudioEngine {
       return;
     }
     const g = this.ctx.createGain();
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.linearRampToValueAtTime(def.vol ?? 0.8, now + Math.max(0.05, fade * 0.5));
-    g.connect(this.musicBus);
-    this.track = { def, gain: g, step: 0, next: now + 0.08, dead: false };
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.linearRampToValueAtTime(def.vol ?? 0.8, start + Math.max(0.05, fade * 0.5));
+    g.connect(this.musicDuck);
+    this.track = { def, gain: g, step: 0, next: start, dead: false };
   }
 
   stopMusic(fade = 1) {
     this.playMusic(null, fade);
+  }
+
+  // Lower the music while someone is talking...
+  duck(on) {
+    this.ducked = on;
+    const g = this.musicDuck?.gain;
+    if (!g) return;
+    // (if a big sound effect is still ducking the music, change level when it's done)
+    const t = Math.max(this.now, this.duckEnd || 0);
+    g.cancelScheduledValues(t);
+    g.setTargetAtTime(on ? 0.4 : 1, t, on ? 0.08 : 0.5);
+  }
+
+  // ...and for a moment under a big sound effect.
+  _duckFor(sec) {
+    const g = this.musicDuck?.gain;
+    if (!g) return;
+    const now = this.now;
+    this.duckEnd = Math.max(this.duckEnd || 0, now + sec);
+    g.cancelScheduledValues(now);
+    g.setTargetAtTime(0.3, now, 0.03);
+    g.setTargetAtTime(this.ducked ? 0.4 : 1, this.duckEnd, 0.5);
   }
 
   _tick() {
@@ -594,8 +623,13 @@ export class AudioEngine {
   }
 }
 
+// Big moments the music should get out of the way for.
+const LOUD_SFX = new Set(['sting', 'roar', 'growl', 'wahwah', 'gate', 'alarm', 'crash']);
+
 // ---------------------------------------------------------------------------
-// Music. Each track is a 16th-note step sequencer function.
+// Music. Each track is a 16th-note step sequencer function. Every part of the night has its own:
+// office (prologue), dino + hunt (Dinosaur Hall), tomb + egypt (Egyptian Wing), roman, chase, maze
+// (the archives), morning, plus the menu ones.
 const TRACKS = {
   menu: {
     bpm: 76, vol: 1.25,
@@ -614,30 +648,83 @@ const TRACKS = {
       if (st === 10 && bar % 2 === 1) a.bell(t, mtof(ch[2] + 24), 0.03, out);
     },
   },
-  explore: {
-    bpm: 54, vol: 1.1,
+  // Prologue: a lazy lo-fi groove for a quiet night of videos and donuts.
+  office: {
+    bpm: 82, vol: 1.3,
     step(a, s, t, spb, out) {
-      const st = s % 64;
-      if (st === 0) {
-        a.pad(t, [33, 40], spb * 64, 0.03, out, 400);
-      }
-      const h = Math.sin(s * 12.9898) * 43758.5453;
-      const r = h - Math.floor(h);
-      if (s % 4 === 0 && r < 0.3) {
-        const scale = [69, 72, 74, 76, 79, 81, 84];
-        a.bell(t, mtof(scale[Math.floor(r * 23) % scale.length]), 0.025, out);
-      }
-      if (st === 32) a.tone({ type: 'triangle', f: mtof(45), t, a: 0.01, d: 2, g: 0.08, dest: out });
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      const chords = [[53, 57, 60, 64], [52, 55, 59, 62], [50, 53, 57, 60], [48, 52, 55, 59]];
+      const ch = chords[bar];
+      // electric piano on 1 and the "and" of 2
+      if (st === 0 || st === 6) ch.forEach((m, i) => a.tone({ type: 'sine', f: mtof(m), t: t + i * 0.012, a: 0.01, d: st === 0 ? 1.4 : 0.8, g: 0.026, dest: out, vib: 2, vibRate: 4 }));
+      if (st === 0) a.bass(t, mtof(ch[0] - 24), spb * 6, 0.09, out, 300);
+      if (st === 10) a.bass(t, mtof(ch[0] - 17), spb * 4, 0.07, out, 300);
+      if (st === 0 || st === 9) a.kick(t, 0.22, out);
+      if (st === 4 || st === 12) a.snare(t, 0.05, out);
+      if (st % 2 === 0) a.hat(t, st % 4 === 2 ? 0.024 : 0.012, out);
+      const mel = [2, 7, 11, 14];
+      if (Math.floor(s / 64) % 2 === 1 && mel.includes(st)) a.pluck(t, mtof([72, 76, 74, 79][mel.indexOf(st)] - (bar === 3 ? 2 : 0)), 0.4, 0.03, out, 'sine');
     },
   },
-  tension: {
-    bpm: 84, vol: 0.8,
+  // Dinosaur Hall: big slow drums like far-off footsteps, and a marimba.
+  dino: {
+    bpm: 70, vol: 1.2,
     step(a, s, t, spb, out) {
-      const st = s % 16;
-      if (st === 0) { a.kick(t, 0.35, out); }
-      if (st === 3) { a.kick(t, 0.22, out); }
-      if (s % 32 === 0) a.pad(t, [45, 46, 57], spb * 32, 0.03, out, 600);
-      if (s % 2 === 0) a.tone({ type: 'sawtooth', f: mtof(81 + (s % 8 === 0 ? 1 : 0)), t, d: spb * 1.5, g: 0.012, dest: out, filter: { f: 2000 } });
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      if (s % 64 === 0) a.pad(t, [28, 35, 40], spb * 64, 0.03, out, 380);
+      if (st === 0 || (st === 10 && bar % 2 === 1)) a.tone({ type: 'sine', f: 95, f2: 55, t, a: 0.004, d: 0.5, g: 0.22, dest: out });
+      if (st === 6 && bar === 3) a.tone({ type: 'sine', f: 130, f2: 80, t, a: 0.004, d: 0.35, g: 0.14, dest: out });
+      const pent = [64, 67, 69, 71, 74, 76, 79];
+      const phrase = [[0, 2, -1, 3, 2, -1, 1, -1], [4, -1, 3, 2, 3, -1, -1, -1], [2, 3, 4, 5, 4, 3, -1, 2], [1, -1, 0, -1, -1, -1, -1, -1]][bar];
+      if (st % 2 === 0 && Math.floor(s / 64) % 2 === 0) {
+        const n = phrase[st / 2];
+        if (n >= 0) { a.pluck(t, mtof(pent[n]), 0.22, 0.05, out, 'sine'); a.pluck(t, mtof(pent[n] + 12), 0.08, 0.012, out, 'sine'); }
+      }
+      if (st === 12 && Math.floor(s / 64) % 2 === 1) a.bell(t, mtof(pent[(bar * 3) % 7] + 12), 0.02, out);
+    },
+  },
+  // The T-Rex is loose: THUD... THUD... and trembling strings.
+  hunt: {
+    bpm: 66, vol: 0.95,
+    step(a, s, t, spb, out) {
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      if (st === 0) { a.tone({ type: 'sine', f: 70, f2: 38, t, a: 0.003, d: 0.7, g: 0.32, dest: out }); a.noise({ t, d: 0.25, g: 0.05, f: 180, q: 1, dest: out, brown: true }); }
+      if (st === 8 && bar % 2 === 1) a.tone({ type: 'sine', f: 66, f2: 36, t, a: 0.003, d: 0.6, g: 0.24, dest: out });
+      if (s % 32 === 0) a.pad(t, [40, 41, 52], spb * 32, 0.026, out, 450);
+      if (st === 14 && bar === 3) a.tone({ type: 'sawtooth', f: mtof(40), f2: mtof(39), t, a: 0.05, d: 1.4, g: 0.05, dest: out, filter: { f: 500, q: 2 } });
+      if (st === 4 && bar % 2 === 0) a.tone({ type: 'sawtooth', f: mtof(88), t, a: 0.6, d: 1.8, g: 0.008, dest: out, vib: 10, vibRate: 9, filter: { f: 3000 } });
+    },
+  },
+  // On the way into the tomb (and when the mummy wakes up): a drone, a frame drum and a breathy ney.
+  tomb: {
+    bpm: 60, vol: 1.1,
+    step(a, s, t, spb, out) {
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      if (s % 64 === 0) a.pad(t, [26, 33, 39], spb * 64, 0.03, out, 420);
+      if (st === 0) a.tone({ type: 'sine', f: 85, f2: 50, t, a: 0.005, d: 0.6, g: 0.2, dest: out });
+      if (st === 11) a.tone({ type: 'sine', f: 110, f2: 70, t, a: 0.005, d: 0.3, g: 0.1, dest: out });
+      if (st === 8 && bar % 2 === 0) a.noise({ t, a: 0.02, d: 0.35, g: 0.025, type: 'bandpass', f: 6000, q: 3, dest: out });
+      const ney = [[62, 63, 66], [67, 66, 63], [69, 67, 66], [63, 62, -1]][bar];
+      if (st % 5 === 0 && st < 15 && Math.floor(s / 64) % 2 === 1) {
+        const n = ney[st / 5];
+        if (n > 0) a.tone({ type: 'sine', f: mtof(n), t, a: 0.15, d: spb * 4, g: 0.035, dest: out, vib: 5, vibRate: 5.5, send: 0.4 });
+      }
+    },
+  },
+  // Roman Hall: low horns, a quiet marching snare, a lyre and a trumpet call.
+  roman: {
+    bpm: 100, vol: 1.15,
+    step(a, s, t, spb, out) {
+      const st = s % 16, bar = Math.floor(s / 16) % 4;
+      const r = [50, 48, 46, 45][bar];
+      if (st === 0) {
+        a.tone({ type: 'sawtooth', f: mtof(r - 12), t, a: 0.25, d: spb * 14, g: 0.035, dest: out, filter: { f: 650, q: 1 } });
+        a.tone({ type: 'sawtooth', f: mtof(r - 5), t, a: 0.3, d: spb * 14, g: 0.022, dest: out, filter: { f: 650, q: 1 } });
+      }
+      if ([0, 3, 4, 8, 11, 12, 14, 15].includes(st)) a.snare(t, st % 4 === 0 ? 0.045 : 0.022, out);
+      if (st === 0 || st === 8) a.kick(t, 0.2, out);
+      if (Math.floor(s / 64) % 2 === 1 && st % 2 === 0) a.pluck(t, mtof(r + 12 + [0, 7, 12, 15, 19, 15, 12, 7][st / 2]), 0.45, 0.035, out);
+      if (bar === 3 && (st === 8 || st === 10 || st === 12)) a.tone({ type: 'square', f: mtof([69, 74, 74][(st - 8) / 2]), t, a: 0.02, d: st === 12 ? 0.9 : 0.15, g: 0.018, dest: out, filter: { f: 2200 } });
     },
   },
   chase: {

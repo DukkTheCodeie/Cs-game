@@ -1,5 +1,7 @@
 import { Game } from './game/game.js';
 import { $ } from './core/util.js';
+import { VERSION } from './version.js';
+import { logEvent } from './core/analytics.js';
 
 // LOCKED OUT — entry point.
 // Builds the game behind the "click to start" screen (a click is needed to unlock audio).
@@ -12,11 +14,15 @@ function fatal(err) {
   b.querySelector('.boot-inner').innerHTML = `
     <div class="boot-logo" style="font-size:48px">UH OH 🍩</div>
     <div class="boot-tips" style="max-width:520px">The game couldn't start. Your browser might not support WebGL, or something broke.<br><br>
-    <code style="color:#ff8a8a">${String(err?.message || err).replace(/</g, '&lt;')}</code></div>`;
+    <code style="color:#ff8a8a">${String(err?.message || err).replace(/</g, '&lt;')}</code><br><br>${VERSION}</div>`;
 }
 
 addEventListener('DOMContentLoaded', async () => {
   const boot = $('#boot');
+  const ver = document.createElement('div');
+  ver.className = 'boot-version';
+  ver.textContent = VERSION;
+  boot?.append(ver);
   let game;
   try {
     game = new Game();
@@ -27,6 +33,7 @@ addEventListener('DOMContentLoaded', async () => {
   }
   const ready = game.boot().catch(fatal);
   $('#boot-start').addEventListener('click', async () => {
+    logEvent('play');
     boot.classList.add('loading');
     game.audio.init();
     game.audio.play('select');

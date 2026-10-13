@@ -1,0 +1,32 @@
+# Makes a GitHub release for every game version. The version lives in package.json (the game shows it
+# in the menu corner). When a new version lands on main, this creates the release "vX.Y.Z" with the
+# notes from that version's section in CHANGELOG.md. If the release already exists, it does nothing.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the release for this version (if there isn't one yet)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="v$(node -p "require('./package.json').version")"
+          if gh release view "$v" > /dev/null 2>&1; then
+            echo "$v is already released."
+            exit 0
+          fi
+          # the "## vX.Y.Z" section of the changelog becomes the release notes
+          awk -v v="$v" '$0 == "## " v || index($0, "## " v " ") == 1 { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md > notes.md
+          [ -s notes.md ] || echo "Version $v of LOCKED OUT." > notes.md
+          gh release create "$v" --target "$GITHUB_SHA" --title "$v" --notes-file notes.md

@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 import { Museum, SPOTS, EGYPT } from '../world/museum.js';
 import { Runner, LANES, RUN_LENGTH } from '../world/runner.js';
+import { logEvent } from '../core/analytics.js';
 import { Maze, KEY_COLORS, HANDMADE, STATION_NAMES } from '../world/maze.js';
 import { makeDonut, makeFlashlightModel, box, MATS } from '../world/props.js';
 import { drawMeTube, drawLocked, drawHintScreen, drawLogin, drawDenied } from '../world/screens.js';
 import { Ease } from '../core/scheduler.js';
 import { showGameOver } from '../ui/computer.js';
 import { lerp } from '../core/util.js';
-import { GLYPHS } from '../world/glyphs.js';
+import { GLYPHS, EGYPT_NUMERAL } from '../world/glyphs.js';
 import { TOTAL_DONUTS } from './constants.js';
 
 export const CHAPTERS = [
@@ -23,7 +24,7 @@ export const CHAPTERS = [
 export const TIPS = {
   intro: 'Headphones on. It\'s a quiet night... for now.',
   dino: 'Read the plaques — museums <b>love</b> fun facts.',
-  egypt: 'Ancient Egyptians wrote numbers with lines: | = 1, || = 2, ||| = 3, |||| = 4.',
+  egypt: 'Ancient Egyptians wrote 10 as ∩ and 1 as |. So ∩∩||| is 23.',
   roman: 'Roman numerals: M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1.',
   chase: '← → switch lanes · ↑ jump · ↓ slide. Hitting things lets the T-Rex catch up.',
   maze: 'The archives go on... and on. Grab every donut you can, and look for strange boxes on the shelves.',
@@ -152,7 +153,7 @@ async function intro(g) {
     await g.wait(2.2);
     g.hud.caption('');
     g.fadeIn(2);
-    g.audio.playMusic('menu');
+    g.audio.playMusic('office');
     g.camTo([-15.2, 2.0, 2.2], [-18.4, 1.1, -0.1], 7, Ease.sine);
     await g.wait(1.5);
     await g.say('guard01');
@@ -242,7 +243,7 @@ async function dino(g, lvl, mode) {
   nightSetup(g, lvl);
   g.setClock(0, true);
   g.hud.setFade(0, 0.8);
-  g.audio.playMusic('explore');
+  g.audio.playMusic('dino');
   g.setMode('explore');
   g.objective('Go to the Dinosaur Hall', SPOTS.dinoDoor);
   if (fromIntro || mode === 'fresh') {
@@ -302,7 +303,7 @@ async function dino(g, lvl, mode) {
   await g.until(() => lookingAt(g, new THREE.Vector3(SPOTS.trex.x, 2.5, SPOTS.trex.z), 0.86) || g.sched.time - t0 > 9);
   g.audio.play('sting');
   g.audio.play('heartbeat', { delay: 0.4 });
-  g.audio.playMusic('tension');
+  g.audio.playMusic('hunt');
   g.objective('');
   await g.say('guard11');
   await g.say('guard12');
@@ -324,7 +325,7 @@ async function egypt(g, lvl) {
     g.player.setPose(SPOTS.egyptDoor.x - 3, SPOTS.egyptDoor.z, -Math.PI / 2);
     g.setClock(40, true);
     g.hud.setFade(0, 0.8);
-    g.audio.playMusic('tension');
+    g.audio.playMusic('tomb');
     g.setMode('explore');
   }
   g.checkpoint('egypt');
@@ -365,7 +366,8 @@ async function egypt(g, lvl) {
       notes[p.n] = p.glyph;
       g.persist();
       g.audio.play(first ? 'chime' : 'click');
-      g.hud.toast(`📜 Pillar <b style="letter-spacing:2px">${'|'.repeat(p.n)}</b> — the <b>${GLYPHS[p.glyph].toUpperCase()}</b> <span style="opacity:.75">(${readCount()}/4 in your notes)</span>`, 'gold');
+      g.hud.toast(`📜 A pillar with <b style="letter-spacing:2px">${EGYPT_NUMERAL(p.value)}</b> and the <b>${GLYPHS[p.glyph].toUpperCase()}</b> <span style="opacity:.75">(${readCount()}/4 in your notes)</span>`, 'gold');
+      if (first && readCount() === 1) g.say('guard47');
       if (first && readCount() === 4) g.say('guard36');
       pillarObjective();
     };
@@ -444,7 +446,7 @@ async function mummyScene(g, lvl) {
     await g.wait(0.6);
     // ...and it SITS UP
     g.audio.play('growl', { vol: 0.35 });
-    g.audio.playMusic('tension');
+    g.audio.playMusic('tomb');
     await g.tween(1.5, (k) => {
       M.pivot.rotation.x = (-Math.PI / 2) * (1 - k);
       M.person.anim.sit = k;
@@ -541,7 +543,7 @@ async function roman(g, lvl, mode) {
     g.player.setPose(SPOTS.romanNorthDoor.x, -12.5, Math.PI);
     g.setClock(62, true);
     g.hud.setFade(0, 0.8);
-    g.audio.playMusic('tension');
+    g.audio.playMusic('roman');
     g.setMode('explore');
   }
   g.checkpoint('roman');
@@ -552,7 +554,7 @@ async function roman(g, lvl, mode) {
     minX: 12.6, maxX: 40, minZ: -9, maxZ: 9,
     onEnter: () => {
       g.hud.titleCard('CHAPTER 3', 'ALL ROADS');
-      g.audio.playMusic('explore');
+      g.audio.playMusic('roman');
       g.objective('Crack the Roman lock (it\'s at the far end)', SPOTS.romanPanel);
       lvl.refs.panel2It.enabled = true;
       g.wait(2).then(() => g.say('guard15'));
@@ -733,9 +735,15 @@ async function chase(g, _lvl, mode) {
 // The archives are the last part of the night, and they never end. After the three hand-made gates
 // the puzzles are generated, the donut meter drains faster in every new section and the rewards
 // get smaller — so sooner or later you run out of donuts and fall asleep.
-const drainFor = (band) => 0.48 * (1 + 0.25 * Math.max(0, band - (HANDMADE - 1)));
-const rewardFor = (k) => (k < HANDMADE ? 35 : Math.max(6, 30 - 5 * (k - HANDMADE)));
-const ENDLESS_LINES = [['guard43', 'museos15'], ['museos16'], ['guard45', 'museos17'], ['museos18'], ['museos15'], ['guard43', 'museos16']];
+const drainFor = (band) => 0.48 * (1 + 0.4 * Math.max(0, band - (HANDMADE - 1)));
+const rewardFor = (k) => (k < HANDMADE ? 35 : Math.max(5, 26 - 6 * (k - HANDMADE)));
+const ENDLESS_LINES = [['guard43', 'museos15'], ['museos29'], ['guard45', 'museos17'], ['museos30'], ['guard55'], ['museos16'], ['guard56', 'museos31'], ['museos18']];
+// what MUSE-OS (and the guard) say when you walk into each kind of archive section
+const SECTION_LINES = {
+  lost: ['museos20'], posters: ['museos21'], bones: ['museos22', 'guard48'], egypt: ['museos23', 'guard49'],
+  rome: ['museos24', 'guard50'], holiday: ['museos25', 'guard51'], flooded: ['museos26', 'guard52'],
+  outage: ['museos27', 'guard53'], donuts: ['museos28', 'guard54'],
+};
 
 async function maze(g) {
   const solved = g.save.solved || (g.save.solved = {});
@@ -760,7 +768,31 @@ async function maze(g) {
     if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives. The T-Rex is very disappointed in you.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
     if (!sleeping) { sleeping = true; sleepEnding(g); }
   };
-  lvl.onBandChange = (b) => { g.meter.drain = drainFor(b); };
+  // lines wait their turn, so they never cut off someone else
+  const queue = [];
+  let queueT = 0;
+  const announced = new Set([stage]);
+  const mmTitle = document.querySelector('#minimap .mm-title');
+  const showSection = (b) => { if (mmTitle) mmTitle.firstChild.textContent = `SECTION ${b + 1} `; };
+  showSection(stage);
+  lvl.onBandChange = (b) => {
+    g.meter.drain = drainFor(b);
+    showSection(b);
+    if (announced.has(b)) return;
+    announced.add(b);
+    const lines = SECTION_LINES[lvl.bands.get(b)?.theme?.id];
+    // (an announcement for a section you've already left would just be confusing)
+    for (let i = queue.length - 1; i >= 0; i--) if (queue[i].section) queue.splice(i, 1);
+    if (lines) { queue.push(...lines.map((id) => ({ id, section: true }))); queueT = 1.5; }
+  };
+  lvl.addUpdater((dt) => {
+    queueT -= dt;
+    if (!queue.length || queueT > 0 || g.mode !== 'explore' || g.dialogue.current) return;
+    const { id } = queue.shift();
+    if (id.startsWith('museos')) g.audio.play('radio');
+    g.say(id);
+    queueT = 0.6;
+  });
   g.player.giveFlashlight(true);
   g.camera.fov = g.save.settings.fov;
   g.camera.updateProjectionMatrix();
@@ -810,7 +842,7 @@ async function maze(g) {
   });
 
   // T-Rex eye peeks through holes in the outer walls; stomps in the distance; a sleepy guard
-  let peekSaid = false, lowSaid = false;
+  let peekSaid = false, lowSaid = false, lowCount = 0, genKeySaid = false;
   let stompT = 18;
   lvl.addUpdater((dt) => {
     if (g.mode !== 'explore') return;
@@ -833,7 +865,7 @@ async function maze(g) {
       g.shake(0.12, 1);
     }
     if (Math.random() < dt * 0.15) g.audio.play('drip');
-    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; g.say('guard44'); }
+    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; queue.push({ id: ['guard44', 'guard58', 'museos32'][lowCount++ % 3] }); }
     if (g.meter.value > 40) lowSaid = false;
   });
 
@@ -849,6 +881,7 @@ async function maze(g) {
       const n = lvl.puzzleParams(k.k).count, got = lvl.keysFor(k.k).filter((x) => x.taken).length;
       const hex = '#' + k.color.toString(16).padStart(6, '0');
       g.hud.toast(`🔑 Found the <b style="color:${hex}">${k.name.toUpperCase()}</b> key! <b>(${got}/${n})</b>`, 'gold');
+      if (k.k >= HANDMADE && !genKeySaid) { genKeySaid = true; queue.push({ id: 'guard57' }); }
       if (k.k === opened) g.objective(objectiveFor(opened));
     }
   });
@@ -896,6 +929,7 @@ async function maze(g) {
         if (id.startsWith('museos')) g.audio.play('radio');
         await g.say(id);
       }
+      if (k === HANDMADE + 1) await g.say('dev22'); // the dev pops in to brag about the endless archives
     }
   };
 }
@@ -919,6 +953,7 @@ async function sleepEnding(g) {
     for (const c of [0.7, 0.2, 0.85, 0.4, 1]) { g.hud.setLids(c, 0.5); await g.wait(0.6); }
     g.audio.play('radio');
     await g.say('museos19');
+    await g.say('dev23');
     g.audio.play('yawn');
     g.hud.setFade(1, 1.5);
     await g.wait(1.6);
@@ -1025,7 +1060,7 @@ async function morning(g) {
   await g.cutscene(async () => {
     g.computer.open();
     await g.wait(0.5);
-    await g.computer.type('REXMUMMY1974ZAPDONUT', { visible: true, speed: 0.08 });
+    await g.computer.type('REXMUMMY1974ZAPDONUT', { speed: 0.08 });
     await g.wait(0.4);
     await g.computer.press('login');
     g.computer.showDenied(g.save.fragments);
@@ -1040,6 +1075,7 @@ async function morning(g) {
   g.setMode('cutscene');
   g.audio.play('wahwah');
   g.save.flags.ending = 'pending';
+  logEvent('finished');
   g.persist();
   await g._guard(showGameOver(g, { title: 'GAME OVER', sub: 'You did not solve the puzzles.<br><span style="color:var(--dim)">(5 of 6 password fragments. So close. So, so close.)</span>', buttons: [{ label: 'BACK TO MENU', value: 'menu', cls: 'pink' }] }));
   g.toMenu();

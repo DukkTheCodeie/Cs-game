@@ -3,6 +3,8 @@ import { Station } from './dialogue.js';
 import { CONFIG } from '../config.js';
 import { CHAPTERS } from '../game/chapters.js';
 import { TOTAL_DONUTS } from '../game/constants.js';
+import { VERSION, RELEASES_URL } from '../version.js';
+import { logEvent } from '../core/analytics.js';
 
 export class Menu {
   constructor(game) {
@@ -10,6 +12,7 @@ export class Menu {
     this.root = $('#menu');
     this.speaker = null;
     this.open = false;
+    this.pokes = 0; // how many times you've poked the dev's TV (the lines go round in order)
   }
 
   _buildSpeaker() {
@@ -31,11 +34,11 @@ export class Menu {
     const idle = () => { if (this.speaker && !this.game.dialogue.current) st.showFace(this.game.clips.face('dev', st.mood)); };
     idle();
     this._offClips = this.game.clips.onChange(idle);
-    let pokes = 0;
+    const POKES = ['dev06', 'dev07', 'dev08', 'dev09', 'dev10', 'dev11', 'dev13', 'dev14', 'dev15', 'dev16', 'dev12'];
     sp.addEventListener('click', () => {
       if (this.busy || this.game.dialogue.current) return;
       this.game.audio.play('static', { dur: 0.15 });
-      this.game.say(pokes++ % 2 ? 'dev07' : 'dev06');
+      this.game.say(POKES[this.pokes++ % POKES.length]);
     });
   }
 
@@ -66,7 +69,8 @@ export class Menu {
         <button class="btn menu-btn ghost" data-act="controls">CONTROLS</button>
         <button class="btn menu-btn ghost" data-act="credits">CREDITS</button>
         <div class="menu-foot">${g.input.isTouch ? 'Touch controls on · landscape recommended' : 'WASD move · Mouse look · E use · F flashlight · Shift sprint'}</div>
-      </div>`;
+      </div>
+      <a class="menu-version" href="${RELEASES_URL}" target="_blank" rel="noopener" title="What's new">${VERSION}</a>`;
     this.root.classList.remove('off');
     for (const b of $$('[data-act]', this.root)) {
       b.addEventListener('mouseenter', () => g.audio.play('hover'));
@@ -75,19 +79,47 @@ export class Menu {
     g.audio.playMusic(save.flags.ending === 'pending' ? 'meta' : 'menu');
     if (save.flags.ending === 'pending') {
       this._metaEnding();
+    } else if (save.flags.kicked && !save.flags.backAgain) {
+      // (being back after the ending comes first, even if somehow you were never welcomed)
+      save.flags.backAgain = save.flags.welcomed = true;
+      g.persist();
+      setTimeout(() => this.open && g.say('dev05'), 1200);
     } else if (!save.flags.welcomed) {
       save.flags.welcomed = true;
       g.persist();
       setTimeout(() => this.open && !this.busy && g.say('dev01'), 1200);
-    } else if (save.flags.kicked && !save.flags.backAgain) {
-      save.flags.backAgain = true;
+    } else if (save.flags.kicked && !save.flags.backAgain2) {
+      save.flags.backAgain2 = true;
       g.persist();
-      setTimeout(() => this.open && g.say('dev05'), 1200);
+      setTimeout(() => this.open && !this.busy && g.say('dev31'), 1200);
+    } else if (g.devQuip) {
+      const id = g.devQuip;
+      setTimeout(() => this.open && !this.busy && g.say(id), 1200);
+    } else if (save.donuts.length >= TOTAL_DONUTS && !save.flags.devDonuts) {
+      save.flags.devDonuts = true;
+      g.persist();
+      setTimeout(() => this.open && !this.busy && g.say('dev18'), 1200);
+    } else if (save.flags.seenVersion !== VERSION) {
+      setTimeout(() => this.open && !this.busy && g.say('dev30'), 1200);
     }
+    save.flags.seenVersion = VERSION;
+    g.persist();
+    g.devQuip = null;
+    this.quipped = new Set();
+    // sitting on the menu for a while
+    clearTimeout(this.idleT);
+    const idle = (id, after, next) => {
+      this.idleT = setTimeout(() => {
+        if (this.open && !this.busy && !g.dialogue.current && !$('#modal-root').children.length) g.say(id);
+        if (next) next();
+      }, after);
+    };
+    idle('dev19', 40000, () => idle('dev29', 45000));
   }
 
   hide() {
     this.open = false;
+    clearTimeout(this.idleT);
     this.root.classList.add('off');
     this._removeSpeaker();
     this.game.dialogue.stop();
@@ -100,9 +132,23 @@ export class Menu {
     if (act === 'new') g.startChapter('intro');
     else if (act === 'continue') g.startChapter(g.save.chapter);
     else if (act === 'chapters') this.chapters();
-    else if (act === 'settings') this.settings();
-    else if (act === 'credits') this.credits();
-    else if (act === 'controls') this.controls();
+    else if (act === 'settings') this.settings(() => {
+      const s = g.save.settings;
+      if (s.voice === 'off') this.quip('dev27');
+      else if (s.quality === 'low') this.quip('dev28');
+      else this.quip('dev20');
+    });
+    else if (act === 'credits') this.credits(() => this.quip('dev25'));
+    else if (act === 'controls') this.controls(() => this.quip('dev24'));
+  }
+
+  // The dev says something about what you just did (each line once per visit to the menu).
+  quip(id) {
+    const g = this.game;
+    this.quipped = this.quipped || new Set();
+    if (!this.open || this.busy || g.dialogue.current || this.quipped.has(id)) return;
+    this.quipped.add(id);
+    g.say(id);
   }
 
   chapters() {
@@ -160,6 +206,7 @@ export class Menu {
       }
       clearTimeout(armed);
       g.resetSave();
+      this.open = false; // (so closing Settings doesn't make the dev talk over his welcome)
       m.close();
       this.show();
       g.hud.toast('Save data erased.', 'gold');
@@ -167,7 +214,7 @@ export class Menu {
     box.append(reset);
   }
 
-  controls() {
+  controls(onClose) {
     const row = (k, d) => `<div class="setting" style="grid-template-columns:200px 1fr"><span>${k}</span><span style="font-weight:700;color:var(--dim)">${d}</span></div>`;
     modal(`<h2>CONTROLS</h2><div class="sub">Keyboard + mouse · touch controls appear automatically on phones and tablets.</div>
       ${row('<kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>', 'Walk (touch: left side of the screen)')}
@@ -181,10 +228,10 @@ export class Menu {
       <div class="clip-group">DURING THE CHASE</div>
       ${row('<kbd>A</kbd> <kbd>D</kbd> / <kbd>←</kbd> <kbd>→</kbd>', 'Change lanes (touch: swipe left / right)')}
       ${row('<kbd>W</kbd> / <kbd>Space</kbd> / <kbd>↑</kbd>', 'Jump over ropes, benches and fallen columns (swipe up)')}
-      ${row('<kbd>S</kbd> / <kbd>↓</kbd>', 'Slide under hanging signs (swipe down)')}`);
+      ${row('<kbd>S</kbd> / <kbd>↓</kbd>', 'Slide under hanging signs (swipe down)')}`, onClose);
   }
 
-  credits() {
+  credits(onClose) {
     modal(`<h2>CREDITS</h2>
       <div class="sub">LOCKED OUT — a night guard story</div>
       <p style="font-weight:800;line-height:1.7">
@@ -195,7 +242,9 @@ export class Menu {
         The Mummy: <b>a guy who really likes donuts</b><br>
         Donuts eaten during development: <b>too many</b><br><br>
         Built with three.js. Every sound and song is synthesized in your browser.
-      </p>`);
+      </p>
+      <div class="sub" style="margin-top:6px">${VERSION} · <a href="${RELEASES_URL}" target="_blank" rel="noopener" style="color:var(--sky)">what's new</a></div>
+      ${CONFIG.analytics ? '<div class="sub" style="font-size:12px">Plays are counted anonymously: just the kind of device and browser. No names, no cookies.</div>' : ''}`, onClose);
   }
 
   // ---------------------------------------------------------------- meta ending
@@ -277,6 +326,7 @@ export class Menu {
     await sleep(800);
     g.save.flags.ending = 'done';
     g.save.flags.kicked = true;
+    logEvent('ending/kicked');
     g.persist();
     this.kickedScreen();
   }

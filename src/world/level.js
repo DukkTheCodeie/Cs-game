@@ -49,6 +49,83 @@ export class Level {
     return b;
   }
 
+  // Lots of small lamps are expensive: the GPU works through every light for every pixel, even ones far
+  // away or switched off. This gives a fixed number of real lights to whichever small lamps (range up
+  // to maxRange) are nearest the camera, and hides the lamps themselves. Lamps added later (in cutscenes)
+  // are picked up too, so the number of lights never changes and shaders never recompile mid-scene.
+  shareLights(count = 8, maxRange = 16) {
+    const pool = Array.from({ length: count }, () => {
+      const l = new THREE.PointLight(0xffffff, 0, 1, 2);
+      l.userData.pool = true;
+      this.scene.add(l);
+      return l;
+    });
+    const lamps = [];
+    const take = (o) => {
+      if (!o.isPointLight || o.userData.pool || o.userData.shared || !(o.distance > 0 && o.distance <= maxRange)) return;
+      // lights riding on the camera (the flashlight's fill) move on to the next level with it: leave them alone
+      for (let p = o.parent; p; p = p.parent) if (p.isCamera) return;
+      o.userData.shared = true;
+      o.userData.wp = new THREE.Vector3();
+      o.visible = false;
+      lamps.push(o);
+    };
+    const scan = () => this.scene.traverse(take);
+    scan();
+    // a lamp added mid-cutscene joins the pool before it's ever drawn, so the light count never changes
+    this.scene.addEventListener('childadded', (e) => e.child.traverse(take));
+    let scanT = 0;
+    const near = [];
+    this.addUpdater((dt) => {
+      if ((scanT -= dt) <= 0) { scanT = 0.25; scan(); }
+      const cam = this.game.camera.position;
+      near.length = 0;
+      for (const l of lamps) {
+        if (!(l.intensity > 0) || !l.parent) continue;
+        // only lamps still in this scene, with every group above them shown
+        let p = l.parent;
+        while (p.visible && p.parent) p = p.parent;
+        if (p !== this.scene || !p.visible) continue;
+        const wp = l.getWorldPosition(l.userData.wp);
+        near.push([l, wp.distanceTo(cam) - l.distance, wp]);
+      }
+      near.sort((a, b) => a[1] - b[1]);
+      pool.forEach((pl, i) => {
+        const e = near[i];
+        if (!e) { pl.intensity = 0; return; }
+        pl.position.copy(e[2]);
+        pl.color.copy(e[0].color);
+        pl.intensity = e[0].intensity;
+        pl.distance = e[0].distance;
+        pl.decay = e[0].decay;
+      });
+    });
+  }
+
+  // How tall each collider is, from the meshes standing on the floor inside it (so the flashlight knows
+  // you can see over a low platform or a bench). Call before the static meshes are merged.
+  measureColliders() {
+    const boxes = [];
+    const bb = new THREE.Box3();
+    this.scene.updateMatrixWorld(true);
+    this.scene.traverse((o) => {
+      if (!o.isMesh || !o.geometry?.attributes?.position) return;
+      const m = Array.isArray(o.material) ? o.material[0] : o.material;
+      if (m?.transparent && !m.depthWrite) return; // light beams, glows, decals: not solid
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
+      if (bb.min.y > 0.1 || bb.max.y - bb.min.y < 0.02) return; // only things that stand on the floor
+      boxes.push([bb.min.x, bb.max.x, bb.min.z, bb.max.z, bb.max.y]);
+    });
+    for (const c of this.colliders) {
+      let top = 0;
+      for (const [x0, x1, z0, z1, y1] of boxes) {
+        if (y1 > top && x1 > c.minX + 0.02 && x0 < c.maxX - 0.02 && z1 > c.minZ + 0.02 && z0 < c.maxZ - 0.02) top = y1;
+      }
+      c.top = top || Infinity;
+    }
+  }
+
   // Collider centered at x,z of size w (x) by d (z), optionally rotated by 90° multiples.
   addBoxCollider(x, z, w, d, rotY = 0) {
     const swap = Math.abs(Math.sin(rotY)) > 0.7;

@@ -4,9 +4,11 @@ import { tex, signTexture, makeCanvas, canvasTexture, plaqueTexture } from './te
 import * as P from './props.js';
 import { TRex } from './trex.js';
 import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
-import { drawGlyph, drawStrokes, GLYPH_KEYS } from './glyphs.js';
+import { drawGlyph, drawNumeral, GLYPH_KEYS } from './glyphs.js';
 import { drawCCTV } from './screens.js';
 import { mulberry32, lerp } from '../core/util.js';
+import { collide } from '../game/player.js';
+import { VISITOR_LINES } from '../game/script.js';
 import { batchStatic } from './batch.js';
 
 // The City Museum of Natural History. Layout (meters, y up, north = -z):
@@ -46,12 +48,13 @@ const SECRETS = [
   { id: 'roman_chariot', wall: 'romanWall', axis: 'z', at: 40, from: -8.4, to: -6.0, side: 1, h: 2.7, clue: 'torch', prompt: 'Pull the torch holder', style: 'armory', sign: 'GLADIATOR LOCKER', frosting: 3 },
   { id: 'roman_caligula', wall: 'romanWall', axis: 'x', at: 9, from: 23.6, to: 25.9, side: 1, h: 2.7, clue: 'bust', prompt: 'Push the bust of CALIGULA', style: 'armory', sign: 'CALIGULA WAS HERE', frosting: 0 },
 ];
-// pillar | , || , ||| , |||| and their symbols (the Pharaoh's Lock code)
+// The four pillars: each has a symbol and a number in Egyptian numerals (∩ = 10, | = 1). The Pharaoh's
+// Lock wants the symbols from the smallest number to the biggest: bird 13, eye 22, snake 24, ankh 31.
 export const EGYPT_PILLARS = [
-  { n: 1, glyph: 'bird', x: 19.2, z: -29.4 },
-  { n: 2, glyph: 'eye', x: 31.6, z: -33.4 },
-  { n: 3, glyph: 'snake', x: 36.4, z: -19.6 },
-  { n: 4, glyph: 'ankh', x: 18.4, z: -15.2 },
+  { n: 1, value: 13, glyph: 'bird', x: 19.2, z: -29.4 },
+  { n: 2, value: 22, glyph: 'eye', x: 31.6, z: -33.4 },
+  { n: 3, value: 24, glyph: 'snake', x: 36.4, z: -19.6 },
+  { n: 4, value: 31, glyph: 'ankh', x: 18.4, z: -15.2 },
 ];
 
 export class Museum extends Level {
@@ -89,12 +92,15 @@ export class Museum extends Level {
     this._collectibles();
     this._secretRooms();
     if (!this.night) this._visitors();
+    this.measureColliders();
     // merge everything that never moves (walls, props, signs...) → far fewer draw calls
     const r = this.refs;
     const dynamic = new Set([r.trex.group, r.guard.group, r.donutBox, r.deskFlashlight, r.footprints, r.sarcLid, r.mummy.holder, ...r.flames.map((f) => f.flame),
       ...r.secrets.flatMap((sc) => [sc.panel, sc.mover].filter(Boolean)),
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
     batchStatic(this.scene, (o) => dynamic.has(o));
+    // the small lamps (braziers, consoles, screens, the T-Rex's eye...) share 8 real lights
+    this.shareLights(8, 16);
   }
 
   // ------------------------------------------------------------------ lights
@@ -151,13 +157,13 @@ export class Museum extends Level {
     this.add(desk, -18.75, 0, 0, Math.PI / 2);
     this.addBoxCollider(-18.75, 0, 1.9, 0.85, Math.PI / 2);
     const mon = P.makeMonitor(0.95, 0.6);
-    this.add(mon.group, -18.95, 0.77, 0, Math.PI / 2);
+    this.add(mon.group, -18.95, 0.8, 0, Math.PI / 2); // (the desk top is at 0.8)
     this.refs.monitor = mon;
     const chair = P.makeChair();
     this.add(chair, -17.9, 0, 0, -Math.PI / 2);
     this.refs.chair = chair;
     // keyboard
-    this.add(P.box(0.18, 0.02, 0.5, P.MATS.black()), -18.55, 0.77, 0);
+    this.add(P.box(0.18, 0.02, 0.5, P.MATS.black()), -18.55, 0.8, 0);
     // desk lamp
     const lamp = new THREE.Group();
     lamp.add(P.box(0.15, 0.03, 0.15, P.MATS.black()));
@@ -167,7 +173,7 @@ export class Museum extends Level {
     shade.position.set(0.05, 0.5, 0);
     shade.rotation.z = -0.5;
     lamp.add(shade);
-    this.add(lamp, -18.9, 0.77, 0.75);
+    this.add(lamp, -18.9, 0.8, 0.75);
 
     // donut box
     const dbox = new THREE.Group();
@@ -184,7 +190,7 @@ export class Museum extends Level {
       dbox.add(d);
       this.refs.boxDonuts.push(d);
     }
-    this.add(dbox, -18.6, 0.77, -0.65, Math.PI / 2);
+    this.add(dbox, -18.6, 0.8, -0.65, Math.PI / 2);
     this.refs.donutBox = dbox;
     // flashlight on desk
     const fl2 = P.makeFlashlightModel();
@@ -194,7 +200,7 @@ export class Museum extends Level {
     this.refs.deskFlashlight = fl2;
     // mug
     const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.1, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
-    mug.position.set(-18.5, 0.82, -0.2);
+    mug.position.set(-18.5, 0.85, -0.2);
     this.scene.add(mug);
 
     // CCTV wall
@@ -695,12 +701,12 @@ export class Museum extends Level {
     mx.fillStyle = '#f3e6c4'; mx.font = 'bold 54px Georgia, serif'; mx.textAlign = 'center';
     mx.fillText('THE LAND OF THE PHARAOHS', 512, 60);
     const mural = new THREE.Mesh(new THREE.PlaneGeometry(10, 5), new THREE.MeshStandardMaterial({ map: canvasTexture(mc), roughness: 0.8 }));
-    mural.position.set((E.x0 + E.x1) / 2, 3.2, E.z0 + W2);
+    mural.position.set((E.x0 + E.x1) / 2, 2.6, E.z0 + W2); // top edge just under the frieze (5.15)
     s.add(mural);
 
     // the four pillars (the Pharaoh's Lock code)
     this.refs.pillars = [];
-    EGYPT_PILLARS.forEach(({ n: num, glyph, x, z }) => {
+    EGYPT_PILLARS.forEach(({ n: num, value, glyph, x, z }) => {
       const pg = new THREE.Group();
       pg.add(P.box(1.4, 0.3, 1.4, darkStone, 0, 0, 0));
       pg.add(P.box(1.1, E.h - 0.6, 1.1, sandstone, 0, 0.3, 0));
@@ -710,7 +716,7 @@ export class Museum extends Level {
       for (let i = 0; i < 600; i++) { px.fillStyle = `rgba(90,60,20,${Math.random() * 0.1})`; px.fillRect(Math.random() * 256, Math.random() * 768, 3, 3); }
       px.strokeStyle = '#8a2a18'; px.lineWidth = 10; px.strokeRect(12, 12, 232, 744);
       px.fillStyle = '#1f3d8a'; px.fillRect(12, 250, 232, 10); px.fillRect(12, 600, 232, 10);
-      drawStrokes(px, num, 128, 140, 150, '#b0301a');
+      drawNumeral(px, value, 128, 140, 110, '#b0301a');
       drawGlyph(px, glyph, 128, 430, 220, '#14244f');
       for (let i = 0; i < 4; i++) drawGlyph(px, GLYPH_KEYS[(num * 3 + i) % GLYPH_KEYS.length], 50 + (i % 2) * 156, 650 + Math.floor(i / 2) * 70, 50, 'rgba(60,40,20,0.55)');
       const ptex = canvasTexture(pc);
@@ -725,7 +731,7 @@ export class Museum extends Level {
       this.add(pg, x, 0, z);
       this.addBoxCollider(x, z, 1.4, 1.4);
       const it = this.addInteractable({ id: 'pillar' + num, pos: new THREE.Vector3(x, 1.7, z), prompt: 'Read the pillar', enabled: false, radius: 2.9 });
-      this.refs.pillars.push({ n: num, glyph, it, x, z });
+      this.refs.pillars.push({ n: num, value, glyph, it, x, z });
     });
 
     // puzzle console: the Pharaoh's Lock
@@ -753,11 +759,12 @@ export class Museum extends Level {
     const inside = P.mat('sarcInside', { color: 0x1a120a, roughness: 1 });
     const sarc = new THREE.Group();
     const bw = 1.3, bh = 0.9, bl = 2.6, th = 0.1;
-    sarc.add(P.box(bw, th, bl, inside, 0, 0, 0));
+    // (the floor and end walls fit between the side walls, so no two faces overlap)
+    sarc.add(P.box(bw - 2 * th, th, bl - 2 * th, inside, 0, 0, 0));
     sarc.add(P.box(th, bh, bl, sarcMat, -bw / 2 + th / 2, 0, 0));
     sarc.add(P.box(th, bh, bl, sarcMat, bw / 2 - th / 2, 0, 0));
-    sarc.add(P.box(bw, bh, th, sarcMat, 0, 0, -bl / 2 + th / 2));
-    sarc.add(P.box(bw, bh, th, sarcMat, 0, 0, bl / 2 - th / 2));
+    sarc.add(P.box(bw - 2 * th, bh, th, sarcMat, 0, 0, -bl / 2 + th / 2));
+    sarc.add(P.box(bw - 2 * th, bh, th, sarcMat, 0, 0, bl / 2 - th / 2));
     sarc.add(P.box(bw - 2 * th, 0.02, bl - 2 * th, inside, 0, th, 0));
     this.add(sarc, SC.x, 0.45, SC.z);
     // the lid, with a golden pharaoh face at the head (north) end
@@ -1182,57 +1189,215 @@ export class Museum extends Level {
   }
 
   // ------------------------------------------------------------------ day visitors
+  // Visitors walk on a grid of free spots worked out from the colliders (so nobody walks through a
+  // display), along the shortest path (A*), cutting corners where they can see straight ahead.
+  // Press E to chat with one, and they don't like being bumped into.
+  _navGrid() {
+    const S = 0.5, x0 = -12, x1 = 39, z0 = -46, z1 = 9.5;
+    const nx = Math.ceil((x1 - x0) / S), nz = Math.ceil((z1 - z0) / S);
+    const free = new Uint8Array(nx * nz);
+    const R = 0.45; // a visitor plus a little elbow room
+    const cols = this.colliders.filter((c) => c.enabled);
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
+      const x = x0 + (i + 0.5) * S, z = z0 + (j + 0.5) * S;
+      free[i * nz + j] = cols.some((b) => x > b.minX - R && x < b.maxX + R && z > b.minZ - R && z < b.maxZ + R) ? 0 : 1;
+    }
+    const cell = (x, z) => [Math.floor((x - x0) / S), Math.floor((z - z0) / S)];
+    const ok = (i, j) => i >= 0 && j >= 0 && i < nx && j < nz && free[i * nz + j] === 1;
+    const center = (i, j) => new THREE.Vector3(x0 + (i + 0.5) * S, 0, z0 + (j + 0.5) * S);
+    const sight = (a, b) => { // can you walk straight from a to b?
+      const n = Math.ceil(a.distanceTo(b) / (S * 0.4));
+      for (let k = 1; k < n; k++) { const [i, j] = cell(lerp(a.x, b.x, k / n), lerp(a.z, b.z, k / n)); if (!ok(i, j)) return false; }
+      return true;
+    };
+    const path = (from, to) => {
+      let [si, sj] = cell(from.x, from.z);
+      const [ti, tj] = cell(to.x, to.z);
+      if (!ok(ti, tj)) return null;
+      // got pushed somewhere tight? start from the nearest free spot
+      for (let rr = 1; rr <= 3 && !ok(si, sj); rr++) {
+        let best = null;
+        for (let di = -rr; di <= rr; di++) for (let dj = -rr; dj <= rr; dj++) if (!best && ok(si + di, sj + dj)) best = [si + di, sj + dj];
+        if (best) [si, sj] = best;
+      }
+      if (!ok(si, sj)) return null;
+      const N = nx * nz, g = new Float32Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), closed = new Uint8Array(N);
+      const h = (i, j) => { const dx = Math.abs(i - ti), dz = Math.abs(j - tj); return Math.max(dx, dz) + 0.414 * Math.min(dx, dz); };
+      const open = [[h(si, sj), si * nz + sj]];
+      g[si * nz + sj] = 0;
+      let found = false;
+      while (open.length) {
+        let bi = 0;
+        for (let k = 1; k < open.length; k++) if (open[k][0] < open[bi][0]) bi = k;
+        const [, cur] = open[bi];
+        open[bi] = open[open.length - 1];
+        open.pop();
+        if (closed[cur]) continue;
+        closed[cur] = 1;
+        const ci = Math.floor(cur / nz), cj = cur % nz;
+        if (ci === ti && cj === tj) { found = true; break; }
+        for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+          if (!di && !dj) continue;
+          const ni = ci + di, nj = cj + dj;
+          if (!ok(ni, nj) || (di && dj && (!ok(ci + di, cj) || !ok(ci, cj + dj)))) continue; // no squeezing past corners
+          const k = ni * nz + nj, cost = g[cur] + (di && dj ? 1.414 : 1);
+          if (cost < g[k]) { g[k] = cost; prev[k] = cur; open.push([cost + h(ni, nj), k]); }
+        }
+      }
+      if (!found) return null;
+      const cells = [];
+      for (let k = ti * nz + tj; k !== -1; k = prev[k]) cells.push(center(Math.floor(k / nz), k % nz));
+      cells.reverse();
+      cells[cells.length - 1] = to.clone();
+      // string-pull: skip every waypoint you can see past
+      const out = [];
+      let a = from.clone();
+      for (let k = 0; k < cells.length; k++) {
+        if (k === cells.length - 1 || !sight(a, cells[k + 1])) { out.push(cells[k]); a = cells[k]; }
+      }
+      return out;
+    };
+    const randomSpot = (area, r) => {
+      for (let k = 0; k < 30; k++) {
+        const x = area.minX + r() * (area.maxX - area.minX), z = area.minZ + r() * (area.maxZ - area.minZ);
+        const [i, j] = cell(x, z);
+        if (ok(i, j)) return new THREE.Vector3(x, 0, z);
+      }
+      return null;
+    };
+    return { path, randomSpot, sight };
+  }
+
   _visitors() {
     const r = mulberry32(99);
+    const nav = this._navGrid();
+    this.nav = nav;
     this.visitors = [];
     const areas = [
-      { minX: -9, maxX: 9, minZ: -8, maxZ: 2 },
-      { minX: -12, maxX: 12, minZ: -44, maxZ: -12, avoid: { minX: -5.5, maxX: 5.5, minZ: -38, maxZ: -21 } },
-      { minX: 14, maxX: 38, minZ: -7, maxZ: 7, avoid: { minX: 22, maxX: 28.5, minZ: -2, maxZ: 2 } },
+      { minX: -10, maxX: 10, minZ: -8, maxZ: 7 }, // lobby
+      { minX: -13, maxX: 13, minZ: -44, maxZ: -12 }, // Dinosaur Hall
+      { minX: 14, maxX: 38, minZ: -7, maxZ: 7 }, // Roman Hall
+      { minX: 17, maxX: 37, minZ: -35, maxZ: -11 }, // Egyptian Wing
     ];
-    const pickPoint = (a) => {
-      for (let k = 0; k < 20; k++) {
-        const x = a.minX + r() * (a.maxX - a.minX), z = a.minZ + r() * (a.maxZ - a.minZ);
-        if (a.avoid && x > a.avoid.minX && x < a.avoid.maxX && z > a.avoid.minZ && z < a.avoid.maxZ) continue;
-        return new THREE.Vector3(x, 0, z);
-      }
-      return new THREE.Vector3((a.minX + a.maxX) / 2, 0, a.maxZ);
+    const g = this.game;
+    let chatCd = 0;
+    const say = (vis, pool) => {
+      if (g.dialogue.current) return;
+      const lines = VISITOR_LINES[pool];
+      vis.said = vis.said || [];
+      let text;
+      do text = lines[Math.floor(Math.random() * lines.length)]; while (lines.length > vis.said.length + 1 && vis.said.includes(text));
+      vis.said.push(text);
+      if (vis.said.length >= lines.length) vis.said = [];
+      const kid = vis.p.kid;
+      g.dialogue.sayRaw(kid ? 'kid' : 'visitor', text, { showCam: false, beeps: true, pitch: vis.pitch, name: kid ? 'KID' : 'VISITOR' });
     };
-    for (let i = 0; i < 14; i++) {
+    const faceThePlayer = (vis) => {
+      const pl = g.player;
+      vis.faceYaw = Math.atan2(pl.pos.x - vis.p.group.position.x, pl.pos.z - vis.p.group.position.z);
+    };
+    for (let i = 0; i < 16; i++) {
       const area = areas[i % areas.length];
       const v = makeVisitor(r);
-      const p = pickPoint(area);
-      v.group.position.copy(p);
+      const start = nav.randomSpot(area, r);
+      if (!start) continue;
+      v.group.position.copy(start);
       this.scene.add(v.group);
-      this.visitors.push({ p: v, area, target: pickPoint(area), wait: r() * 4 });
+      const vis = { p: v, area, route: [], wait: r() * 4, pitch: 0.85 + r() * 0.35, bumpCd: 0, busy: 0, faceYaw: null };
+      vis.it = this.addInteractable({ id: 'visitor' + i, pos: new THREE.Vector3(), prompt: v.kid ? 'Talk to the kid' : 'Talk to the visitor', radius: 2.2 });
+      vis.it.onUse = () => {
+        if (g.dialogue.current || chatCd > 0) return;
+        chatCd = 1;
+        vis.busy = 5;
+        faceThePlayer(vis);
+        vis.p.setMode(Math.random() < 0.4 ? 'wave' : Math.random() < 0.5 ? 'point' : 'shrug');
+        say(vis, v.kid ? 'kid' : 'adult');
+      };
+      this.visitors.push(vis);
     }
+    const newRoute = (vis) => {
+      // usually somewhere in their own hall, sometimes off to another one
+      const area = r() < 0.2 ? areas[Math.floor(r() * areas.length)] : vis.area;
+      for (let k = 0; k < 6; k++) {
+        const to = nav.randomSpot(area, r);
+        const route = to && nav.path(vis.p.group.position, to);
+        if (route && route.length) { vis.route = route; vis.area = area; return; }
+      }
+      vis.wait = 2;
+    };
+    const turnTo = (grp, yaw, dt, rate = 6) => {
+      let dy = yaw - grp.rotation.y;
+      while (dy > Math.PI) dy -= Math.PI * 2;
+      while (dy < -Math.PI) dy += Math.PI * 2;
+      grp.rotation.y += dy * Math.min(1, dt * rate);
+    };
+    const tmp = new THREE.Vector3();
     this.addUpdater((dt) => {
+      chatCd -= dt;
+      const pl = g.player;
+      const playerSpeed = pl ? Math.hypot(pl.vel.x, pl.vel.z) : 0;
       for (const vis of this.visitors) {
-        const g = vis.p.group;
-        if (vis.wait > 0) {
+        const grp = vis.p.group;
+        vis.bumpCd -= dt;
+        if (vis.busy > 0) {
+          // chatting (or just got bumped): stand still and look at you
+          vis.busy -= dt;
+          if (vis.faceYaw != null) turnTo(grp, vis.faceYaw, dt, 8);
+          if (vis.busy <= 0) { vis.faceYaw = null; vis.wait = 1 + r() * 2; vis.p.setMode('idle'); }
+        } else if (vis.wait > 0) {
           vis.wait -= dt;
           vis.p.setMode('idle');
+          if (vis.wait <= 0) newRoute(vis);
+        } else if (!vis.route.length) {
+          vis.wait = 2 + r() * 5;
         } else {
-          const d = vis.target.clone().sub(g.position);
-          const dist = d.length();
-          if (dist < 0.3) { vis.wait = 2 + r() * 5; vis.target = pickPoint(vis.area); }
+          const wp = vis.route[0];
+          tmp.copy(wp).sub(grp.position);
+          tmp.y = 0;
+          const dist = tmp.length();
+          if (dist < 0.25) vis.route.shift();
           else {
-            d.normalize();
-            g.position.addScaledVector(d, Math.min(dist, 1.1 * dt));
-            const yaw = Math.atan2(d.x, d.z);
-            let dy = yaw - g.rotation.y;
-            while (dy > Math.PI) dy -= Math.PI * 2;
-            while (dy < -Math.PI) dy += Math.PI * 2;
-            g.rotation.y += dy * Math.min(1, dt * 6);
-            vis.p.setMode('walk', 1.1);
+            // wait politely if you're standing right in their way
+            const blocked = pl && Math.hypot(pl.pos.x - grp.position.x, pl.pos.z - grp.position.z) < 1.0 && tmp.dot(new THREE.Vector3(pl.pos.x - grp.position.x, 0, pl.pos.z - grp.position.z)) > 0;
+            if (blocked) vis.p.setMode('idle');
+            else {
+              tmp.normalize();
+              const speed = vis.p.kid ? 1.3 : 1.05;
+              grp.position.addScaledVector(tmp, Math.min(dist, speed * dt));
+              turnTo(grp, Math.atan2(tmp.x, tmp.z), dt);
+              vis.p.setMode('walk', speed);
+            }
           }
         }
-        // gently push the player away / be pushed
-        const pl = this.game.player;
-        if (pl) {
-          const dx = pl.pos.x - g.position.x, dz = pl.pos.z - g.position.z, dd = Math.hypot(dx, dz);
-          if (dd < 0.6 && dd > 0.001) { pl.pos.x += (dx / dd) * (0.6 - dd); pl.pos.z += (dz / dd) * (0.6 - dd); }
+        // visitors keep a little space between each other
+        for (const o of this.visitors) {
+          if (o === vis) continue;
+          const dx = grp.position.x - o.p.group.position.x, dz = grp.position.z - o.p.group.position.z, dd = Math.hypot(dx, dz);
+          if (dd < 0.55 && dd > 0.001) { grp.position.x += (dx / dd) * (0.55 - dd) * 0.5; grp.position.z += (dz / dd) * (0.55 - dd) * 0.5; }
         }
+        collide(grp.position, 0.3, this.colliders);
+        // you can't walk through them — and if you run into one, they let you know
+        if (pl) {
+          const dx = pl.pos.x - grp.position.x, dz = pl.pos.z - grp.position.z, dd = Math.hypot(dx, dz);
+          if (dd < 0.62 && dd > 0.001) {
+            pl.pos.x += (dx / dd) * (0.62 - dd);
+            pl.pos.z += (dz / dd) * (0.62 - dd);
+            const into = playerSpeed > 1.2 && (pl.vel.x * -dx + pl.vel.z * -dz) / (playerSpeed * dd) > 0.5;
+            if (into && vis.bumpCd <= 0 && g.mode === 'explore') {
+              vis.bumpCd = 6;
+              vis.busy = 2.6;
+              faceThePlayer(vis);
+              vis.p.setMode('shock');
+              grp.position.x -= (dx / dd) * 0.25; // stumble back a step
+              grp.position.z -= (dz / dd) * 0.25;
+              collide(grp.position, 0.3, this.colliders);
+              g.audio.play('thud', { vol: 0.25 });
+              g.shake(0.06, 0.2);
+              say(vis, vis.p.kid ? 'kidBump' : 'adultBump');
+            }
+          }
+        }
+        vis.it.pos.set(grp.position.x, vis.p.height * 0.85, grp.position.z);
         vis.p.update(dt);
       }
     });

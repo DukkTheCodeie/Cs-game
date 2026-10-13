@@ -8,4 +8,9 @@ window.LOCKED_OUT_CONFIG = {
 
   // The game title on the menu, as two lines
   title: ['LOCKED', 'OUT'],
+
+  // Count who plays (and on what device) on a free GoatCounter dashboard. Anonymous: no cookies,
+  // no names. Make an account at https://www.goatcounter.com, then put your code here, e.g. 'lockedout'
+  // if your dashboard is lockedout.goatcounter.com. Leave it '' to turn counting off.
+  analytics: '',
 };
