@@ -36,10 +36,10 @@ field of view, brightness, camera shake, and graphics quality (High adds glow ef
 |---|---|---|
 | 🖥️ | **Prologue — Session Expired** | Night shift #47. MeTube, a Dozen Deluxe, and a warning from Aaron. The session times out, `donut123` doesn't work anymore, and the hint button says *solve the puzzles*. |
 | 🦖 | **Chapter 1 — The King** | Flashlight on. Find the cipher panel next to the T-Rex skeleton and decode it with the bone wheel. Then turn around... *where did the T-Rex go?* |
-| 🏺 | **Chapter 2 — Curse of the Pharaoh** | Giant footprints lead into the Egyptian Wing. Find the four painted pillars, crack the Pharaoh's Lock... and then the sarcophagus starts to open. The mummy is awake. And it's hungry. |
+| 🏺 | **Chapter 2 — Curse of the Pharaoh** | Giant footprints lead into the Egyptian Wing. Read the Egyptian numbers on the four painted pillars, crack the Pharaoh's Lock... and then the sarcophagus starts to open. The mummy is awake. And it's hungry. |
 | 🏛️ | **Chapter 3 — All Roads** | On to the Roman Empire hall. Crack the Roman-numeral lock. Something is breathing behind you. |
 | 🏃 | **Chapter 4 — RUN** | A skeleton T-Rex chase down the museum gallery, endless-runner style. Dodge, jump, slide, grab donuts. At the end: **GO RIGHT**, into the hole shaped exactly like you. |
-| 🗝️ | **Chapter 5 — Behind the Walls** | The archives, the last part of the night. A fuse box, three lost keys and a torn poster guard the last password pieces... and then the archives just keep going. Every new gate has a new puzzle, each one a bit harder, and the donuts get smaller. You *will* run out of donuts. How far can you get? |
+| 🗝️ | **Chapter 5 — Behind the Walls** | The archives, the last part of the night. A fuse box, three lost keys and a torn poster guard the last password pieces... and then the archives just keep going: Spare Dinosaur Bones, the Flooded Bit, Holiday Decorations, a Power Outage... Every new gate has a new puzzle, each one a bit harder, and the donuts get smaller. You *will* run out of donuts. How far can you get? |
 | ☀️ | **Chapter 6 — Morning Shift** | You fell asleep somewhere deep in the archives. Now the museum is open and full of visitors (press **E** to chat, and try not to bump into them). The T-Rex is back on its stand, wearing your hat. Aaron is there. You're still locked out. |
 | 🧩 | **???** | Back at the menu... the game seems a little short, doesn't it? |
 

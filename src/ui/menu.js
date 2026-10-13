@@ -87,6 +87,10 @@ export class Menu {
       save.flags.backAgain = true;
       g.persist();
       setTimeout(() => this.open && g.say('dev05'), 1200);
+    } else if (save.flags.kicked && !save.flags.backAgain2) {
+      save.flags.backAgain2 = true;
+      g.persist();
+      setTimeout(() => this.open && !this.busy && g.say('dev31'), 1200);
     } else if (g.devQuip) {
       const id = g.devQuip;
       setTimeout(() => this.open && !this.busy && g.say(id), 1200);
@@ -94,13 +98,22 @@ export class Menu {
       save.flags.devDonuts = true;
       g.persist();
       setTimeout(() => this.open && !this.busy && g.say('dev18'), 1200);
+    } else if (save.flags.seenVersion !== VERSION) {
+      setTimeout(() => this.open && !this.busy && g.say('dev30'), 1200);
     }
+    save.flags.seenVersion = VERSION;
+    g.persist();
     g.devQuip = null;
+    this.quipped = new Set();
     // sitting on the menu for a while
     clearTimeout(this.idleT);
-    this.idleT = setTimeout(() => {
-      if (this.open && !this.busy && !g.dialogue.current && !$('#modal-root').children.length) g.say('dev19');
-    }, 40000);
+    const idle = (id, after, next) => {
+      this.idleT = setTimeout(() => {
+        if (this.open && !this.busy && !g.dialogue.current && !$('#modal-root').children.length) g.say(id);
+        if (next) next();
+      }, after);
+    };
+    idle('dev19', 40000, () => idle('dev29', 45000));
   }
 
   hide() {
@@ -118,9 +131,23 @@ export class Menu {
     if (act === 'new') g.startChapter('intro');
     else if (act === 'continue') g.startChapter(g.save.chapter);
     else if (act === 'chapters') this.chapters();
-    else if (act === 'settings') this.settings(() => { if (!this.saidMusic && this.open) { this.saidMusic = true; g.say('dev20'); } });
-    else if (act === 'credits') this.credits();
-    else if (act === 'controls') this.controls();
+    else if (act === 'settings') this.settings(() => {
+      const s = g.save.settings;
+      if (s.voice === 'off') this.quip('dev27');
+      else if (s.quality === 'low') this.quip('dev28');
+      else this.quip('dev20');
+    });
+    else if (act === 'credits') this.credits(() => this.quip('dev25'));
+    else if (act === 'controls') this.controls(() => this.quip('dev24'));
+  }
+
+  // The dev says something about what you just did (each line once per visit to the menu).
+  quip(id) {
+    const g = this.game;
+    this.quipped = this.quipped || new Set();
+    if (!this.open || this.busy || g.dialogue.current || this.quipped.has(id)) return;
+    this.quipped.add(id);
+    g.say(id);
   }
 
   chapters() {
@@ -178,6 +205,7 @@ export class Menu {
       }
       clearTimeout(armed);
       g.resetSave();
+      this.open = false; // (so closing Settings doesn't make the dev talk over his welcome)
       m.close();
       this.show();
       g.hud.toast('Save data erased.', 'gold');
@@ -185,7 +213,7 @@ export class Menu {
     box.append(reset);
   }
 
-  controls() {
+  controls(onClose) {
     const row = (k, d) => `<div class="setting" style="grid-template-columns:200px 1fr"><span>${k}</span><span style="font-weight:700;color:var(--dim)">${d}</span></div>`;
     modal(`<h2>CONTROLS</h2><div class="sub">Keyboard + mouse · touch controls appear automatically on phones and tablets.</div>
       ${row('<kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>', 'Walk (touch: left side of the screen)')}
@@ -199,10 +227,10 @@ export class Menu {
       <div class="clip-group">DURING THE CHASE</div>
       ${row('<kbd>A</kbd> <kbd>D</kbd> / <kbd>←</kbd> <kbd>→</kbd>', 'Change lanes (touch: swipe left / right)')}
       ${row('<kbd>W</kbd> / <kbd>Space</kbd> / <kbd>↑</kbd>', 'Jump over ropes, benches and fallen columns (swipe up)')}
-      ${row('<kbd>S</kbd> / <kbd>↓</kbd>', 'Slide under hanging signs (swipe down)')}`);
+      ${row('<kbd>S</kbd> / <kbd>↓</kbd>', 'Slide under hanging signs (swipe down)')}`, onClose);
   }
 
-  credits() {
+  credits(onClose) {
     modal(`<h2>CREDITS</h2>
       <div class="sub">LOCKED OUT — a night guard story</div>
       <p style="font-weight:800;line-height:1.7">
@@ -215,7 +243,7 @@ export class Menu {
         Built with three.js. Every sound and song is synthesized in your browser.
       </p>
       <div class="sub" style="margin-top:6px">${VERSION} · <a href="${RELEASES_URL}" target="_blank" rel="noopener" style="color:var(--sky)">what's new</a></div>
-      ${CONFIG.analytics ? '<div class="sub" style="font-size:12px">Plays are counted anonymously: just the kind of device and browser. No names, no cookies.</div>' : ''}`);
+      ${CONFIG.analytics ? '<div class="sub" style="font-size:12px">Plays are counted anonymously: just the kind of device and browser. No names, no cookies.</div>' : ''}`, onClose);
   }
 
   // ---------------------------------------------------------------- meta ending

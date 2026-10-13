@@ -257,6 +257,13 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 .pillar-notes .pn { display: inline-flex; align-items: center; gap: 6px; }
 .pillar-notes .pg { display: inline-flex; min-width: 28px; justify-content: center; color: var(--gold); font-size: 18px; }
 .pillar-notes .pg canvas { width: 28px; height: 28px; }
+.pillar-notes .pv { display: inline-flex; min-width: 20px; justify-content: center; color: var(--gold); font-size: 18px; }
+.pillar-notes .pv canvas { width: 60px; height: 20px; }
+.cslot .cord { font: 800 11px var(--body); color: rgba(233, 196, 106, 0.75); }
+.lock-msg { min-height: 22px; margin-top: 8px; text-align: center; font: 800 15px var(--body); color: #ff8a8a; }
+.lock-msg b { color: var(--gold); }
+.unlock { margin-top: 6px; min-width: 190px; }
+.unlock.wrong { border-color: var(--red); color: #ffb0b0; background: #3a0d12; }
 .shake { animation: shake 0.4s; }
 @keyframes shake { 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-6px); } 80% { transform: translateX(6px); } }
 

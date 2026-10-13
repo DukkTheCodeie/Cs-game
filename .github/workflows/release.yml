@@ -27,6 +27,6 @@ jobs:
             exit 0
           fi
           # the "## vX.Y.Z" section of the changelog becomes the release notes
-          awk -v v="$v" 'index($0, "## " v) == 1 { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md > notes.md
+          awk -v v="$v" '$0 == "## " v || index($0, "## " v " ") == 1 { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md > notes.md
           [ -s notes.md ] || echo "Version $v of LOCKED OUT." > notes.md
           gh release create "$v" --target "$GITHUB_SHA" --title "$v" --notes-file notes.md

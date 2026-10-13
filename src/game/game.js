@@ -338,6 +338,10 @@ export class Game {
     document.body.classList.toggle('playing', mode !== 'menu' && mode !== 'boot');
     const explore = mode === 'explore';
     this.player.enabled = explore;
+    if (!explore) { // (the close-up dimming only follows you while you walk around)
+      this.player.nearDim = 1;
+      if (this.player.flashOn) this.player.spot.intensity = this.player.baseIntensity;
+    }
     this.hud.crosshair(explore);
     if (!explore) this.hud.setPrompt(null);
     this.input.showTouch(explore ? 'explore' : mode === 'runner' ? 'runner' : 'off');
@@ -369,7 +373,7 @@ export class Game {
     m.panel.querySelector('[data-a=settings]').onclick = () => { this.audio.ctx?.resume?.(); this.menu.settings(); };
     m.panel.querySelector('[data-a=controls]').onclick = () => this.menu.controls();
     m.panel.querySelector('[data-a=restart]').onclick = () => { this.paused = false; m.close(); this.startChapter(this.save.chapter || 'intro', { mode: 'continue' }); };
-    m.panel.querySelector('[data-a=menu]').onclick = () => { this.paused = false; m.close(); this.toMenu(); };
+    m.panel.querySelector('[data-a=menu]').onclick = () => { this.paused = false; m.close(); this.devQuip = 'dev26'; this.toMenu(); };
   }
 
   resume() {
@@ -526,7 +530,7 @@ export class Game {
     this.dialogue.stop();
     const v = await this._guard(showGameOver(this, { title, sub, buttons: [{ label: '↻ TRY AGAIN', value: 'retry', cls: 'pink' }, { label: 'MENU', value: 'menu', cls: 'ghost' }] }));
     if (v === 'retry') this.startChapter(this.save.chapter, { mode: 'continue' });
-    else { this.devQuip = 'dev17'; this.toMenu(); }
+    else { this.devQuip = /ASLEEP/.test(title) ? 'dev17' : 'dev32'; this.toMenu(); }
   }
 
   resetHud() {

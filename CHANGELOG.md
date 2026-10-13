@@ -20,6 +20,18 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
 **Archives**
 - Shorter: each section is smaller, the first sliding poster is easier, and the endless part runs out
   of donuts sooner.
+- Every section has a theme now, with a sign over its gate and its own stuff on the shelves and in the
+  corners: Lost & Found, Posters & Prints, Spare Dinosaur Bones, Egyptian Overflow, Roman Statues
+  (Broken), Holiday Decorations, the Flooded Bit (puddles!), Power Outage (red emergency bulbs) and
+  Donut Storage (empty, of course).
+- MUSE-OS announces each section, and the guard has something to say about most of them. Plus more
+  lines deep in the archives.
+
+**Puzzles**
+- The Pharaoh's Lock is harder: the pillars now show real Egyptian numbers (∩ is 10, | is 1), and the
+  lock wants the symbols from the smallest number to the biggest. Wrong guesses zap your donut meter.
+- Number locks (the Roman dials and the archive number locks) no longer turn each dial green when it's
+  right, so you can't just click until it turns green. Set the whole code and press **UNLOCK**.
 
 **Screens and controls**
 - Chat boxes now show on top of the login computer, so you can read them in the prologue and the ending.
@@ -28,7 +40,8 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
 - The flashlight dims when you're right up against something, so you can read plaques up close.
 
 **More**
-- 16 new lines for the dev: poking the TV, reactions back at the menu, and a few surprise appearances.
+- 25 new lines for the dev: poking the TV, comments on the menu screens and your settings, reactions when
+  you come back (asleep? eaten?), what's new in this version, and a few surprise appearances in the game.
 - Fixed flickering surfaces (the Egyptian mural, the sarcophagus corners, the office desk, where the
   keyboard was buried inside the desk) and sharper far-away detail.
 - The version number now shows in the menu, pause screen and credits.

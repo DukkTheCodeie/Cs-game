@@ -8,7 +8,7 @@ import { drawMeTube, drawLocked, drawHintScreen, drawLogin, drawDenied } from '.
 import { Ease } from '../core/scheduler.js';
 import { showGameOver } from '../ui/computer.js';
 import { lerp } from '../core/util.js';
-import { GLYPHS } from '../world/glyphs.js';
+import { GLYPHS, EGYPT_NUMERAL } from '../world/glyphs.js';
 import { TOTAL_DONUTS } from './constants.js';
 
 export const CHAPTERS = [
@@ -24,7 +24,7 @@ export const CHAPTERS = [
 export const TIPS = {
   intro: 'Headphones on. It\'s a quiet night... for now.',
   dino: 'Read the plaques — museums <b>love</b> fun facts.',
-  egypt: 'Ancient Egyptians wrote numbers with lines: | = 1, || = 2, ||| = 3, |||| = 4.',
+  egypt: 'Ancient Egyptians wrote 10 as ∩ and 1 as |. So ∩∩||| is 23.',
   roman: 'Roman numerals: M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1.',
   chase: '← → switch lanes · ↑ jump · ↓ slide. Hitting things lets the T-Rex catch up.',
   maze: 'The archives go on... and on. Grab every donut you can, and look for strange boxes on the shelves.',
@@ -366,7 +366,8 @@ async function egypt(g, lvl) {
       notes[p.n] = p.glyph;
       g.persist();
       g.audio.play(first ? 'chime' : 'click');
-      g.hud.toast(`📜 Pillar <b style="letter-spacing:2px">${'|'.repeat(p.n)}</b> — the <b>${GLYPHS[p.glyph].toUpperCase()}</b> <span style="opacity:.75">(${readCount()}/4 in your notes)</span>`, 'gold');
+      g.hud.toast(`📜 A pillar with <b style="letter-spacing:2px">${EGYPT_NUMERAL(p.value)}</b> and the <b>${GLYPHS[p.glyph].toUpperCase()}</b> <span style="opacity:.75">(${readCount()}/4 in your notes)</span>`, 'gold');
+      if (first && readCount() === 1) g.say('guard47');
       if (first && readCount() === 4) g.say('guard36');
       pillarObjective();
     };
@@ -736,7 +737,13 @@ async function chase(g, _lvl, mode) {
 // get smaller — so sooner or later you run out of donuts and fall asleep.
 const drainFor = (band) => 0.48 * (1 + 0.4 * Math.max(0, band - (HANDMADE - 1)));
 const rewardFor = (k) => (k < HANDMADE ? 35 : Math.max(5, 26 - 6 * (k - HANDMADE)));
-const ENDLESS_LINES = [['guard43', 'museos15'], ['museos16'], ['guard45', 'museos17'], ['museos18'], ['museos15'], ['guard43', 'museos16']];
+const ENDLESS_LINES = [['guard43', 'museos15'], ['museos29'], ['guard45', 'museos17'], ['museos30'], ['guard55'], ['museos16'], ['guard56', 'museos31'], ['museos18']];
+// what MUSE-OS (and the guard) say when you walk into each kind of archive section
+const SECTION_LINES = {
+  lost: ['museos20'], posters: ['museos21'], bones: ['museos22', 'guard48'], egypt: ['museos23', 'guard49'],
+  rome: ['museos24', 'guard50'], holiday: ['museos25', 'guard51'], flooded: ['museos26', 'guard52'],
+  outage: ['museos27', 'guard53'], donuts: ['museos28', 'guard54'],
+};
 
 async function maze(g) {
   const solved = g.save.solved || (g.save.solved = {});
@@ -761,7 +768,25 @@ async function maze(g) {
     if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives. The T-Rex is very disappointed in you.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
     if (!sleeping) { sleeping = true; sleepEnding(g); }
   };
-  lvl.onBandChange = (b) => { g.meter.drain = drainFor(b); };
+  // lines wait their turn, so they never cut off someone else
+  const queue = [];
+  let queueT = 0;
+  const announced = new Set([stage]);
+  lvl.onBandChange = (b) => {
+    g.meter.drain = drainFor(b);
+    if (announced.has(b)) return;
+    announced.add(b);
+    const lines = SECTION_LINES[lvl.bands.get(b)?.theme?.id];
+    if (lines) { queue.push(...lines); queueT = 1.5; }
+  };
+  lvl.addUpdater((dt) => {
+    queueT -= dt;
+    if (!queue.length || queueT > 0 || g.mode !== 'explore' || g.dialogue.current) return;
+    const id = queue.shift();
+    if (id.startsWith('museos')) g.audio.play('radio');
+    g.say(id);
+    queueT = 0.6;
+  });
   g.player.giveFlashlight(true);
   g.camera.fov = g.save.settings.fov;
   g.camera.updateProjectionMatrix();
@@ -811,7 +836,7 @@ async function maze(g) {
   });
 
   // T-Rex eye peeks through holes in the outer walls; stomps in the distance; a sleepy guard
-  let peekSaid = false, lowSaid = false;
+  let peekSaid = false, lowSaid = false, lowCount = 0, genKeySaid = false;
   let stompT = 18;
   lvl.addUpdater((dt) => {
     if (g.mode !== 'explore') return;
@@ -834,7 +859,7 @@ async function maze(g) {
       g.shake(0.12, 1);
     }
     if (Math.random() < dt * 0.15) g.audio.play('drip');
-    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; g.say('guard44'); }
+    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; queue.push(['guard44', 'guard58', 'museos32'][lowCount++ % 3]); }
     if (g.meter.value > 40) lowSaid = false;
   });
 
@@ -850,6 +875,7 @@ async function maze(g) {
       const n = lvl.puzzleParams(k.k).count, got = lvl.keysFor(k.k).filter((x) => x.taken).length;
       const hex = '#' + k.color.toString(16).padStart(6, '0');
       g.hud.toast(`🔑 Found the <b style="color:${hex}">${k.name.toUpperCase()}</b> key! <b>(${got}/${n})</b>`, 'gold');
+      if (k.k >= HANDMADE && !genKeySaid) { genKeySaid = true; queue.push('guard57'); }
       if (k.k === opened) g.objective(objectiveFor(opened));
     }
   });

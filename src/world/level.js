@@ -49,6 +49,30 @@ export class Level {
     return b;
   }
 
+  // How tall each collider is, from the meshes standing on the floor inside it (so the flashlight knows
+  // you can see over a low platform or a bench). Call before the static meshes are merged.
+  measureColliders() {
+    const boxes = [];
+    const bb = new THREE.Box3();
+    this.scene.updateMatrixWorld(true);
+    this.scene.traverse((o) => {
+      if (!o.isMesh || !o.geometry?.attributes?.position) return;
+      const m = Array.isArray(o.material) ? o.material[0] : o.material;
+      if (m?.transparent && !m.depthWrite) return; // light beams, glows, decals: not solid
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      bb.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);
+      if (bb.min.y > 0.1 || bb.max.y - bb.min.y < 0.02) return; // only things that stand on the floor
+      boxes.push([bb.min.x, bb.max.x, bb.min.z, bb.max.z, bb.max.y]);
+    });
+    for (const c of this.colliders) {
+      let top = 0;
+      for (const [x0, x1, z0, z1, y1] of boxes) {
+        if (y1 > top && x1 > c.minX + 0.02 && x0 < c.maxX - 0.02 && z1 > c.minZ + 0.02 && z0 < c.maxZ - 0.02) top = y1;
+      }
+      c.top = top || Infinity;
+    }
+  }
+
   // Collider centered at x,z of size w (x) by d (z), optionally rotated by 90° multiples.
   addBoxCollider(x, z, w, d, rotY = 0) {
     const swap = Math.abs(Math.sin(rotY)) > 0.7;

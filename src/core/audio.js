@@ -492,7 +492,7 @@ export class AudioEngine {
     const now = this.now;
     const old = this.track;
     // the old song fades out first and the new one starts as it ends, so two songs never play over each other
-    const out = Math.min(fade, 1.5);
+    const out = name ? Math.min(fade, 1.5) : fade;
     const start = old ? now + out * 0.85 : now + 0.08;
     if (old) {
       old.dead = true;
@@ -519,10 +519,15 @@ export class AudioEngine {
     this.playMusic(null, fade);
   }
 
-  // Lower the music while someone is talking.
+  // Lower the music while someone is talking...
   duck(on) {
     this.ducked = on;
-    if (this.musicDuck) this.musicDuck.gain.setTargetAtTime(on ? 0.4 : 1, this.now, on ? 0.08 : 0.5);
+    const g = this.musicDuck?.gain;
+    if (!g) return;
+    // (if a big sound effect is still ducking the music, change level when it's done)
+    const t = Math.max(this.now, this.duckEnd || 0);
+    g.cancelScheduledValues(t);
+    g.setTargetAtTime(on ? 0.4 : 1, t, on ? 0.08 : 0.5);
   }
 
   // ...and for a moment under a big sound effect.
@@ -530,9 +535,10 @@ export class AudioEngine {
     const g = this.musicDuck?.gain;
     if (!g) return;
     const now = this.now;
+    this.duckEnd = Math.max(this.duckEnd || 0, now + sec);
     g.cancelScheduledValues(now);
     g.setTargetAtTime(0.3, now, 0.03);
-    g.setTargetAtTime(this.ducked ? 0.4 : 1, now + sec, 0.5);
+    g.setTargetAtTime(this.ducked ? 0.4 : 1, this.duckEnd, 0.5);
   }
 
   _tick() {
@@ -618,7 +624,7 @@ export class AudioEngine {
 }
 
 // Big moments the music should get out of the way for.
-const LOUD_SFX = new Set(['sting', 'roar', 'growl', 'wahwah', 'gate', 'alarm', 'crash', 'scream']);
+const LOUD_SFX = new Set(['sting', 'roar', 'growl', 'wahwah', 'gate', 'alarm', 'crash']);
 
 // ---------------------------------------------------------------------------
 // Music. Each track is a 16th-note step sequencer function. Every part of the night has its own:

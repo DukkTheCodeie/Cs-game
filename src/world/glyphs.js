@@ -105,12 +105,28 @@ export function drawGlyph(x, kind, cx, cy, s, color = '#1d3f8f') {
   x.restore();
 }
 
-// Egyptian numerals: | || ||| ||||
-export function drawStrokes(x, n, cx, cy, h, color = '#7a1a10') {
+// Egyptian numbers: ∩ (a heel bone) is 10 and | is 1, so ∩∩||| is 23. Tens first, then ones.
+export const EGYPT_NUMERAL = (v) => '∩'.repeat(Math.floor(v / 10)) + '|'.repeat(v % 10);
+export function drawNumeral(x, value, cx, cy, h, color = '#7a1a10') {
+  const tens = Math.floor(value / 10), ones = value % 10;
+  const aw = h * 0.42, sw = h * 0.12, gap = h * 0.14;
+  const total = tens * aw + Math.max(0, tens - 1) * gap + (tens && ones ? gap * 1.6 : 0) + ones * sw + Math.max(0, ones - 1) * gap;
+  let px = cx - total / 2;
   x.save();
+  x.strokeStyle = color;
   x.fillStyle = color;
-  const w = h * 0.16, gap = h * 0.22;
-  const total = n * w + (n - 1) * gap;
-  for (let i = 0; i < n; i++) x.fillRect(cx - total / 2 + i * (w + gap), cy - h / 2, w, h);
+  x.lineWidth = h * 0.12;
+  x.lineCap = 'round';
+  for (let i = 0; i < tens; i++) {
+    x.beginPath();
+    x.moveTo(px + x.lineWidth / 2, cy + h / 2);
+    x.lineTo(px + x.lineWidth / 2, cy - h * 0.12);
+    x.arc(px + aw / 2, cy - h * 0.12, aw / 2 - x.lineWidth / 2, Math.PI, 0);
+    x.lineTo(px + aw - x.lineWidth / 2, cy + h / 2);
+    x.stroke();
+    px += aw + (i < tens - 1 ? gap : 0);
+  }
+  if (tens && ones) px += gap * 1.6;
+  for (let i = 0; i < ones; i++) { x.fillRect(px, cy - h / 2, sw, h); px += sw + gap; }
   x.restore();
 }

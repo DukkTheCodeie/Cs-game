@@ -328,7 +328,17 @@ export function signTexture(text, { w = 512, h = 128, bg = '#111', fg = '#fff', 
   x.textBaseline = 'middle';
   const lines = String(text).split('\n');
   const lh = h / (lines.length + 0.4);
-  lines.forEach((ln, i) => x.fillText(ln, w / 2, h / 2 + (i - (lines.length - 1) / 2) * lh));
+  const maxW = w - (border ? 36 : 20);
+  lines.forEach((ln, i) => {
+    // squeeze a line that's too long to fit (instead of cutting it off at the edges)
+    const tw = x.measureText(ln).width;
+    const sx = tw > maxW ? maxW / tw : 1;
+    x.save();
+    x.translate(w / 2, h / 2 + (i - (lines.length - 1) / 2) * lh);
+    x.scale(sx, 1);
+    x.fillText(ln, 0, 0);
+    x.restore();
+  });
   return canvasTexture(c);
 }
 

@@ -56,7 +56,8 @@ export const LINES = {
 
   // ---------------- Chapter 2: the Egyptian Wing
   guard35: { who: 'guard', mood: 'scared', text: 'The Egyptian Wing. Why is it ALWAYS so creepy in here?' },
-  museos13: { who: 'museos', mood: 'normal', text: "Puzzle number two: the Pharaoh's Lock. Its secret is written on four pillars. Count the lines." },
+  museos13: { who: 'museos', mood: 'normal', text: "Puzzle number two: the Pharaoh's Lock. Its secret is on four pillars, in Egyptian numbers. The Pharaoh wants them smallest first." },
+  guard47: { who: 'guard', mood: 'confused', text: 'Upside-down U\'s and little sticks? ...Oh! Each U must be a TEN. And the sticks are ones.' },
   guard42: { who: 'guard', mood: 'scared', text: 'That footprint is the size of a bathtub. The T-Rex came through here.' },
   guard36: { who: 'guard', mood: 'happy', text: 'All four pillars. Now, to the Pharaoh\'s Lock.' },
   museos14: { who: 'museos', mood: 'normal', text: 'Fragment two: MUMMY. Next puzzle: the Roman Empire hall.' },
@@ -101,6 +102,32 @@ export const LINES = {
   guard46: { who: 'guard', mood: 'happy', text: 'A secret room! With a DONUT in it!' },
   guard27: { who: 'guard', mood: 'sleepy', text: 'So... sleepy... just gonna... rest my eyes... five minutes...' },
   museos19: { who: 'museos', mood: 'normal', text: 'Guard? ...Guard? Sugar level: zero. The guard is asleep. Logging out.' },
+  // the archive sections (MUSE-OS says where you are; the guard has opinions)
+  museos20: { who: 'museos', mood: 'normal', text: 'Section two: Lost and Found. Everything anyone ever lost in this museum ends up here. Including, apparently, three keys.' },
+  museos21: { who: 'museos', mood: 'normal', text: 'Section three: Posters and Prints. Please do not tear the posters. Someone already did.' },
+  museos22: { who: 'museos', mood: 'normal', text: 'Now entering: Spare Dinosaur Bones. If you find a skull, please do not wear it.' },
+  museos23: { who: 'museos', mood: 'normal', text: 'Now entering: Egyptian Overflow. These mummies are on vacation. Do not wake them.' },
+  museos24: { who: 'museos', mood: 'normal', text: 'Now entering: Roman Statues, Broken. Somebody keeps dropping them. It was not me. I have no hands.' },
+  museos25: { who: 'museos', mood: 'normal', text: 'Now entering: Holiday Decorations. It is not the holidays. It has never been the holidays down here.' },
+  museos26: { who: 'museos', mood: 'normal', text: 'Now entering: the Flooded Bit. Mind the puddles. And the drips. And the other drips.' },
+  museos27: { who: 'museos', mood: 'normal', text: 'Now entering: the Power Outage section. The lights here stopped working in nineteen seventy-four.' },
+  museos28: { who: 'museos', mood: 'normal', text: 'Now entering: Donut Storage. Status: empty. Someone ate everything. I have a guess who.' },
+  guard48: { who: 'guard', mood: 'happy', text: 'Spare bones! Do you think anyone would notice if I built my own dinosaur?' },
+  guard49: { who: 'guard', mood: 'scared', text: 'More mummies. Great. Just great. Nobody look at me.' },
+  guard50: { who: 'guard', mood: 'cool', text: 'Broken statues. Hey, this one kind of looks like me. Handsome.' },
+  guard51: { who: 'guard', mood: 'confused', text: "Why is there a Christmas tree down here? It's not even December!" },
+  guard52: { who: 'guard', mood: 'annoyed', text: 'My socks are wet. My socks are WET.' },
+  guard53: { who: 'guard', mood: 'scared', text: "Okay. It's just dark. Dark is fine. Dark is totally, completely fine." },
+  guard54: { who: 'guard', mood: 'sad', text: 'Donut storage... and it is EMPTY? This is the worst night of my life.' },
+  // ...and the deeper you go
+  museos29: { who: 'museos', mood: 'normal', text: 'Gate open. Your puzzle-solving speed is... adequate.' },
+  museos30: { who: 'museos', mood: 'normal', text: 'Another gate. Fun fact: there are infinity gates. I counted.' },
+  museos31: { who: 'museos', mood: 'normal', text: 'Reminder: the museum opens in a few hours. You are still in the basement.' },
+  guard55: { who: 'guard', mood: 'sleepy', text: "How deep does this go? I can't feel my feet anymore." },
+  guard56: { who: 'guard', mood: 'annoyed', text: "Who designs a basement like this?! ...Oh. Right. A computer." },
+  guard57: { who: 'guard', mood: 'happy', text: 'Another key! Somebody down here is REALLY bad at keeping track of keys.' },
+  guard58: { who: 'guard', mood: 'sleepy', text: 'My eyes... are closing... all by themselves...' },
+  museos32: { who: 'museos', mood: 'normal', text: 'Warning: sugar level critical. I recommend a donut. Or twelve.' },
 
   // ---------------- Chapter 6: morning
   guard28: { who: 'guard', mood: 'confused', text: "Mmh... huh? It's MORNING?!" },
@@ -142,6 +169,16 @@ export const LINES = {
   dev21: { who: 'dev', mood: 'happy', text: 'Hey, you found one of my secret rooms! Take the donut. I insist.' },
   dev22: { who: 'dev', mood: 'cool', text: 'Yeah, it never ends. The computer makes up new puzzles forever. Pretty cool, right?' },
   dev23: { who: 'dev', mood: 'sad', text: "Aww. Sweet dreams, little guard. Don't worry, it's almost morning." },
+  // more of the dev in the menus
+  dev24: { who: 'dev', mood: 'cool', text: 'Pro tip: you can sprint. It burns donuts, though. Just like real life.' },
+  dev25: { who: 'dev', mood: 'happy', text: 'Did you see my name in the credits? I put it there myself. Very proud of it.' },
+  dev26: { who: 'dev', mood: 'confused', text: 'Back already? The museum misses you. Well, the T-Rex does.' },
+  dev27: { who: 'dev', mood: 'annoyed', text: 'You turned the voices off? ...Fine. I will just type REALLY loudly.' },
+  dev28: { who: 'dev', mood: 'sad', text: 'Fast graphics? My beautiful cylinders... they look so blurry now.' },
+  dev29: { who: 'dev', mood: 'sleepy', text: "Okay, I'm taking a nap. Wake me up when you press play." },
+  dev30: { who: 'dev', mood: 'happy', text: 'New in this version: the visitors can talk now! Go bump into one. Actually, please don\'t.' },
+  dev32: { who: 'dev', mood: 'shocked', text: "You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again." },
+  dev31: { who: 'dev', mood: 'shocked', text: 'Wait, you finished the whole game? And you came BACK? You must really like donuts.' },
 };
 for (const L of Object.values(LINES)) L.mood = moodOf(L.mood);
 

@@ -135,7 +135,7 @@ export class Player {
     if (colliders) {
       for (const b of colliders) {
         if (!b.enabled) continue;
-        // ray vs. box (the boxes are walls and furniture seen from above)
+        // ray vs. box (the boxes are walls and furniture: a floor plan, plus how tall each one is)
         let t0 = 0, t1 = best;
         if (Math.abs(f.x) < 1e-6) { if (ox < b.minX || ox > b.maxX) continue; } else {
           let a = (b.minX - ox) / f.x, c = (b.maxX - ox) / f.x;
@@ -144,6 +144,13 @@ export class Player {
         }
         if (Math.abs(f.z) < 1e-6) { if (oz < b.minZ || oz > b.maxZ) continue; } else {
           let a = (b.minZ - oz) / f.z, c = (b.maxZ - oz) / f.z;
+          if (a > c) [a, c] = [c, a];
+          t0 = Math.max(t0, a); t1 = Math.min(t1, c);
+        }
+        // ...and only up to how tall the thing is (you can shine over a bench)
+        const top = b.top ?? Infinity;
+        if (Math.abs(f.y) < 1e-6) { if (oy > top) continue; } else {
+          let a = -oy / f.y, c = (top - oy) / f.y;
           if (a > c) [a, c] = [c, a];
           t0 = Math.max(t0, a); t1 = Math.min(t1, c);
         }
