@@ -6,7 +6,7 @@ import { TRex } from './trex.js';
 import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
 import { drawGlyph, drawStrokes, GLYPH_KEYS } from './glyphs.js';
 import { drawCCTV } from './screens.js';
-import { mulberry32 } from '../core/util.js';
+import { mulberry32, lerp } from '../core/util.js';
 import { batchStatic } from './batch.js';
 
 // The City Museum of Natural History. Layout (meters, y up, north = -z):
@@ -33,6 +33,19 @@ export const SPOTS = {
 };
 
 export const EGYPT = { x0: 15.42, x1: 39, z0: -37, z1: -9.42, h: 8.5 };
+
+// The eight secret rooms. `axis`/`at`: which wall (along z at x = at, or along x at z = at);
+// `from`/`to`: the opening along the wall; `side`: which way the room is from the wall.
+const SECRETS = [
+  { id: 'office_poster', wall: 'officeWall', axis: 'z', at: -20, from: -4.3, to: -1.7, side: -1, h: 2.7, clue: 'poster', prompt: 'Straighten the crooked poster', style: 'nap', sign: 'NAP ROOM', frosting: 1 },
+  { id: 'lobby_desk', wall: 'lobbyWall', axis: 'z', at: -12, from: 5.75, to: 7.25, side: -1, h: 2.55, room: [5.45, 8.6], clue: 'door', prompt: 'Jiggle the STAFF ONLY door', style: 'closet', sign: 'NOT A SECRET', frosting: 0 },
+  { id: 'dino_mural', wall: 'dinoWall', axis: 'x', at: -46, from: 11.8, to: 14.2, side: -1, h: 2.7, clue: 'brick', prompt: 'Push the loose brick', style: 'nest', sign: 'DO NOT HATCH', frosting: 2 },
+  { id: 'dino_tri', wall: 'dinoWall', axis: 'z', at: -15, from: -31.2, to: -28.8, side: -1, h: 2.7, clue: 'fossil', prompt: 'Press the strange fossil', style: 'bones', sign: 'SPARE BONES', frosting: 1 },
+  { id: 'egypt_obelisk', wall: 'sandWall', axis: 'z', at: 39, from: -27.2, to: -24.8, side: 1, h: 2.7, clue: 'eye', prompt: 'Press the Eye of Horus', style: 'treasure', sign: "PHARAOH'S SNACKS", frosting: 4 },
+  { id: 'egypt_jars', wall: 'sandWall', axis: 'x', at: -37, from: 33.4, to: 35.8, side: -1, h: 2.7, clue: 'scarab', prompt: 'Turn the stone scarab', style: 'treasure', sign: 'TOMB OF DONUTS', frosting: 2 },
+  { id: 'roman_chariot', wall: 'romanWall', axis: 'z', at: 40, from: -8.4, to: -6.0, side: 1, h: 2.7, clue: 'torch', prompt: 'Pull the torch holder', style: 'armory', sign: 'GLADIATOR LOCKER', frosting: 3 },
+  { id: 'roman_caligula', wall: 'romanWall', axis: 'x', at: 9, from: 23.6, to: 25.9, side: 1, h: 2.7, clue: 'bust', prompt: 'Push the bust of CALIGULA', style: 'armory', sign: 'CALIGULA WAS HERE', frosting: 0 },
+];
 // pillar | , || , ||| , |||| and their symbols (the Pharaoh's Lock code)
 export const EGYPT_PILLARS = [
   { n: 1, glyph: 'bird', x: 19.2, z: -29.4 },
@@ -57,6 +70,7 @@ export class Museum extends Level {
       lobbyWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x8f98a6, roughness: 0.85 }),
       dinoWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x7a6e5e, roughness: 0.9 }),
       romanWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xb47c5c, roughness: 0.85 }),
+      sandWall: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xc9a46c, roughness: 0.9 }),
       wood: new THREE.MeshStandardMaterial({ map: tex('wood'), roughness: 0.7 }),
       marble: new THREE.MeshStandardMaterial({ map: tex('marble'), roughness: 0.25, metalness: 0.05 }),
       stone: new THREE.MeshStandardMaterial({ map: tex('stone'), roughness: 0.8 }),
@@ -73,10 +87,12 @@ export class Museum extends Level {
     this._roman();
     this._egypt();
     this._collectibles();
+    this._secretRooms();
     if (!this.night) this._visitors();
     // merge everything that never moves (walls, props, signs...) → far fewer draw calls
     const r = this.refs;
     const dynamic = new Set([r.trex.group, r.guard.group, r.donutBox, r.deskFlashlight, r.footprints, r.sarcLid, r.mummy.holder, ...r.flames.map((f) => f.flame),
+      ...r.secrets.flatMap((sc) => [sc.panel, sc.mover].filter(Boolean)),
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
     batchStatic(this.scene, (o) => dynamic.has(o));
   }
@@ -124,7 +140,7 @@ export class Museum extends Level {
     this.ceiling(-20, -12, -5, 5, 3.4, m.ceiling, 1.2);
     this.wallX(-5, -20, -12, 3.4, m.officeWall);
     this.wallX(5, -20, -12, 3.4, m.officeWall);
-    this.wallZ(-20, -5, 5, 3.4, m.officeWall);
+    this.wallZ(-20, -5, 5, 3.4, m.officeWall, this._secretOpenings('z', -20));
     // fluorescent fixture
     const fl = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.06, 0.4), new THREE.MeshBasicMaterial({ color: 0xeaf2ff }));
     fl.position.set(-16, 3.36, 0);
@@ -208,7 +224,6 @@ export class Museum extends Level {
       this.scene.add(pm);
     };
     poster('EMPLOYEE\nOF THE\nMONTH:\nAARON', -13.5, 1.8, -4.78, 0, '#ffe08a', '#7a4b00');
-    poster('STAY\nAWAKE\n(seriously)', -19.78, 2.0, -3, Math.PI / 2, '#16324f', '#ffcc4d');
     poster('NO\nDINOSAURS\nIN THE\nOFFICE', -14.8, 1.8, 4.78, Math.PI, '#fff', '#c81e1e');
     // wall clock
     const clock = new THREE.Mesh(new THREE.CircleGeometry(0.25, 24), new THREE.MeshBasicMaterial({ map: signTexture('11:58', { w: 128, h: 128, bg: '#fff', fg: '#111', font: 'bold 34px Arial' }) }));
@@ -246,7 +261,7 @@ export class Museum extends Level {
     this.wallX(-10, -12, 12, 8, m.lobbyWall, [{ c: 0, w: 6, h: 6.2 }], 3);
     this.wallZ(12, -10, -9, 8, m.lobbyWall, [], 3);
     this.wallZ(12, 9, 10, 8, m.lobbyWall, [], 3);
-    this.wallZ(-12, -10, 10, 8, m.lobbyWall, [{ c: 0, w: 2.2, h: 2.4 }], 3);
+    this.wallZ(-12, -10, 10, 8, m.lobbyWall, [{ c: 0, w: 2.2, h: 2.4 }, ...this._secretOpenings('z', -12)], 3);
     // south wall: entrance + windows (we build it manually so windows glow)
     this.wallX(10, -12, 12, 8, m.lobbyWall, [{ c: -7.5, w: 4, h: 6.5 }, { c: 0, w: 6, h: 4.2 }, { c: 7.5, w: 4, h: 6.5 }], 3);
     // window glass glow + mullions
@@ -279,10 +294,7 @@ export class Museum extends Level {
     s.add(outside);
     this.addCollider(-3, 3, 9.8, 10.2);
     // archive door (closed, decorative)
-    const adoor = P.box(1.5, 2.55, 0.1, new THREE.MeshStandardMaterial({ color: 0x3b3b42, metalness: 0.5, roughness: 0.4 }));
-    adoor.rotation.y = Math.PI / 2;
-    adoor.position.set(-11.78, 1.275, 6.5);
-    s.add(adoor);
+    // (the STAFF ONLY door itself is a secret — see _secretRooms)
     const asign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshStandardMaterial({ map: signTexture('ARCHIVES\nSTAFF ONLY', { w: 256, h: 64, bg: '#a01818', fg: '#fff', font: 'bold 22px Arial' }) }));
     asign.position.set(-11.75, 2.85, 6.5);
     asign.rotation.y = Math.PI / 2;
@@ -355,8 +367,8 @@ export class Museum extends Level {
     const m = this.mats, s = this.scene;
     this.floor(-15, 15, -46, -10, m.stone, 0, 4);
     this.ceiling(-15, 15, -46, -10, 13, m.darkCeil);
-    this.wallX(-46, -15, 15, 13, m.dinoWall, [], 3);
-    this.wallZ(-15, -46, -10, 13, m.dinoWall, [], 3);
+    this.wallX(-46, -15, 15, 13, m.dinoWall, this._secretOpenings('x', -46), 3);
+    this.wallZ(-15, -46, -10, 13, m.dinoWall, this._secretOpenings('z', -15), 3);
     this.wallZ(15, -46, -10, 13, m.dinoWall, [{ c: SPOTS.egyptDoor.z, w: 3.2, h: 4.4 }], 3);
     this.wallX(-10, -15, -12, 13, m.dinoWall, [], 3);
     this.wallX(-10, 12, 15, 13, m.dinoWall, [], 3);
@@ -535,8 +547,8 @@ export class Museum extends Level {
     this.floor(12, 40, -9, 9, m.mosaic, 0, 4);
     this.ceiling(12, 40, -9, 9, 9, m.darkCeil);
     this.wallX(-9, 12, 40, 9, m.romanWall, [{ c: SPOTS.romanNorthDoor.x, w: 3.2, h: 4.4 }], 3);
-    this.wallX(9, 12, 40, 9, m.romanWall, [], 3);
-    this.wallZ(40, -9, 9, 9, m.romanWall, [], 3);
+    this.wallX(9, 12, 40, 9, m.romanWall, this._secretOpenings('x', 9), 3);
+    this.wallZ(40, -9, 9, 9, m.romanWall, this._secretOpenings('z', 40), 3);
     this.wallZ(12, -9, 9, 9, m.romanWall, [{ c: 0, w: 6, h: 6.2 }], 3);
     // border stripes on floor
     const stripeMat = new THREE.MeshStandardMaterial({ color: 0x8c3b2a, roughness: 0.7 });
@@ -549,8 +561,9 @@ export class Museum extends Level {
     // busts
     const names = [['JULIUS CAESAR', 19.25, -8], ['NERO', 30.25, -8], ['MARCUS AURELIUS', 19.25, 8], ['CALIGULA', 24.75, 8], ['HADRIAN', 30.25, 8]];
     for (const [n, x, z] of names) {
-      this.add(P.makeBust(n), x, 0, z, z > 0 ? Math.PI : 0);
-      this.addBoxCollider(x, z, 0.85, 0.85);
+      const bust = this.add(P.makeBust(n), x, 0, z, z > 0 ? Math.PI : 0);
+      const bc = this.addBoxCollider(x, z, 0.85, 0.85);
+      if (n === 'CALIGULA') this.refs.caligula = { obj: bust, col: bc };
     }
     // chariot
     this.add(P.makeChariot(), 25, 0, 0, Math.PI / 2 + 0.2);
@@ -619,7 +632,7 @@ export class Museum extends Level {
   _egypt() {
     const s = this.scene, n = this.night;
     const E = EGYPT;
-    const sandWall = new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0xc9a46c, roughness: 0.9 });
+    const sandWall = this.mats.sandWall;
     const sandFloor = new THREE.MeshStandardMaterial({ map: tex('stone'), color: 0xd8b98a, roughness: 0.85 });
     const sandstone = P.mat('sandstone', { color: 0xc8a978, roughness: 0.85 });
     const darkStone = P.mat('egyptDark', { color: 0x8a7350, roughness: 0.9 });
@@ -629,8 +642,8 @@ export class Museum extends Level {
     this.floor(E.x0, E.x1, E.z0, E.z1, sandFloor, 0, 3);
     this.ceiling(E.x0, E.x1, E.z0, E.z1, E.h, this.mats.darkCeil);
     this.wallZ(E.x0, E.z0, E.z1, E.h, sandWall, [{ c: SPOTS.egyptDoor.z, w: 3.2, h: 4.4 }], 3);
-    this.wallZ(E.x1, E.z0, E.z1, E.h, sandWall, [], 3);
-    this.wallX(E.z0, E.x0, E.x1, E.h, sandWall, [], 3);
+    this.wallZ(E.x1, E.z0, E.z1, E.h, sandWall, this._secretOpenings('z', E.x1), 3);
+    this.wallX(E.z0, E.x0, E.x1, E.h, sandWall, this._secretOpenings('x', E.z0), 3);
     this.wallX(E.z1, E.x0, E.x1, E.h, sandWall, [{ c: SPOTS.romanNorthDoor.x, w: 3.2, h: 4.4 }], 3);
 
     // doorways through the double walls (dinosaur hall ↔ egypt ↔ rome)
@@ -914,16 +927,258 @@ export class Museum extends Level {
   // ------------------------------------------------------------------ collectibles
   _collectibles() {
     if (!this.night) return;
-    this.addCollectible('lobby_desk', 1.6, 1.45, 4.2, 0);
+    // two donuts in plain sight; the other eight are in the secret rooms
     this.addCollectible('office_locker', -14.5, 0.6, 3.6, 3);
-    this.addCollectible('dino_tri', -12.6, 0.8, -21.5, 1);
     this.addCollectible('dino_meteor', 12.3, 0.6, -42.8, 4);
-    this.addCollectible('dino_mural', -13, 0.6, -44.5, 2);
-    this.addCollectible('roman_caligula', 24.75, 2.0, 8, 0);
-    this.addCollectible('roman_chariot', 25, 1.55, 0, 3);
-    this.addCollectible('roman_amphora', 38.3, 0.6, -6.6, 1);
-    this.addCollectible('egypt_jars', 16.4, 0.95, -29.6, 2);
-    this.addCollectible('egypt_obelisk', 38.0, 0.6, -36.0, 4);
+  }
+
+  // ------------------------------------------------------------------ secret rooms
+  _secretOpenings(axis, at) {
+    return SECRETS.filter((S) => S.axis === axis && S.at === at).map((S) => ({ c: (S.from + S.to) / 2, w: S.to - S.from, h: S.h }));
+  }
+
+  _secretRooms() {
+    this.refs.secrets = SECRETS.map((S) => this._secretRoom(S));
+    if (!this.night) return;
+    // Each room's lamp is "virtual": one real light goes to whichever opened room is nearest you.
+    // (Eight extra lights, even switched off, would slow down every frame of the museum.)
+    const real = new THREE.PointLight(0xffc27a, 0, 6, 2);
+    this.scene.add(real);
+    this.addUpdater(() => {
+      const p = this.game.player?.pos;
+      if (!p) return;
+      let best = null, bd = Infinity;
+      for (const sc of this.refs.secrets) {
+        if (sc.lamp.intensity <= 0) continue;
+        const d = sc.lamp.position.distanceToSquared(p);
+        if (d < bd) { bd = d; best = sc.lamp; }
+      }
+      real.intensity = best ? best.intensity : 0;
+      if (best) real.position.copy(best.position);
+    });
+  }
+
+  // A small hidden room behind a piece of wall. The wall piece sinks into the floor (or the door swings
+  // open) when you use the clue: something on the wall that looks a little... off.
+  _secretRoom(S) {
+    const s = this.scene, g = this.game;
+    const T = this.wallT, face = T / 2;
+    const wallMat = this.mats[S.wall];
+    const len = S.to - S.from, mid = (S.from + S.to) / 2;
+    const [r0, r1] = S.room || [S.from, S.to];
+    const rl = r1 - r0, rm = (r0 + r1) / 2, depth = 2.6, ceilH = S.h + 0.3;
+    // position helper: u = along the wall, v = away from the wall's center line into the room
+    const at = (u, v) => (S.axis === 'z' ? [S.at + S.side * v, u] : [u, S.at + S.side * v]);
+    const alongZ = S.axis === 'z';
+    const boxAt = (u, v, du, dv, h, mat, y = 0) => {
+      const [x, z] = at(u, v);
+      const b = P.box(alongZ ? dv : du, h, alongZ ? du : dv, mat, x, y, z);
+      s.add(b);
+      return b;
+    };
+    const colAt = (u0, u1, v0, v1) => {
+      const [xa, za] = at(u0, v0), [xb, zb] = at(u1, v1);
+      return this.addCollider(Math.min(xa, xb), Math.max(xa, xb), Math.min(za, zb), Math.max(za, zb));
+    };
+    const roomMat = P.mat('secretRoom_' + S.wall, { color: wallMat.color.getHex(), map: wallMat.map, roughness: 0.95 });
+
+    // ---- the room
+    const [fx, fz] = at(rm, face + depth / 2);
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(alongZ ? depth : rl, alongZ ? rl : depth), P.mat('secretFloor', { color: 0x4a4038, roughness: 0.95 }));
+    fl.rotation.x = -Math.PI / 2;
+    fl.position.set(fx, 0.01, fz);
+    s.add(fl);
+    const ce = new THREE.Mesh(new THREE.PlaneGeometry(alongZ ? depth : rl, alongZ ? rl : depth), P.mat('secretCeil', { color: 0x2a2622, roughness: 1 }));
+    ce.rotation.x = Math.PI / 2;
+    ce.position.set(fx, ceilH, fz);
+    s.add(ce);
+    boxAt(rm, face + depth + 0.1, rl + 0.4, 0.2, ceilH, roomMat);
+    for (const u of [r0 - 0.1, r1 + 0.1]) boxAt(u, face + depth / 2, 0.2, depth, ceilH, roomMat);
+    colAt(r0 - 0.2, r1 + 0.2, face + depth, face + depth + 0.2);
+    colAt(r0 - 0.2, r0, face, face + depth);
+    colAt(r1, r1 + 0.2, face, face + depth);
+    // a lintel above the opening, inside the room (the hall wall above it is part of the hall)
+    const lamp = new THREE.PointLight(0xffc27a, 0, 6, 2);
+    const [lx, lz] = at(rm, face + depth * 0.5);
+    lamp.position.set(lx, ceilH - 0.4, lz); // (not added to the scene: see _secretRooms)
+    // sign on the back wall
+    const [sx, sz] = at(rm, face + depth - 0.01);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.4), new THREE.MeshStandardMaterial({ map: signTexture(S.sign, { w: 512, h: 146, bg: '#1d1712', fg: '#ffd98a', font: 'bold 54px Arial Black, Arial', border: '#ffd98a' }), emissive: 0xffd98a, emissiveIntensity: 0.1 }));
+    sign.position.set(sx, 2.0, sz);
+    sign.rotation.y = alongZ ? (S.side > 0 ? -Math.PI / 2 : Math.PI / 2) : S.side > 0 ? Math.PI : 0;
+    s.add(sign);
+    this._secretDecor(S, at, boxAt);
+    // the donut (at night)
+    const [dx, dz] = at(rm, face + depth * 0.55);
+    this.add(P.makePedestal(0.5, 0.7, P.mat('secretPed', { color: 0x6b5a48, roughness: 0.8 })), dx, 0, dz);
+    if (this.night) this.addCollectible(S.id, dx, 1.0, dz, S.frosting ?? 0);
+
+    // ---- the fake wall (or door)
+    const panel = new THREE.Group();
+    const [px, pz] = at(mid, 0);
+    if (S.clue === 'door') {
+      // hinged at S.from; swings into the room
+      const [hx, hz] = at(S.from, 0);
+      panel.position.set(hx, 0, hz);
+      const door = P.box(alongZ ? 0.08 : len, S.h, alongZ ? len : 0.08, P.mat('staffDoor', { color: 0x3b3b42, metalness: 0.5, roughness: 0.4 }), alongZ ? 0 : len / 2, 0, alongZ ? len / 2 : 0);
+      panel.add(door);
+      const knob = P.box(alongZ ? 0.12 : 0.06, 0.06, alongZ ? 0.06 : 0.12, P.MATS.brass(), alongZ ? 0 : len - 0.15, 1.05, alongZ ? len - 0.15 : 0);
+      panel.add(knob);
+    } else {
+      panel.position.set(px, 0, pz);
+      panel.add(new THREE.Mesh(alongZ ? boxUV(T, S.h, len, 3) : boxUV(len, S.h, T, 3), wallMat));
+      panel.children[0].position.y = S.h / 2;
+    }
+    s.add(panel);
+    const col = colAt(S.from, S.to, -face, face);
+    // the clue
+    const hall = -1; // v direction toward the hall
+    const cluePos = new THREE.Vector3();
+    let mover = null, pre = null;
+    const onPanel = (obj, u, y) => {
+      const [cx, cz] = at(u, hall * (face + 0.012));
+      obj.position.set(cx - (S.clue === 'door' ? 0 : px), y, cz - (S.clue === 'door' ? 0 : pz));
+      obj.rotation.y = alongZ ? (S.side > 0 ? -Math.PI / 2 : Math.PI / 2) : S.side > 0 ? Math.PI : 0;
+      panel.add(obj);
+      cluePos.set(cx, y, cz);
+    };
+    const plate = (draw, w, h) => {
+      const [c, x] = makeCanvas(256, Math.round((256 * h) / w));
+      draw(x, c);
+      return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: canvasTexture(c), transparent: true, roughness: 0.8 }));
+    };
+    if (S.clue === 'poster') {
+      const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.05), new THREE.MeshStandardMaterial({ map: signTexture('STAY\nAWAKE\n(seriously)', { w: 256, h: 340, bg: '#16324f', fg: '#ffcc4d', font: 'bold 34px Arial Black, Arial', border: '#ffcc4d' }) }));
+      onPanel(poster, mid, 1.85);
+      poster.rotation.z = 0.2;
+      pre = () => g.tween(0.4, (k) => { poster.rotation.z = 0.2 * (1 - k); });
+    } else if (S.clue === 'door') {
+      const [cx, cz] = at(mid, hall * 0.1);
+      cluePos.set(cx, 1.1, cz);
+    } else if (S.clue === 'fossil' || S.clue === 'eye' || S.clue === 'scarab') {
+      const art = plate((x) => {
+        if (S.clue === 'fossil') {
+          x.strokeStyle = '#6b5a44'; x.lineWidth = 14; x.lineCap = 'round';
+          x.beginPath();
+          for (let a = 0; a < Math.PI * 7; a += 0.1) { const r = 8 + a * 5.2; x.lineTo(128 + Math.cos(a) * r, 128 + Math.sin(a) * r); }
+          x.stroke();
+        } else drawGlyph(x, S.clue, 128, 128, 200, S.clue === 'eye' ? '#b8892a' : '#1d3f8f');
+      }, 0.62, 0.62);
+      onPanel(art, mid, 1.45);
+    } else if (S.clue === 'brick') {
+      const brick = P.box(alongZ ? 0.14 : 0.42, 0.18, alongZ ? 0.42 : 0.14, P.mat('looseBrick', { color: 0x9a8a74, roughness: 0.9 }));
+      const [bx, bz] = at(S.from - 0.55, hall * (face + 0.04));
+      brick.position.set(bx, 1.26, bz);
+      s.add(brick);
+      cluePos.set(bx, 1.35, bz);
+      mover = brick;
+      const [ix, iz] = at(S.from - 0.55, hall * (face - 0.06));
+      pre = () => g.tween(0.4, (k) => { brick.position.x = lerp(bx, ix, k); brick.position.z = lerp(bz, iz, k); });
+    } else if (S.clue === 'torch') {
+      const torch = new THREE.Group();
+      torch.add(P.box(0.1, 0.18, 0.1, P.MATS.bronze(), 0, -0.09, 0));
+      const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.025, 0.5, 8), P.MATS.darkWood());
+      stick.position.y = 0.25;
+      torch.add(stick);
+      const tip = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.14, 8), P.mat('torchTip', { color: 0x2a1a10, roughness: 1 }));
+      tip.position.y = 0.55;
+      torch.add(tip);
+      const [tx, tz] = at(S.to + 0.45, hall * (face + 0.08));
+      torch.position.set(tx, 1.45, tz);
+      s.add(torch);
+      cluePos.set(tx, 1.6, tz);
+      mover = torch;
+      const ax = alongZ ? 'z' : 'x';
+      // pulled like a lever: the top tips out toward the hall
+      pre = () => g.tween(0.45, (k) => { torch.rotation[ax] = S.side * 0.9 * k * (alongZ ? 1 : -1); });
+    } else if (S.clue === 'bust') {
+      const b = this.refs.caligula;
+      mover = b.obj;
+      cluePos.set(b.obj.position.x, 1.5, b.obj.position.z);
+      const x0 = b.obj.position.x, c0 = { ...b.col };
+      pre = () => g.tween(0.9, (k) => {
+        b.obj.position.x = x0 + 1.4 * k;
+        b.col.minX = c0.minX + 1.4 * k;
+        b.col.maxX = c0.maxX + 1.4 * k;
+      });
+    }
+    const sec = { S, panel, col, lamp, mover, opened: false };
+    if (this.night) {
+      const it = this.addInteractable({ id: 'secret_' + S.id, pos: cluePos.clone(), prompt: S.prompt, enabled: true, radius: 2.0 });
+      sec.it = it;
+      it.onUse = async () => {
+        if (sec.opened) return;
+        sec.opened = true;
+        it.enabled = false;
+        if (pre) { g.audio.play('click'); await pre(); }
+        col.enabled = false;
+        if (S.clue === 'door') colAt(S.from, S.from + 0.3, face, face + len); // the open door against the side wall
+        g.audio.play('gate');
+        g.shake(0.15, 1.2);
+        g.foundSecret();
+        await g.tween(1.4, (k) => {
+          if (S.clue === 'door') panel.rotation.y = S.side * 1.45 * k * (alongZ ? 1 : -1); // into the room
+          else panel.position.y = -(S.h + 0.05) * k;
+          lamp.intensity = 5 * k;
+        });
+      };
+    }
+    return sec;
+  }
+
+  _secretDecor(S, at, boxAt) {
+    const face = this.wallT / 2;
+    const [r0, r1] = S.room || [S.from, S.to];
+    const u0 = r0 + 0.45, u1 = r1 - 0.45;
+    const v = face + 2.0;
+    const m = (k, c, o = {}) => P.mat(k, { color: c, roughness: 0.8, ...o });
+    if (S.style === 'nap') {
+      boxAt(u0 + 0.3, v, 0.9, 0.5, 0.12, m('blanket', 0x3a5a9a));
+      boxAt(u0 + 0.3, v + 0.15, 0.45, 0.3, 0.16, m('pillow', 0xf0ece0), 0.12);
+    } else if (S.style === 'closet') {
+      boxAt(u1, v - 0.2, 0.06, 0.06, 1.3, m('mop', 0x8a6a3a));
+      boxAt(u1, v - 0.2, 0.3, 0.3, 0.32, m('bucket', 0x2d6cc4, { metalness: 0.3 }));
+      boxAt(u0, v, 0.5, 0.4, 0.9, m('shelfbox', 0x9a7a52));
+    } else if (S.style === 'nest') {
+      const [x, z] = at(u0 + 0.2, v);
+      const nest = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.12, 8, 18), m('nest', 0x6a4a2a));
+      nest.rotation.x = Math.PI / 2;
+      nest.position.set(x, 0.12, z);
+      this.scene.add(nest);
+      for (let i = 0; i < 3; i++) {
+        const egg = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 10), m('egg', 0xe8dcc0));
+        egg.scale.set(1, 1.35, 1);
+        egg.position.set(x + Math.cos(i * 2.1) * 0.14, 0.24, z + Math.sin(i * 2.1) * 0.14);
+        this.scene.add(egg);
+      }
+    } else if (S.style === 'bones') {
+      for (let i = 0; i < 4; i++) {
+        const [x, z] = at(u0 + i * 0.35, v + (i % 2) * 0.3);
+        const bone = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.7, 8), m('spareBone', 0xe0d4b8));
+        bone.rotation.set(Math.PI / 2, 0, i * 0.7);
+        bone.position.set(x, 0.06, z);
+        this.scene.add(bone);
+      }
+    } else if (S.style === 'treasure') {
+      for (let i = 0; i < 5; i++) {
+        const [x, z] = at(u0 + (i % 3) * 0.3, v + Math.floor(i / 3) * 0.3);
+        const pile = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 0.12 + (i % 2) * 0.08, 12), P.MATS.brass());
+        pile.position.set(x, 0.06, z);
+        this.scene.add(pile);
+      }
+      boxAt(u1, v, 0.6, 0.4, 0.4, m('chest', 0x6a3a1a));
+    } else if (S.style === 'armory') {
+      const [x, z] = at(u0 + 0.2, v);
+      const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.2, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), P.MATS.bronze());
+      helmet.position.set(x, 0.62, z);
+      this.scene.add(helmet);
+      boxAt(u0 + 0.2, v, 0.3, 0.3, 0.6, m('helmetStand', 0x4a2f1c));
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 20), P.MATS.velvet());
+      const [sx, sz] = at(u1, v + 0.3);
+      shield.position.set(sx, 0.5, sz);
+      shield.rotation.x = Math.PI / 2 - 0.3;
+      this.scene.add(shield);
+    }
   }
 
   // ------------------------------------------------------------------ day visitors

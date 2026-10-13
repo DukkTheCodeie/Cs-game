@@ -13,15 +13,15 @@ every line with that emotion uses it. You don't need all of them: anything missi
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
 | 🙂 **Normal** | Your regular face. Just chilling. | `guard-normal.jpg` | `guard-normal.mp4` | 1 |
-| 😄 **Happy** | Big smile! | `guard-happy.jpg` | `guard-happy.mp4` | 4 |
-| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `guard-hungry.jpg` | `guard-hungry.mp4` | 2 |
+| 😄 **Happy** | Big smile! | `guard-happy.jpg` | `guard-happy.mp4` | 5 |
+| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `guard-hungry.jpg` | `guard-hungry.mp4` | 1 |
 | 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `guard-cool.jpg` | `guard-cool.mp4` | 5 |
-| 🤔 **Confused** | Squint and tilt your head. "Huh?" | `guard-confused.jpg` | `guard-confused.mp4` | 7 |
-| 😒 **Annoyed** | Roll your eyes. Ugh. | `guard-annoyed.jpg` | `guard-annoyed.mp4` | 5 |
+| 🤔 **Confused** | Squint and tilt your head. "Huh?" | `guard-confused.jpg` | `guard-confused.mp4` | 8 |
+| 😒 **Annoyed** | Roll your eyes. Ugh. | `guard-annoyed.jpg` | `guard-annoyed.mp4` | 6 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `guard-angry.jpg` | `guard-angry.mp4` | 1 |
-| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `guard-shocked.jpg` | `guard-shocked.mp4` | 6 |
+| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `guard-shocked.jpg` | `guard-shocked.mp4` | 5 |
 | 😱 **Scared** | Hands on your cheeks. Silent scream. | `guard-scared.jpg` | `guard-scared.mp4` | 10 |
-| 😴 **Sleepy** | Huge yawn, eyes half closed. | `guard-sleepy.jpg` | `guard-sleepy.mp4` | 1 |
+| 😴 **Sleepy** | Huge yawn, eyes half closed. | `guard-sleepy.jpg` | `guard-sleepy.mp4` | 2 |
 
 One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 
@@ -124,12 +124,14 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `guard22.mp4` | 😒 Annoyed | My sugar levels are FINE. |
 | `guard23.mp4` | 😱 Scared | Is that... an EYE?! Go away! Shoo! |
 | `guard24.mp4` | 😒 Annoyed | Three keys for ONE gate. Who designs these places? |
-| `guard25.mp4` | 🤤 Hungry | THE. LAST. DONUT. It is beautiful. |
-| `guard26.mp4` | 😲 Shocked | It's... it's PLASTIC?! |
+| `guard43.mp4` | 😒 Annoyed | ANOTHER gate? How big IS this place?! |
+| `guard45.mp4` | 🤔 Confused | Wait. These shelves look familiar. Am I going in circles? |
+| `guard44.mp4` | 😴 Sleepy | Need... donut... so... tired... |
+| `guard46.mp4` | 😄 Happy | A secret room! With a DONUT in it! |
 | `guard27.mp4` | 😴 Sleepy | So... sleepy... just gonna... rest my eyes... five minutes... |
 | `guard28.mp4` | 🤔 Confused | Mmh... huh? It's MORNING?! |
 | `guard29.mp4` | 🤔 Confused | The T-Rex is back. Like nothing happened. ...Is that MY HAT? |
-| `guard30.mp4` | 😲 Shocked | Aaron! The T-Rex was ALIVE! It chased me! There was a MUMMY! And a PLASTIC DONUT! |
+| `guard30.mp4` | 😲 Shocked | Aaron! The T-Rex was ALIVE! It chased me! There was a MUMMY! And the archives NEVER END! |
 | `guard31.mp4` | 😠 Angry | WHAT? I solved like FIVE puzzles! |
 | `guard32.mp4` | 🤔 Confused | Wait... that's it? That game was WAY too short. |
 | `guard33.mp4` | 😲 Shocked | Oh my gosh. Are you serious? This is really it? That's the WHOLE game?! |
@@ -174,11 +176,15 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `museos13.mp4` | 🙂 Normal | Puzzle number two: the Pharaoh's Lock. Its secret is written on four pillars. Count the lines. |
 | `museos14.mp4` | 🙂 Normal | Fragment two: MUMMY. Next puzzle: the Roman Empire hall. |
 | `museos05.mp4` | 🙂 Normal | Fragment three: 1974. The remaining puzzles lie... beyond the walls. |
-| `museos06.mp4` | 🙂 Normal | Welcome to the archives, guard. Three locked gates stand between you and the break room. Also, your sugar levels are... concerning. |
+| `museos06.mp4` | 🙂 Normal | Welcome to the archives, guard. The last password fragments are behind these gates. Also, your sugar levels are... concerning. |
 | `museos07.mp4` | 🙂 Normal | Fragment four: ZAP. |
 | `museos08.mp4` | 🙂 Normal | The next gate needs three keys: red, blue and yellow. They were lost somewhere in this section. Classic. |
-| `museos09.mp4` | 🙂 Normal | Fragment five: DONUT. Please proceed to the break room. |
-| `museos10.mp4` | 🙂 Normal | Exhibit 404: replica donut. Not for eating. |
+| `museos09.mp4` | 🙂 Normal | Fragment five: DONUT. Only one fragment left. It is behind the next gate. |
+| `museos15.mp4` | 🙂 Normal | Fragment six was not here. Have you tried the next gate? |
+| `museos16.mp4` | 🙂 Normal | Still no fragment six. It is definitely behind the next gate. Probably. |
+| `museos17.mp4` | 🙂 Normal | Fun fact: nobody has ever reached the end of the archives. |
+| `museos18.mp4` | 🙂 Normal | Your sugar levels are now... alarming. Please keep solving puzzles. |
+| `museos19.mp4` | 🙂 Normal | Guard? ...Guard? Sugar level: zero. The guard is asleep. Logging out. |
 | `museos11.mp4` | 🙂 Normal | Fragments entered: five of six. You did not solve the puzzles. |
 | `museos12.mp4` | 🙂 Normal | Five is not six. Goodbye. |
 

@@ -39,12 +39,21 @@ field of view, brightness, camera shake, and graphics quality (High adds glow ef
 | 🏺 | **Chapter 2 — Curse of the Pharaoh** | Giant footprints lead into the Egyptian Wing. Find the four painted pillars, crack the Pharaoh's Lock... and then the sarcophagus starts to open. The mummy is awake. And it's hungry. |
 | 🏛️ | **Chapter 3 — All Roads** | On to the Roman Empire hall. Crack the Roman-numeral lock. Something is breathing behind you. |
 | 🏃 | **Chapter 4 — RUN** | A skeleton T-Rex chase down the museum gallery, endless-runner style. Dodge, jump, slide, grab donuts. At the end: **GO RIGHT**, into the hole shaped exactly like you. |
-| 🗝️ | **Chapter 5 — Behind the Walls** | A maze of shelves in the archives. A fuse box, three lost keys and a torn poster stand between you and THE LAST DONUT. Your donut meter is running out. |
-| ☀️ | **Chapter 6 — Morning Shift** | You wake up. The museum is open. The T-Rex is back on its stand (wearing your hat). Aaron is there. You're still locked out. |
+| 🗝️ | **Chapter 5 — Behind the Walls** | The archives, the last part of the night. A fuse box, three lost keys and a torn poster guard the last password pieces... and then the archives just keep going. Every new gate has a new puzzle, each one a bit harder, and the donuts get smaller. You *will* run out of donuts. How far can you get? |
+| ☀️ | **Chapter 6 — Morning Shift** | You fell asleep somewhere deep in the archives. Now the museum is open. The T-Rex is back on its stand (wearing your hat). Aaron is there. You're still locked out. |
 | 🧩 | **???** | Back at the menu... the game seems a little short, doesn't it? |
 
-The **donut meter** (top-left) drains the whole night. Solving a puzzle gives you a donut, and there are
-**16 hidden donuts** glowing around the museum and archives. If the meter hits zero, you fall asleep on the job.
+The **donut meter** (top-left) drains the whole night. Solving a puzzle gives you a donut. If the meter hits
+zero, you fall asleep on the job. In the endless archives that's how the night ends; anywhere else it's game over.
+
+There are **16 hidden donuts**, and most are hard to find:
+* **2** are out in the open.
+* **8** are in **secret rooms** in the museum. Look for something on a wall that seems a little *off* (a crooked
+  poster, a loose brick, a strange fossil, a torch holder...) and press **E** on it.
+* **6** are in the first three sections of the archives. One in each section is behind a shelf with a strange
+  pink box on it.
+
+The deeper archives have more donuts and secret shelves, but they keep getting smaller (and don't count toward the 16).
 
 ## 🎬 Put yourself in the game
 
@@ -79,9 +88,9 @@ npm run clips-readme  # rewrite assets/clips/README.md after changing lines in s
 | Folder | What's inside |
 |---|---|
 | `src/game/` | the story (`chapters.js`), every spoken line (`script.js`), game loop, player |
-| `src/world/` | the museum, T-Rex skeleton, people, the chase level, the maze, textures |
-| `src/puzzles/` | the puzzles (cipher wheel, Pharaoh's Lock, Roman dials, fuse box, sliding poster) |
+| `src/world/` | the museum (and its secret rooms), T-Rex skeleton, people, the chase level, the endless archives maze, textures |
+| `src/puzzles/` | the puzzles (cipher wheel, Pharaoh's Lock, Roman dials, fuse box, sliding poster, memory lock). The endless archives reuse them with generated settings. |
 | `src/ui/` | HUD, subtitles/facecam (with the cartoon emotion faces), menu, the login computer |
 | `src/core/` | input, synthesized audio + music, timing |
 
-Jump straight to a chapter while testing: `index.html?chapter=dino` (also `intro`, `roman`, `chase`, `maze`, `morning`).
+Jump straight to a chapter while testing: `index.html?chapter=dino` (also `intro`, `egypt`, `roman`, `chase`, `maze`, `morning`).

@@ -5,7 +5,7 @@ import { drawGlyph, GLYPHS, GLYPH_KEYS, PHARAOH_CODE } from '../world/glyphs.js'
 
 const HINT_COST = 10;
 
-export function openPuzzle(game, kind, { fragment = '', onSolvedLine = null } = {}) {
+export function openPuzzle(game, kind, { fragment = '', params = {}, banner = null, rewardText = '+1 DONUT 🍩' } = {}) {
   const def = PUZZLES[kind];
   return new Promise((resolve) => {
     const root = $('#modal-root');
@@ -13,8 +13,8 @@ export function openPuzzle(game, kind, { fragment = '', onSolvedLine = null } = 
     const panel = el('div', 'panel puzzle');
     panel.innerHTML = `
       <button class="close" title="Close (Esc)">✕</button>
-      <h2>${def.title}</h2>
-      <div class="sub">${def.sub}</div>
+      <h2>${params.title || def.title}</h2>
+      <div class="sub">${params.sub || def.sub}</div>
       <div class="pz-body"></div>
       <div class="pz-hint"></div>
       <div class="panel-foot">
@@ -52,9 +52,9 @@ export function openPuzzle(game, kind, { fragment = '', onSolvedLine = null } = 
       body.innerHTML = `
         <div class="solved-banner">
           <div class="big">PUZZLE SOLVED!</div>
-          <div class="help" style="margin-top:8px">Password fragment unlocked:</div>
-          <div class="frag-reveal">${escapeHtml(fragment)}</div>
-          <div style="font-weight:900;font-size:20px;color:var(--pink)">+1 DONUT 🍩</div>
+          ${fragment ? `<div class="help" style="margin-top:8px">Password fragment unlocked:</div>
+          <div class="frag-reveal">${escapeHtml(fragment)}</div>` : banner || ''}
+          <div style="font-weight:900;font-size:20px;color:var(--pink)">${rewardText}</div>
           <div style="margin-top:18px"><button class="btn big mint pz-continue">CONTINUE</button></div>
         </div>`;
       $('.pz-continue', body).onclick = () => { game.audio.play('select'); cleanup(); resolve(true); };
@@ -79,7 +79,7 @@ export function openPuzzle(game, kind, { fragment = '', onSolvedLine = null } = 
       hintBox.innerHTML = hints.slice(0, ++hintLevel).map((h) => `<div class="hintbox">💡 ${h}</div>`).join('');
       api.onHint?.(hintLevel);
     };
-    const api = def.build({ game, body, solve, panel });
+    const api = def.build({ game, body, solve, panel, params });
   });
 }
 
@@ -93,16 +93,17 @@ const PUZZLES = {
     title: 'DINO-LOCK 3000',
     sub: 'An encrypted message is glowing on the screen. Turn the bone wheel to decode it.',
     keys: '← → turn the wheel · Esc close',
-    build({ game, body, solve }) {
-      const SHIFT = 4;
-      const plain = 'NEXT PUZZLE: EGYPT WING. KEY IS REX';
+    build({ game, body, solve, params }) {
+      const SHIFT = params.shift ?? 4;
+      const plain = params.text ?? 'NEXT PUZZLE: EGYPT WING. KEY IS REX';
+      const clue = params.text ? 'NO CLUE THIS TIME. TURN THE WHEEL UNTIL THE MESSAGE MAKES SENSE.' : 'SHIFT EACH LETTER BACK BY THE NUMBER OF FINGERS ON <u>BOTH</u> OF THE KING\'S HANDS.';
       const cipher = [...plain].map((c) => shiftChar(c, SHIFT)).join('');
       let shift = 0, solvedT = null;
       body.innerHTML = `
         <div class="terminal">
           <div style="text-align:center;margin-bottom:8px">&gt; INCOMING TRANSMISSION — ENCRYPTED</div>
           <div class="cipher-text"></div>
-          <div style="text-align:center;color:#ffcc4d">"SHIFT EACH LETTER BACK BY THE NUMBER OF FINGERS ON <u>BOTH</u> OF THE KING'S HANDS."</div>
+          <div style="text-align:center;color:#ffcc4d">"${clue}"</div>
         </div>
         <div class="wheel-wrap">
           <button class="btn rotbtn rl">◀</button>
@@ -143,7 +144,9 @@ const PUZZLES = {
       render();
       return {
         onKey(e) { if (e.code === 'ArrowLeft' || e.code === 'KeyA') turn(-1); if (e.code === 'ArrowRight' || e.code === 'KeyD') turn(1); },
-        hints: () => ['The plaque next to the T-Rex has a fun fact about its hands.', 'T. rex had TWO fingers on each hand. Two hands... 2 + 2 = ?', 'Turn the wheel until the hub says 4.'],
+        hints: () => (params.text
+          ? ['Click ▶ again and again and watch the small green letters under each big one.', `The first word is "${plain.split(' ')[0]}".`, `Turn the wheel until the hub says ${SHIFT}.`]
+          : ['The plaque next to the T-Rex has a fun fact about its hands.', 'T. rex had TWO fingers on each hand. Two hands... 2 + 2 = ?', 'Turn the wheel until the hub says 4.']),
         dispose() { clearTimeout(solvedT); },
       };
     },
@@ -224,21 +227,23 @@ const PUZZLES = {
     title: 'AQVILA LOCK',
     sub: '"ENTER THE YEAR THIS MVSEVM WAS FOVNDED, CITIZEN." — in normal numbers. Each dial gets one piece of the Roman numeral.',
     keys: 'Click ▲▼ or type digits · Esc close',
-    build({ game, body, solve, panel }) {
-      const code = [1, 9, 7, 4];
-      const parts = ['M', 'CM', 'LXX', 'IV'];
+    build({ game, body, solve, panel, params }) {
+      const year = params.year ?? 1974;
+      const code = String(year).padStart(4, '0').split('').map(Number);
+      const parts = romanParts(year);
+      const numeral = parts.join('');
       const places = ['thousands', 'hundreds', 'tens', 'ones'];
       const val = [0, 0, 0, 0];
       let typed = 0, done = false;
       body.innerHTML = `<div class="aquila">🦅 S · P · Q · R 🦅</div>
-        <div class="roman-year">FOUNDED IN <b>MCMLXXIV</b></div>
+        <div class="roman-year">${params.year ? 'THE CODE IS' : 'FOUNDED IN'} <b>${numeral}</b></div>
         <div class="dials"></div>
         <div class="numeral-key">${[['I', 1], ['V', 5], ['X', 10], ['L', 50], ['C', 100], ['D', 500], ['M', 1000]].map(([l, n]) => `<span><b>${l}</b> = ${n}</span>`).join('')}</div>
         <div class="help" style="text-align:center">Add the letters up. A small letter <b>before</b> a bigger one is taken away: <b>IV</b> = 5 − 1 = 4.<br>A dial turns <b style="color:var(--mint)">green</b> when it's right!</div>`;
       const dials = $('.dials', body);
       const nums = [], dialEls = [];
       for (let i = 0; i < 4; i++) {
-        const d = el('div', 'dial', `<div class="chunk">${parts[i]}</div><button class="up">▲</button><div class="num">0</div><button class="dn">▼</button><div class="place">${places[i]}</div>`);
+        const d = el('div', 'dial', `<div class="chunk">${parts[i] || '—'}</div><button class="up">▲</button><div class="num">0</div><button class="dn">▼</button><div class="place">${places[i]}</div>`);
         dials.append(d);
         dialEls.push(d);
         const n = $('.num', d);
@@ -277,7 +282,9 @@ const PUZZLES = {
             }
           }
         },
-        hints: () => ['M is 1000 — one thousand — so the first dial is 1.', 'CM is 1000 take away 100 = 900, so the second dial is 9. LXX is 50 + 10 + 10 = 70, so the third dial is 7.', 'IV is 5 take away 1 = 4. The year is 1 9 7 4.'],
+        hints: () => (params.year
+          ? ['A dash (—) means that dial is 0. Count each piece: M = 1000, C = 100, X = 10, I = 1.', `${parts[0] || '—'} → ${code[0]} and ${parts[1] || '—'} → ${code[1]}.`, `The code is ${code.join(' ')}.`]
+          : ['M is 1000 — one thousand — so the first dial is 1.', 'CM is 1000 take away 100 = 900, so the second dial is 9. LXX is 50 + 10 + 10 = 70, so the third dial is 7.', 'IV is 5 take away 1 = 4. The year is 1 9 7 4.']),
       };
     },
   },
@@ -287,21 +294,23 @@ const PUZZLES = {
     title: 'FUSE BOX',
     sub: 'Switch ALL nine fuses ON to power the gate. Each switch also flips its neighbors (up, down, left, right).',
     keys: 'Click the switches (or keys 1–9) · Esc close',
-    build({ game, body, solve }) {
-      const N = 9;
+    build({ game, body, solve, params }) {
+      const n = params.n ?? 3, N = n * n;
       let st = new Array(N).fill(true);
       const press = (s, i) => {
-        const r = Math.floor(i / 3), c = i % 3;
+        const r = Math.floor(i / n), c = i % n;
         const out = s.slice();
         for (const [dr, dc] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
           const rr = r + dr, cc = c + dc;
-          if (rr >= 0 && rr < 3 && cc >= 0 && cc < 3) out[rr * 3 + cc] = !out[rr * 3 + cc];
+          if (rr >= 0 && rr < n && cc >= 0 && cc < n) out[rr * n + cc] = !out[rr * n + cc];
         }
         return out;
       };
-      for (const i of [0, 4, 8, 5]) st = press(st, i);
+      for (const i of params.presses ?? [0, 4, 8, 5]) st = press(st, i);
+      if (st.every(Boolean)) st = press(st, Math.floor(N / 2));
       body.innerHTML = `<div class="lights"></div><div class="help" style="text-align:center">Make every switch say <b>ON</b> (green, with a lit bulb).</div>`;
       const grid = $('.lights', body);
+      if (n !== 3) grid.classList.add('n' + n);
       const cells = [];
       let done = false;
       for (let i = 0; i < N; i++) {
@@ -321,19 +330,19 @@ const PUZZLES = {
       render();
       const solution = () => {
         let best = null;
-        for (let m = 0; m < 512; m++) {
+        for (let m = 0; m < 1 << N; m++) {
           let s = st.slice();
-          let n = 0;
-          for (let i = 0; i < 9; i++) if (m & (1 << i)) { s = press(s, i); n++; }
-          if (s.every(Boolean) && (best == null || n < best.n)) best = { m, n };
+          let cnt = 0;
+          for (let i = 0; i < N; i++) if (m & (1 << i)) { s = press(s, i); cnt++; }
+          if (s.every(Boolean) && (best == null || cnt < best.cnt)) best = { m, cnt };
         }
-        return best ? [...Array(9).keys()].filter((i) => best.m & (1 << i)) : [];
+        return best ? [...Array(N).keys()].filter((i) => best.m & (1 << i)) : [];
       };
       return {
         // keyboard: 1-9 press the switches (laid out like a phone keypad, top-left = 1)
         onKey(e) {
           const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
-          if (m) cells[Number(m[1]) - 1].click();
+          if (m && n === 3) cells[Number(m[1]) - 1].click();
         },
         hints: () => ['Try pressing the switches in the CORNERS and the CENTER first.', 'The glowing dashed switch is part of the solution. Press it!', 'Keep asking — each hint shows another correct switch.'],
         onHint() { const sol = solution(); render(); if (sol.length) cells[sol[0]].classList.add('hint'); },
@@ -346,12 +355,12 @@ const PUZZLES = {
     title: 'TORN POSTER',
     sub: 'Someone cut up the museum\'s most famous poster. Slide the pieces back into place.',
     keys: 'Click a tile next to the gap (or arrow keys) · Esc close',
-    build({ game, body, solve }) {
+    build({ game, body, solve, params }) {
       const img = posterImage();
       let s = [1, 2, 3, 4, 5, 6, 7, 8, 0];
       const neighbors = (i) => [i - 3, i + 3, i % 3 ? i - 1 : -1, i % 3 < 2 ? i + 1 : -1].filter((j) => j >= 0 && j < 9);
       let prev = -1;
-      for (let k = 0; k < 34; k++) {
+      for (let k = 0; k < (params.moves ?? 34); k++) {
         const e = s.indexOf(0);
         const opts = neighbors(e).filter((j) => j !== prev);
         const j = opts[Math.floor(Math.random() * opts.length)];
@@ -414,7 +423,89 @@ const PUZZLES = {
       };
     },
   },
+
+  // ---------------------------------------------------------------- 6. Memory lock (generated)
+  simon: {
+    title: 'MEMORY LOCK',
+    sub: 'Watch the lights, then press them in the same order.',
+    keys: 'Click the pads (or keys 1–4) · Esc close',
+    build({ game, body, solve, panel, params }) {
+      const len = params.length ?? 4;
+      const NAMES = ['RED', 'BLUE', 'GREEN', 'YELLOW'];
+      const NOTES = [392, 523, 659, 784];
+      const seq = Array.from({ length: len }, () => Math.floor(Math.random() * 4));
+      body.innerHTML = `<div class="simon">${NAMES.map((nm, i) => `<button class="pad p${i}" data-i="${i}"><span>${i + 1}</span></button>`).join('')}</div>
+        <div class="simon-status">Watch closely…</div>
+        <div class="help" style="text-align:center"><button class="btn small simon-replay">↻ Show me again</button></div>`;
+      const pads = [...body.querySelectorAll('.pad')];
+      const status = $('.simon-status', body);
+      let input = [], playing = false, done = false, alive = true, runId = 0;
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+      const flash = (i, ms = 360) => {
+        pads[i].classList.add('lit');
+        game.audio.play('note', { f: NOTES[i], dur: ms / 1000 });
+        setTimeout(() => pads[i].classList.remove('lit'), ms);
+      };
+      const show = async () => {
+        const id = ++runId;
+        playing = true;
+        input = [];
+        status.textContent = 'Watch closely…';
+        await wait(700);
+        for (const i of seq) {
+          if (!alive || id !== runId) return;
+          flash(i);
+          await wait(560);
+        }
+        if (!alive || id !== runId) return;
+        playing = false;
+        status.textContent = `Your turn! (0/${len})`;
+      };
+      const press = (i) => {
+        if (playing || done) return;
+        flash(i, 220);
+        input.push(i);
+        if (input[input.length - 1] !== seq[input.length - 1]) {
+          game.audio.play('error');
+          panel.classList.remove('shake'); void panel.offsetWidth; panel.classList.add('shake');
+          status.textContent = 'Oops! Watch again…';
+          playing = true;
+          setTimeout(show, 700);
+          return;
+        }
+        status.textContent = `Your turn! (${input.length}/${len})`;
+        if (input.length === len) {
+          done = true;
+          status.textContent = 'Correct!';
+          game.audio.play('sparkle');
+          setTimeout(solve, 700);
+        }
+      };
+      pads.forEach((p, i) => (p.onclick = () => press(i)));
+      $('.simon-replay', body).onclick = () => { if (!done) show(); };
+      show();
+      return {
+        onKey(e) {
+          const m = /^(?:Digit|Numpad)([1-4])$/.exec(e.code);
+          if (m) press(Number(m[1]) - 1);
+        },
+        hints: () => [
+          'Say the colors out loud while they flash: "red, blue, blue..." — it helps!',
+          `It starts with ${seq.slice(0, 2).map((i) => NAMES[i]).join(', ')}.`,
+          `The whole order is: ${seq.map((i) => NAMES[i]).join(', ')}.`,
+        ],
+        dispose() { alive = false; },
+      };
+    },
+  },
 };
+
+// Roman numeral pieces for each digit of a 4-digit number: 1974 → ['M', 'CM', 'LXX', 'IV'].
+export function romanParts(num) {
+  const d = String(num).padStart(4, '0').split('').map(Number);
+  const piece = (x, one, five, ten) => ['', one, one + one, one + one + one, one + five, five, five + one, five + one + one, five + one + one + one, one + ten][x];
+  return ['M'.repeat(d[0]), piece(d[1], 'C', 'D', 'M'), piece(d[2], 'X', 'L', 'C'), piece(d[3], 'I', 'V', 'X')];
+}
 
 // BFS from the solved state: maps each state -> the next state on a shortest path to solved.
 function solveTable() {

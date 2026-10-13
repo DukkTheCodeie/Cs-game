@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Museum, SPOTS, EGYPT } from '../world/museum.js';
 import { Runner, LANES, RUN_LENGTH } from '../world/runner.js';
-import { Maze, KEY_COLORS } from '../world/maze.js';
+import { Maze, KEY_COLORS, HANDMADE, STATION_NAMES } from '../world/maze.js';
 import { makeDonut, makeFlashlightModel, box, MATS } from '../world/props.js';
 import { drawMeTube, drawLocked, drawHintScreen, drawLogin, drawDenied } from '../world/screens.js';
 import { Ease } from '../core/scheduler.js';
@@ -16,7 +16,7 @@ export const CHAPTERS = [
   { id: 'egypt', name: 'Chapter 2 — Curse of the Pharaoh', blurb: 'The Egyptian Wing' },
   { id: 'roman', name: 'Chapter 3 — All Roads', blurb: 'The Roman Empire' },
   { id: 'chase', name: 'Chapter 4 — RUN', blurb: 'It is right behind you' },
-  { id: 'maze', name: 'Chapter 5 — Behind the Walls', blurb: 'The Archives' },
+  { id: 'maze', name: 'Chapter 5 — Behind the Walls', blurb: 'The Archives (they never end)' },
   { id: 'morning', name: 'Chapter 6 — Morning Shift', blurb: '7 hours later…' },
 ];
 
@@ -26,7 +26,7 @@ export const TIPS = {
   egypt: 'Ancient Egyptians wrote numbers with lines: | = 1, || = 2, ||| = 3, |||| = 4.',
   roman: 'Roman numerals: M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1.',
   chase: '← → switch lanes · ↑ jump · ↓ slide. Hitting things lets the T-Rex catch up.',
-  maze: 'Dead ends hide donuts — and keys. Your map fills in as you explore (M).',
+  maze: 'The archives go on... and on. Grab every donut you can, and look for strange boxes on the shelves.',
   morning: 'Good morning! Your shift ended two hours ago.',
 };
 const GENERAL_TIPS = [
@@ -34,6 +34,7 @@ const GENERAL_TIPS = [
   'Sprinting burns your donut meter about twice as fast.',
   'Stuck on a puzzle? A hint costs a little donut.',
   'The mummy has a <b>serious</b> sweet tooth.',
+  'Some walls hide <b>secret rooms</b>. Look for things that seem a little... off.',
   'Aaron has been Employee of the Month 11 months in a row.',
 ];
 export function tipFor(id) {
@@ -105,7 +106,7 @@ function nightSetup(g, lvl) {
   g.hud.setFragments(g.save.fragments);
   g.meter.enabled = true;
   g.meter.drain = 0.5;
-  g.meter.onEmpty = () => g.failed('YOU FELL ASLEEP', 'Your donut meter hit zero and you dozed off on the job.<br>Tip: hidden donuts glow pink — grab them! Sprinting burns donuts faster.');
+  g.meter.onEmpty = () => g.failed('YOU FELL ASLEEP', 'Your donut meter hit zero and you dozed off on the job.<br>Tip: some walls hide secret rooms with donuts in them. Sprinting burns donuts faster.');
   g.player.giveFlashlight(true);
   g.camera.fov = g.save.settings.fov;
   g.camera.updateProjectionMatrix();
@@ -729,13 +730,23 @@ async function chase(g, _lvl, mode) {
 }
 
 // ================================================================== CHAPTER 5: BEHIND THE WALLS
-async function maze(g, _lvl, mode) {
-  const lvl = new Maze(g);
+// The archives are the last part of the night, and they never end. After the three hand-made gates
+// the puzzles are generated, the donut meter drains faster in every new section and the rewards
+// get smaller — so sooner or later you run out of donuts and fall asleep.
+const drainFor = (band) => 0.48 * (1 + 0.25 * Math.max(0, band - (HANDMADE - 1)));
+const rewardFor = (k) => (k < HANDMADE ? 35 : Math.max(6, 30 - 5 * (k - HANDMADE)));
+const ENDLESS_LINES = [['guard43', 'museos15'], ['museos16'], ['guard45', 'museos17'], ['museos18'], ['museos15'], ['guard43', 'museos16']];
+
+async function maze(g) {
+  const solved = g.save.solved || (g.save.solved = {});
+  let stage = 0;
+  while (stage < HANDMADE && solved['maze' + stage]) stage++;
+  const keysTaken = KEY_COLORS.filter(([name]) => solved['key_' + name]).map(([name]) => `k1_${name}`);
+  const lvl = new Maze(g, { stage, keysTaken });
   await g.loadLevel(lvl);
   g.checkpoint('maze');
-  const solved = g.save.solved || (g.save.solved = {});
-  let stage = [0, 1, 2].filter((b) => solved['maze' + b]).length;
-  for (let b = 0; b < stage; b++) lvl.openGate(b, true);
+  let opened = stage;
+  const endless = () => opened >= HANDMADE;
   const sp = lvl.spawnFor(stage);
   g.player.setPose(sp.x, sp.z, sp.yaw);
   g.setClock(135 + stage * 15, true);
@@ -743,8 +754,13 @@ async function maze(g, _lvl, mode) {
   g.hud.showMeter(true);
   g.hud.setFragments(g.save.fragments);
   g.meter.enabled = true;
-  g.meter.drain = 0.48;
-  g.meter.onEmpty = () => g.failed('YOU FELL ASLEEP', 'Right there in the archives. The T-Rex is very disappointed in you.<br>Tip: dead ends often hide donuts.');
+  g.meter.drain = drainFor(lvl.curBand);
+  let sleeping = false;
+  g.meter.onEmpty = () => {
+    if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives. The T-Rex is very disappointed in you.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
+    if (!sleeping) { sleeping = true; sleepEnding(g); }
+  };
+  lvl.onBandChange = (b) => { g.meter.drain = drainFor(b); };
   g.player.giveFlashlight(true);
   g.camera.fov = g.save.settings.fov;
   g.camera.updateProjectionMatrix();
@@ -753,17 +769,19 @@ async function maze(g, _lvl, mode) {
   g.audio.playMusic('maze');
   g.hud.setFade(0, 0.8);
   g.setMode('explore');
-  const keysFound = () => KEY_COLORS.filter(([name]) => solved['key_' + name]).length;
-  const objectiveFor = (st) => [
-    'Find the fuse box to open the first gate',
-    `Find the 3 lost keys (${keysFound()}/3) to open the next gate`,
-    'Find the torn poster to open the last gate',
-    'Get to the break room',
-  ][st];
+
+  const objectiveFor = (k) => {
+    const kind = lvl.gateKind(k);
+    if (kind === 'keys') {
+      const n = lvl.puzzleParams(k).count, got = lvl.keysFor(k).filter((x) => x.taken).length;
+      if (got >= n) return 'All the keys! Unlock the gate';
+      return `${k >= HANDMADE ? `Gate ${k + 1}: find` : 'Find'} the ${n} lost keys (${got}/${n}) to open the next gate`;
+    }
+    if (k === 0) return 'Find the fuse box to open the first gate';
+    if (k < HANDMADE) return `Find the ${STATION_NAMES[kind]} to open the next gate`;
+    return `Gate ${k + 1}: find the ${STATION_NAMES[kind]}`;
+  };
   g.objective(objectiveFor(stage));
-  // keys you already found (or the gate they opened) stay that way
-  for (const k of lvl.keys) if (solved['key_' + k.name] || stage >= 2) lvl.takeKey(k);
-  if (stage >= 2) for (const sl of lvl.keySlots) sl.visible = true;
 
   if (stage === 0) {
     g.hud.titleCard('CHAPTER 5', 'BEHIND THE WALLS');
@@ -778,7 +796,7 @@ async function maze(g, _lvl, mode) {
     });
   }
 
-  // the explorer's map, filling in as you go
+  // the explorer's map, filling in (and scrolling) as you go
   const mm = document.getElementById('minimap');
   const mmCtx = mm.querySelector('canvas').getContext('2d');
   mm.classList.remove('off');
@@ -791,8 +809,8 @@ async function maze(g, _lvl, mode) {
     if (mmAcc > 0.1 && !mm.classList.contains('off')) { mmAcc = 0; lvl.drawMap(mmCtx, g.player); }
   });
 
-  // T-Rex eye peeks through holes in the outer walls
-  let peekSaid = false;
+  // T-Rex eye peeks through holes in the outer walls; stomps in the distance; a sleepy guard
+  let peekSaid = false, lowSaid = false;
   let stompT = 18;
   lvl.addUpdater((dt) => {
     if (g.mode !== 'explore') return;
@@ -815,102 +833,92 @@ async function maze(g, _lvl, mode) {
       g.shake(0.12, 1);
     }
     if (Math.random() < dt * 0.15) g.audio.play('drip');
+    if (endless() && g.meter.value < 18 && !lowSaid) { lowSaid = true; g.say('guard44'); }
+    if (g.meter.value > 40) lowSaid = false;
   });
 
-  let inBreakRoom = false;
-  // the three lost keys
+  // keys
   lvl.addUpdater(() => {
     if (g.mode !== 'explore') return;
     for (const k of lvl.keys) {
       if (k.taken || Math.hypot(g.player.pos.x - k.obj.position.x, g.player.pos.z - k.obj.position.z) > 1.1) continue;
       lvl.takeKey(k);
-      solved['key_' + k.name] = true;
-      g.persist();
+      if (k.k === 1) { solved['key_' + k.name] = true; g.persist(); }
       g.audio.play('pickup');
       g.audio.play('chime', { delay: 0.12 });
+      const n = lvl.puzzleParams(k.k).count, got = lvl.keysFor(k.k).filter((x) => x.taken).length;
       const hex = '#' + k.color.toString(16).padStart(6, '0');
-      g.hud.toast(`🔑 Found the <b style="color:${hex}">${k.name.toUpperCase()}</b> key! <b>(${keysFound()}/3)</b>`, 'gold');
-      if (stage === 1 && !inBreakRoom) g.objective(keysFound() < 3 ? objectiveFor(1) : 'All 3 keys! Unlock the gate');
+      g.hud.toast(`🔑 Found the <b style="color:${hex}">${k.name.toUpperCase()}</b> key! <b>(${got}/${n})</b>`, 'gold');
+      if (k.k === opened) g.objective(objectiveFor(opened));
     }
   });
-  const frags = ['ZAP', null, 'DONUT'];
-  lvl.stations.forEach((st, b) => {
-    st.it.onUse = async () => {
-      if (solved['maze' + b]) { g.hud.toast('Already open! ✔', 'mint'); return; }
-      if (st.kind === 'keys') {
-        const n = keysFound();
-        if (n < 3) {
-          g.audio.play('error');
-          g.hud.toast(`🔒 This gate needs 3 keys — you have <b>${n}/3</b>. They're hidden somewhere in this part of the archives.`, 'gold');
-          return;
-        }
-        st.it.enabled = false;
-        lvl.keySlots.forEach((sl, i) => setTimeout(() => { sl.visible = true; g.audio.play('click'); }, 150 + i * 280));
-        await g.wait(1.1);
-        g.audio.play('unlock');
-      } else {
-        const ok = await g.openPuzzle(st.kind, frags[b]);
-        if (!ok) return;
-      }
-      solved['maze' + b] = true;
-      g.persist();
-      st.light.color.set(0x66ff99);
-      stage = Math.max(stage, b + 1);
-      await lvl.openGate(b);
-      if (!inBreakRoom) g.objective(objectiveFor(Math.min(3, b + 1)));
-      if (b === 0) {
-        g.audio.play('radio');
-        await g.say('museos07');
-        await g.say('museos08');
-      } else if (b === 1) {
-        await g.say('guard24');
-      } else {
-        g.audio.play('radio');
-        await g.say('museos09');
-      }
-    };
-  });
 
-  // the break room
-  const fr = lvl.finalRoom;
-  lvl.addTrigger({
-    minX: fr.x0, maxX: fr.x1, minZ: fr.z1, maxZ: fr.z0 - 0.3,
-    onEnter: () => {
-      inBreakRoom = true;
-      g.objective('Take THE LAST DONUT');
-      g.audio.playMusic('menu');
-      g.say('guard25');
-    },
-  });
-  await new Promise((resolve) => { lvl.lastDonutIt.onUse = resolve; });
-  lvl.lastDonutIt.enabled = false;
+  // secret shelves
+  lvl.onSecret = () => g.foundSecret();
+
+  // the gates
+  lvl.onStationUse = async (k, st) => {
+    if (lvl.gateOpen.has(k)) { g.hud.toast('Already open! ✔', 'mint'); return; }
+    if (st.kind === 'keys') {
+      const n = lvl.puzzleParams(k).count, got = lvl.keysFor(k).filter((x) => x.taken).length;
+      if (got < n) {
+        g.audio.play('error');
+        g.hud.toast(`🔒 This gate needs ${n} keys — you have <b>${got}/${n}</b>. They're hidden somewhere in this part of the archives.`, 'gold');
+        return;
+      }
+      st.it.enabled = false;
+      st.slots.forEach((sl, i) => setTimeout(() => { sl.visible = true; g.audio.play('click'); }, 150 + i * 280));
+      await g.wait(1.1);
+      g.audio.play('unlock');
+      if (k >= HANDMADE) { g.meter.add(rewardFor(k)); g.hud.toast(`🔓 Unlocked! <b>+${rewardFor(k)}%</b> 🍩`, 'mint'); }
+    } else {
+      const frag = k === 0 ? 'ZAP' : k === 2 ? 'DONUT' : null;
+      const banner = frag ? null : '<div class="help" style="margin-top:10px">Password fragment six: <b style="color:var(--red)">NOT FOUND</b></div><div style="font-weight:800;margin:6px 0 10px">It must be behind the next gate...</div>';
+      const ok = await g.openPuzzle(st.kind, frag, { params: lvl.puzzleParams(k), reward: rewardFor(k), banner });
+      if (!ok) return;
+    }
+    if (k < HANDMADE) { solved['maze' + k] = true; g.persist(); }
+    st.light.color.set(0x66ff99);
+    opened = Math.max(opened, k + 1);
+    await lvl.openGate(k);
+    g.objective(objectiveFor(opened));
+    if (k === 0) {
+      g.audio.play('radio');
+      await g.say('museos07');
+      await g.say('museos08');
+    } else if (k === 1) {
+      await g.say('guard24');
+    } else if (k === 2) {
+      g.audio.play('radio');
+      await g.say('museos09');
+    } else {
+      for (const id of ENDLESS_LINES[(k - HANDMADE) % ENDLESS_LINES.length]) {
+        if (id.startsWith('museos')) g.audio.play('radio');
+        await g.say(id);
+      }
+    }
+  };
+}
+
+// Out of donuts. Sweet dreams.
+async function sleepEnding(g) {
+  g.meter.enabled = false;
   g.meter.onEmpty = null;
+  g.audio.stopMusic(3);
   await g.cutscene(async () => {
     g.player.enabled = false;
-    const donut = lvl.lastDonut;
-    const base = donut.position.clone();
-    g.audio.play('pickup');
-    await g.tween(0.8, (k) => { donut.position.lerpVectors(base, new THREE.Vector3(g.camera.position.x, g.camera.position.y - 0.25, g.camera.position.z).lerp(base, 0.55), k); });
-    g.audio.play('bonk');
-    g.audio.play('thud', { delay: 0.15 });
-    await g.say('guard26');
-    g.audio.play('radio');
-    await g.say('museos10');
-    g.audio.stopMusic(3);
-    // SUGAR CRASH
-    const v0 = g.meter.value;
     g.audio.play('yawn');
-    await g.tween(2.6, (k) => { g.meter.set(lerp(v0, 0, k)); g.hud.setDrowsy(k * 0.9); });
-    const bb = lvl.beanbag.position;
-    const p0 = g.player.pos.clone();
-    g.say('guard27');
+    g.hud.setDrowsy(0.9);
+    await g.say('guard27');
+    const pitch0 = g.player.pitch;
     await g.tween(2.4, (k) => {
-      g.player.pos.lerpVectors(p0, new THREE.Vector3(bb.x + 0.3, 0, bb.z + 0.4), k);
       g.player.eyeOffset = -0.95 * k;
-      g.player.pitch = lerp(0, 0.35, k);
+      g.player.pitch = lerp(pitch0, 0.3, k);
       g.player.applyCamera(0);
     });
     for (const c of [0.7, 0.2, 0.85, 0.4, 1]) { g.hud.setLids(c, 0.5); await g.wait(0.6); }
+    g.audio.play('radio');
+    await g.say('museos19');
     g.audio.play('yawn');
     g.hud.setFade(1, 1.5);
     await g.wait(1.6);

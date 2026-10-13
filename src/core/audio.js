@@ -331,6 +331,10 @@ export class AudioEngine {
         this.tone({ type: 'sine', f: 60, f2: 40, t, d: 0.14, g: 0.5 * v });
         this.tone({ type: 'sine', f: 55, f2: 38, t: t + 0.22, d: 0.18, g: 0.4 * v });
         break;
+      case 'note':
+        this.tone({ type: 'triangle', f: opts.f || 523, t, a: 0.005, d: opts.dur || 0.3, g: 0.16 * v });
+        this.tone({ type: 'sine', f: (opts.f || 523) * 2, t, a: 0.005, d: (opts.dur || 0.3) * 0.6, g: 0.04 * v });
+        break;
       case 'beep':
         this.tone({ type: 'sine', f: 760, t, a: 0.004, d: opts.dur || 0.1, g: 0.14 * v });
         break;
