@@ -18,6 +18,8 @@ import { Player } from './player.js';
 import { Museum, SPOTS } from '../world/museum.js';
 import { CHAPTERS, START, runChapter, tipFor } from './chapters.js';
 import { TOTAL_DONUTS, FRAGMENTS, DONUT_IDS } from './constants.js';
+import { VERSION } from '../version.js';
+import { logEvent } from '../core/analytics.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
 export { TOTAL_DONUTS };
@@ -355,7 +357,7 @@ export class Game {
     this.dialogue.setPaused(true);
     this.input.exitLock();
     this.audio.ctx?.suspend?.();
-    const m = (this.pauseModal = modal(`<h2>PAUSED</h2><div class="sub">${this.chapterName()}</div>
+    const m = (this.pauseModal = modal(`<h2>PAUSED</h2><div class="sub">${this.chapterName()} <span style="opacity:.55">· ${VERSION}</span></div>
       <div class="chapters">
         <button class="btn big pink" data-a="resume">▶ RESUME</button>
         <button class="btn" data-a="settings">SETTINGS</button>
@@ -554,6 +556,7 @@ export class Game {
 
   // ------------------------------------------------------------ chapters / menu
   async startChapter(id, { mode = 'fresh' } = {}) {
+    logEvent('chapter/' + id);
     this.runId++;
     this.paused = false;
     this.timeScale = 1;

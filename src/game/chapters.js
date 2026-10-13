@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Museum, SPOTS, EGYPT } from '../world/museum.js';
 import { Runner, LANES, RUN_LENGTH } from '../world/runner.js';
+import { logEvent } from '../core/analytics.js';
 import { Maze, KEY_COLORS, HANDMADE, STATION_NAMES } from '../world/maze.js';
 import { makeDonut, makeFlashlightModel, box, MATS } from '../world/props.js';
 import { drawMeTube, drawLocked, drawHintScreen, drawLogin, drawDenied } from '../world/screens.js';
@@ -1042,6 +1043,7 @@ async function morning(g) {
   g.setMode('cutscene');
   g.audio.play('wahwah');
   g.save.flags.ending = 'pending';
+  logEvent('finished');
   g.persist();
   await g._guard(showGameOver(g, { title: 'GAME OVER', sub: 'You did not solve the puzzles.<br><span style="color:var(--dim)">(5 of 6 password fragments. So close. So, so close.)</span>', buttons: [{ label: 'BACK TO MENU', value: 'menu', cls: 'pink' }] }));
   g.toMenu();

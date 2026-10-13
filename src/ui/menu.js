@@ -3,6 +3,8 @@ import { Station } from './dialogue.js';
 import { CONFIG } from '../config.js';
 import { CHAPTERS } from '../game/chapters.js';
 import { TOTAL_DONUTS } from '../game/constants.js';
+import { VERSION, RELEASES_URL } from '../version.js';
+import { logEvent } from '../core/analytics.js';
 
 export class Menu {
   constructor(game) {
@@ -67,7 +69,8 @@ export class Menu {
         <button class="btn menu-btn ghost" data-act="controls">CONTROLS</button>
         <button class="btn menu-btn ghost" data-act="credits">CREDITS</button>
         <div class="menu-foot">${g.input.isTouch ? 'Touch controls on · landscape recommended' : 'WASD move · Mouse look · E use · F flashlight · Shift sprint'}</div>
-      </div>`;
+      </div>
+      <a class="menu-version" href="${RELEASES_URL}" target="_blank" rel="noopener" title="What's new">${VERSION}</a>`;
     this.root.classList.remove('off');
     for (const b of $$('[data-act]', this.root)) {
       b.addEventListener('mouseenter', () => g.audio.play('hover'));
@@ -210,7 +213,9 @@ export class Menu {
         The Mummy: <b>a guy who really likes donuts</b><br>
         Donuts eaten during development: <b>too many</b><br><br>
         Built with three.js. Every sound and song is synthesized in your browser.
-      </p>`);
+      </p>
+      <div class="sub" style="margin-top:6px">${VERSION} · <a href="${RELEASES_URL}" target="_blank" rel="noopener" style="color:var(--sky)">what's new</a></div>
+      ${CONFIG.analytics ? '<div class="sub" style="font-size:12px">Plays are counted anonymously: just the kind of device and browser. No names, no cookies.</div>' : ''}`);
   }
 
   // ---------------------------------------------------------------- meta ending
@@ -292,6 +297,7 @@ export class Menu {
     await sleep(800);
     g.save.flags.ending = 'done';
     g.save.flags.kicked = true;
+    logEvent('ending/kicked');
     g.persist();
     this.kickedScreen();
   }

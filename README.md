@@ -40,7 +40,7 @@ field of view, brightness, camera shake, and graphics quality (High adds glow ef
 | 🏛️ | **Chapter 3 — All Roads** | On to the Roman Empire hall. Crack the Roman-numeral lock. Something is breathing behind you. |
 | 🏃 | **Chapter 4 — RUN** | A skeleton T-Rex chase down the museum gallery, endless-runner style. Dodge, jump, slide, grab donuts. At the end: **GO RIGHT**, into the hole shaped exactly like you. |
 | 🗝️ | **Chapter 5 — Behind the Walls** | The archives, the last part of the night. A fuse box, three lost keys and a torn poster guard the last password pieces... and then the archives just keep going. Every new gate has a new puzzle, each one a bit harder, and the donuts get smaller. You *will* run out of donuts. How far can you get? |
-| ☀️ | **Chapter 6 — Morning Shift** | You fell asleep somewhere deep in the archives. Now the museum is open. The T-Rex is back on its stand (wearing your hat). Aaron is there. You're still locked out. |
+| ☀️ | **Chapter 6 — Morning Shift** | You fell asleep somewhere deep in the archives. Now the museum is open and full of visitors (press **E** to chat, and try not to bump into them). The T-Rex is back on its stand, wearing your hat. Aaron is there. You're still locked out. |
 | 🧩 | **???** | Back at the menu... the game seems a little short, doesn't it? |
 
 The **donut meter** (top-left) drains the whole night. Solving a puzzle gives you a donut. If the meter hits
@@ -71,6 +71,25 @@ The full list of emotions to act, file names and lines is in [`assets/clips/READ
 with steps for uploading on GitHub.
 
 Change the names shown in subtitles (and the game title) in [`game-config.js`](game-config.js) — no rebuild needed.
+
+## 🔢 Versions
+
+The game's version shows in the corner of the menu (and in the pause screen and credits). Every version has a
+matching [GitHub release](https://github.com/Hudsoonvid/Cs-game/releases), and [`CHANGELOG.md`](CHANGELOG.md)
+says what changed. To release an update: bump `version` in `package.json`, add a section for it to the
+changelog, run `npm run build`, and merge to `main`. The release is created for you.
+
+## 📊 See who's playing
+
+The game can count plays, and what people play on (phone or computer, iPhone/Android/Windows/Mac, which browser,
+screen size), on a free [GoatCounter](https://www.goatcounter.com) dashboard. It's anonymous: no cookies, no names,
+nothing personal. It's off until you turn it on:
+
+1. Sign up at [goatcounter.com](https://www.goatcounter.com) and pick a code, like `lockedout`. Your dashboard is
+   then `lockedout.goatcounter.com`.
+2. In [`game-config.js`](game-config.js), set `analytics: 'lockedout'` (your code).
+3. That's it. You'll see a `play` every time someone starts the game, plus `chapter/...` for each chapter they
+   reach and `finished` when someone gets to the end. The Browsers, Systems and Sizes charts show what they played on.
 
 ## 🛠 For developers
 

@@ -334,6 +334,9 @@ body:has(.computer-modal) #dialogue { padding-bottom: 14px; }
 .menu-btn { text-align: left; width: 100%; font-size: 19px; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
 .menu-btn small { font-weight: 700; color: var(--dim); font-size: 13px; }
 .menu-foot { margin-top: 16px; color: var(--dim); font-size: 13px; font-weight: 700; }
+.menu-version { position: fixed; left: 14px; bottom: 10px; z-index: 36; color: var(--dim); font: 800 12px var(--body); text-decoration: none; opacity: 0.8; }
+.menu-version:hover { color: var(--gold); opacity: 1; }
+.boot-version { position: absolute; left: 14px; bottom: 10px; color: var(--dim); font: 800 12px var(--body); opacity: 0.7; }
 .menu-badges { display: flex; gap: 8px; flex-wrap: wrap; }
 .menu-badges:empty { display: none; }
 .menu-badge { display: inline-block; padding: 4px 10px; border-radius: 8px; background: var(--pink); color: #111; font: 12px var(--title); }
