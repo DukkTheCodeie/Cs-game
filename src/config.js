@@ -10,5 +10,9 @@ export const CONFIG = {
   title: ['LOCKED', 'OUT'],
   // GoatCounter code for anonymous play counting ('' = off). See game-config.js.
   analytics: '',
+  // Dev mode: tap the logo on the menu 7 times and type this to unlock everything ('' = no dev mode)
+  devCode: 'IAMTHEDEV',
+  // Show "a new version is out" on the menu (asks GitHub for the latest release; false = never ask)
+  checkUpdates: true,
   ...user,
 };

@@ -181,6 +181,8 @@ export const LINES = {
   dev28: { who: 'dev', mood: 'sad', text: 'Fast graphics? My beautiful cylinders... they look so blurry now.' },
   dev29: { who: 'dev', mood: 'sleepy', text: "Okay, I'm taking a nap. Wake me up when you press play." },
   dev30: { who: 'dev', mood: 'happy', text: "New in this version: there's a whole CITY outside! Look out the front windows. And in the morning... well. You'll see." },
+  dev34: { who: 'dev', mood: 'cool', text: "Oh hey, me. Dev mode's on. Everything's unlocked. Don't tell the players." },
+  dev35: { who: 'dev', mood: 'angry', text: "Nice try. That's not the code. I'd know, I made it up." },
   dev33: { who: 'dev', mood: 'happy', text: 'Oh, you found my parade! I built every float myself. The donut one is my favorite. Obviously.' },
   dev32: { who: 'dev', mood: 'shocked', text: "You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again." },
   dev31: { who: 'dev', mood: 'shocked', text: 'Wait, you finished the whole game? And you came BACK? You must really like donuts.' },

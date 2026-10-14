@@ -32,10 +32,10 @@ One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 |---|---|---|---|---|
 | 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 8 |
 | 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 1 |
-| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 1 |
+| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 2 |
 | 🤔 **Confused** | Squint and tilt your head. "Huh?" | `dev-confused.jpg` | `dev-confused.mp4` | 2 |
 | 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 5 |
-| 😠 **Angry** | Frown as hard as you can. Grrr. | `dev-angry.jpg` | `dev-angry.mp4` | 2 |
+| 😠 **Angry** | Frown as hard as you can. Grrr. | `dev-angry.jpg` | `dev-angry.mp4` | 3 |
 | 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `dev-shocked.jpg` | `dev-shocked.mp4` | 4 |
 | 😱 **Scared** | Hands on your cheeks. Silent scream. | `dev-scared.jpg` | `dev-scared.mp4` | 1 |
 | 😢 **Sad** | Big pout. Fake cry. | `dev-sad.jpg` | `dev-sad.mp4` | 4 |
@@ -193,6 +193,8 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `dev28.mp4` | 😢 Sad | Fast graphics? My beautiful cylinders... they look so blurry now. |
 | `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap. Wake me up when you press play. |
 | `dev30.mp4` | 😄 Happy | New in this version: there's a whole CITY outside! Look out the front windows. And in the morning... well. You'll see. |
+| `dev34.mp4` | 😎 Cool | Oh hey, me. Dev mode's on. Everything's unlocked. Don't tell the players. |
+| `dev35.mp4` | 😠 Angry | Nice try. That's not the code. I'd know, I made it up. |
 | `dev33.mp4` | 😄 Happy | Oh, you found my parade! I built every float myself. The donut one is my favorite. Obviously. |
 | `dev32.mp4` | 😲 Shocked | You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again. |
 | `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game? And you came BACK? You must really like donuts. |

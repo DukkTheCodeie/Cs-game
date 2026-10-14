@@ -2,8 +2,8 @@ import { $, $$, el, sleep } from '../core/util.js';
 import { Station } from './dialogue.js';
 import { CONFIG } from '../config.js';
 import { CHAPTERS } from '../game/chapters.js';
-import { TOTAL_DONUTS } from '../game/constants.js';
-import { VERSION, RELEASES_URL } from '../version.js';
+import { TOTAL_DONUTS, DONUT_IDS } from '../game/constants.js';
+import { VERSION, RELEASES_URL, latestVersion, isNewer } from '../version.js';
 import { logEvent } from '../core/analytics.js';
 
 export class Menu {
@@ -76,6 +76,23 @@ export class Menu {
       b.addEventListener('mouseenter', () => g.audio.play('hover'));
       b.addEventListener('click', () => this._act(b.dataset.act));
     }
+    // a newer version out? (the one-file copy can't update itself, so point to the download)
+    if (CONFIG.checkUpdates) {
+      latestVersion().then((v) => {
+        if (!v || !isNewer(v, VERSION) || !this.open || $('.menu-update', this.root)) return;
+        const a = el('a', 'menu-update', `🆕 ${v} is out! Get it →`);
+        Object.assign(a, { href: RELEASES_URL + '/latest', target: '_blank', rel: 'noopener' });
+        this.root.append(a);
+      });
+    }
+    // dev mode: tap the logo 7 times in a row
+    let taps = 0, tapT = 0;
+    $('.logo', this.root).addEventListener('click', () => {
+      const now = performance.now();
+      taps = now - tapT < 1500 ? taps + 1 : 1;
+      tapT = now;
+      if (taps >= 7 && CONFIG.devCode && !this.busy && !$('#modal-root').children.length) { taps = 0; this.devMode(); }
+    });
     g.audio.playMusic(save.flags.ending === 'pending' ? 'meta' : 'menu');
     if (save.flags.ending === 'pending') {
       this._metaEnding();
@@ -165,6 +182,54 @@ export class Menu {
     });
   }
 
+  // For the developer (or a teacher): type the dev code (game-config.js) to unlock everything.
+  devMode() {
+    const g = this.game;
+    g.audio.play('static', { dur: 0.15 });
+    const m = modal(`<h2>DEV MODE</h2><div class="sub">Type the dev code (it's in game-config.js).</div>
+      <form class="dev-form"><input class="dev-code" type="password" autocomplete="off" spellcheck="false" placeholder="dev code"><button class="btn pink" type="submit">ENTER</button></form>`);
+    const input = $('.dev-code', m.panel);
+    setTimeout(() => input.focus(), 50);
+    $('.dev-form', m.panel).onsubmit = (e) => {
+      e.preventDefault();
+      if (input.value.trim().toUpperCase() !== String(CONFIG.devCode).trim().toUpperCase()) {
+        g.audio.play('buzz');
+        input.value = '';
+        input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+        this.quip('dev35');
+        return;
+      }
+      m.close();
+      this.devPanel();
+    };
+  }
+
+  devPanel() {
+    const g = this.game, save = g.save;
+    g.audio.play('select');
+    const m = modal(`<h2>DEV MODE</h2><div class="sub">Unlocks stay in this browser's save.</div><div class="chapters dev-tools"></div>
+      <div class="sub" style="margin-top:12px">To lock it all again: Settings → Reset save data.</div>`, () => this.show());
+    const list = $('.dev-tools', m.panel);
+    const tool = (label, blurb, fn) => {
+      const b = el('button', 'btn chapter-btn', `<span>${label}</span><small>${blurb}</small>`);
+      b.onclick = () => { fn(); g.persist(); g.audio.play('chime'); b.classList.add('done'); $('small', b).textContent = '✓ done'; };
+      list.append(b);
+    };
+    const chapters = () => { save.reached = CHAPTERS.map((c) => c.id); };
+    const donuts = () => { save.donuts = DONUT_IDS.slice(); save.flags.devDonuts = true; };
+    // the ending's done (and the dev has already said his "you came back?" lines)
+    const ending = () => Object.assign(save.flags, { ending: 'done', kicked: true, backAgain: true, backAgain2: true, welcomed: true });
+    tool('🔓 UNLOCK EVERYTHING', 'all of the below', () => { chapters(); donuts(); ending(); });
+    tool('📖 Every chapter', `${CHAPTERS.length} chapters in CHAPTERS`, chapters);
+    tool('🍩 Every hidden donut', `${TOTAL_DONUTS}/${TOTAL_DONUTS} donuts`, donuts);
+    tool('🏁 The ending', '"You beat the game" badge', ending);
+    if (!save.flags.devMode) {
+      save.flags.devMode = true;
+      g.persist();
+      setTimeout(() => g.say('dev34'), 300);
+    }
+  }
+
   settings(onClose) {
     const g = this.game, s = g.save.settings;
     const m = modal(`<h2>SETTINGS</h2><div class="sub">Saved automatically.</div><div class="settings"></div>`, onClose);
@@ -235,6 +300,7 @@ export class Menu {
     modal(`<h2>CREDITS</h2>
       <div class="sub">LOCKED OUT — a night guard story</div>
       <p style="font-weight:800;line-height:1.7">
+        Lead developer: <b style="color:var(--gold)">Hudson Saunders</b><br>
         Story, ideas, starring, directing & yelling: <b style="color:var(--pink)">${CONFIG.devName}</b> (who was up all night)<br>
         The Security Guard: <b style="color:var(--gold)">you</b><br>
         The T-Rex: <b>a bunch of cylinders</b><br>

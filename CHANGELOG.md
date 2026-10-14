@@ -4,6 +4,16 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.4.1 — 2026-10-14
+
+- **The whole game in one file:** every release now comes with `locked-out.html`. Double-click it to
+  play, share it in Google Classroom or Drive, or put it on any website host.
+- **A new version is out?** The menu shows a link to download it (the one file can't update itself).
+  Turn this off with `checkUpdates: false` in `game-config.js`.
+- **Dev mode:** tap the LOCKED OUT logo on the menu 7 times and type the dev code (`devCode` in
+  `game-config.js`) to unlock every chapter, every hidden donut and the ending.
+- **Credits:** Hudson Saunders, lead developer.
+
 ## v0.4.0 — 2026-10-14
 
 **The city outside**

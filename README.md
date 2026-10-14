@@ -77,6 +77,10 @@ with steps for uploading on GitHub.
 
 Change the names shown in subtitles (and the game title) in [`game-config.js`](game-config.js) — no rebuild needed.
 
+**Dev mode:** on the menu, tap the **LOCKED OUT** logo 7 times and type the dev code to unlock every chapter,
+every hidden donut and the ending. The code is `devCode` in [`game-config.js`](game-config.js) (`IAMTHEDEV` until
+you change it — the repo is public, so pick your own). Set it to `''` to turn dev mode off.
+
 ## 🔢 Versions
 
 The game's version shows in the corner of the menu (and in the pause screen and credits). Every version has a
