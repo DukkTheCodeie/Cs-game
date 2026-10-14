@@ -29,7 +29,7 @@ export { TOTAL_DONUTS };
 function defaultSave() {
   return {
     chapter: null, reached: [], solved: {}, donuts: [], fragments: [], flags: {},
-    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal', characters: 'mixed' },
+    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal', cast: 'classic' },
   };
 }
 
@@ -188,7 +188,7 @@ export class Game {
     this.composer.setSize(innerWidth, innerHeight);
     this.useBloom = q === 'high';
     this.renderer.toneMappingExposure = s.brightness ?? 1.15;
-    setCastStyle(s.characters); // (the next level that's built uses it)
+    setCastStyle(s.cast); // (the next level that's built uses it; v0.7.0 called this setting 'characters')
     this.player.spot.castShadow = q !== 'low';
     document.documentElement.style.setProperty('--sub-size', s.subtitles === 'large' ? '28px' : innerWidth < 720 ? '17px' : '22px');
     this.persist();

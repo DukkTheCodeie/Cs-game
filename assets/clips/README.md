@@ -76,7 +76,7 @@ One photo for everything: `mummy.jpg` (used for any emotion you didn't make).
 Want your real voice? Record yourself saying a line and name the video after the line's **id** (left column below),
 for example `guard05.mp4`. It plays **with sound** instead of the robot voice, for that line only.
 Just your voice works too: `guard05.mp3` (then the cartoon, or your photo, talks along).
-The dev's lines are easiest to record on your phone in the Dev Line Booth (ask Claude for the link).
+The dev's, the guard's and Aaron's lines are easiest to record on your phone in the line booths (ask Claude for the links).
 
 **Which one is used?** For each line the game picks the first one it finds:
 1. `<line id>.mp4` — you saying that line (or `<line id>.mp3`, just your voice)
@@ -167,11 +167,11 @@ The dev's lines are easiest to record on your phone in the Dev Line Booth (ask C
 
 | File name | Emotion | Line |
 |---|---|---|
-| `dev01.mp4` | 😄 Happy | Oh hey! Welcome to my game. Made it myself. It's really good, brother. You should, like, play it. You should press that big PLAY button right there. Truly. Press it. |
+| `dev01.mp4` | 😄 Happy | Oh hey! Welcome to my game. Made it myself. It's really good, bradar. You should, like, play it. You should press that big PLAY button right there. Truly. Press it. |
 | `dev02.mp4` | 😢 Sad | Bro, I was up all night making this. |
 | `dev03.mp4` | 😠 Angry | Aw, HELL no, boy! |
 | `dev04.mp4` | 😠 Angry | GET OUT OF MY GAME! |
-| `dev05.mp4` | 😒 Annoyed | Oh. You're back. Okay, fine. You can play again. Just don't complain this time, you little dingle chub. |
+| `dev05.mp4` | 😒 Annoyed | Oh. You're back. Okay, fine. You can play again. Just don't complain this time, you little dingle chud. |
 | `dev06.mp4` | 😒 Annoyed | Stop poking the TV. |
 | `dev08.mp4` | 🤔 Confused | Why do you keep clicking on my monitor? Stop! It's annoying. |
 | `dev09.mp4` | 😄 Happy | Fun fact: I made every line in this game with code. Like, I wrote it all. So, like, even the munching of you, you fatty, eating the dang donuts. Fatty. |
@@ -183,7 +183,7 @@ The dev's lines are easiest to record on your phone in the Dev Line Booth (ask C
 | `dev17.mp4` | 😒 Annoyed | You fell asleep? In MY game? How rude. |
 | `dev18.mp4` | 😲 Shocked | What? You found ALL the donuts? I can't even do that, and I ate th- hid them. HID them. |
 | `dev19.mp4` | 😴 Sleepy | So are you gonna press the big goddamn play button? Or are you just gonna be stuck here looking at my hunter eyes? Look me in my hunter eyes! |
-| `dev20.mp4` | 😄 Happy | Did you turn the music up? I worked really hard making that music. I'm quite literally... contrast. All right? And if you don't turn that gosh dang music up, you're gonna be bu-bu-bugging. |
+| `dev20.mp4` | 😄 Happy | Did you turn the music up? I worked really hard making that music. I'm quite literally Khantrast. All right? And if you don't turn that gosh dang music up, you're gonna be bu-bu-bugging. |
 | `dev21.mp4` | 😄 Happy | Oh hey! You found one of my secret rooms! Take the donut, fatty. I insist! |
 | `dev23.mp4` | 😢 Sad | Sweet dreams, little guard. It's almost morning. |
 | `dev24.mp4` | 😎 Cool | Pro tip: you can sprint, but it burns donuts, though. Just like in real life. Maybe you should be sprinting more, fatty. |
@@ -203,7 +203,7 @@ The dev's lines are easiest to record on your phone in the Dev Line Booth (ask C
 | `dev46.mp4` | 😲 Shocked | Wait, the archives are different every single time now? Oh wait, I just remembered. I did that. 'Cause I'm Megamind. |
 | `dev47.mp4` | 😄 Happy | In the game there's a talking speed setting, so now I can talk really, really fast, like this. I'm talking so fast. Supersonic speed. Uh... I'm superhuman. |
 | `dev48.mp4` | 🤔 Confused | Is it weird that I'm in my own game? Oh wait, I made it, and I'm the best. So, uh, no, it's not weird. And I'm the GOAT. I'm the aura farmer. |
-| `dev49.mp4` | 😢 Sad | Someone said that the parade is too long. Like, brother. It's a PARADE. That's the whole point! |
+| `dev49.mp4` | 😢 Sad | Someone said that the parade is too long. Like, bradar. It's a PARADE. That's the whole point! |
 | `dev50.mp4` | 😄 Happy | Pick a chapter, any chapter. My favorite chapter is chapter four. Don't tell the other chapters. |
 | `dev52.mp4` | 😴 Sleepy | Mmm... no, no... five more minutes... the T-Rex can wait, Mom... wait... |
 | `dev54.mp4` | 😎 Cool | Oh, you're back! The museum's been real quiet since you left. I've been talking to the dino, but... I'm scared he's gonna start talking back. |

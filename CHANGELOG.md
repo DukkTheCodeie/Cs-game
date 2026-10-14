@@ -4,6 +4,17 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.1 — 2026-10-14
+
+- Subtitle fixes for the dev's recorded lines: "Khantrast", "dingle chud" and "bradar" are now spelled the
+  way they're said.
+- **The flashlight** points at the middle of the screen and the beam comes out of it, with a faint shaft of
+  light, so it lands right where you look at any distance.
+- **The characters are classic again by default.** The new guard, Aaron and mummy are still in
+  *Settings → Characters* (*New guard, Aaron + mummy* or *All new*).
+- If the game can't start, the "Uh oh" screen now says to try refreshing your tab, with a button that does it.
+- Behind the scenes: a **Guard & Aaron Booth** for recording the guard's and Aaron's lines on a phone.
+
 ## v0.7.0 — 2026-10-14
 
 - **The dev talks with a real voice.** All 43 of the dev's lines are recorded, and the cartoon face on the

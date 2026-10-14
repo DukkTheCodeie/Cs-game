@@ -22,9 +22,9 @@ export class Player {
 
     // flashlight
     const spot = (this.spot = new THREE.SpotLight(0xfff1d6, 0, 36, 0.48, 0.6, 1.2));
-    // (just beside your eye, aimed down the middle of the screen, so the beam lands where you look)
-    spot.position.set(0.06, -0.05, 0);
-    spot.target.position.set(0, 0, -10);
+    // (it shines from the flashlight in your hand at whatever's in the middle of the screen: applyCamera)
+    spot.position.set(0.2, -0.2, -0.6);
+    spot.target.position.set(0, 0, -8);
     spot.castShadow = true;
     spot.shadow.mapSize.set(1024, 1024);
     spot.shadow.bias = -0.0004;
@@ -42,11 +42,14 @@ export class Player {
     this.camera.add(this.flModel);
     this.flModel.visible = false;
     this._makeDust();
+    this._makeShaft();
     this.flashOn = false;
     this.hasFlashlight = false;
     this.flickerT = 0;
     this.baseIntensity = 32;
     this.nearDim = 1; // dims the beam when you're right up against something (so you can read it)
+    this.aimDist = 8; // how far away the thing in the middle of the screen is (the beam aims there)
+    this.lens = new THREE.Vector3(0.2, -0.2, -0.6);
     this.swayX = 0;
     this.swayY = 0;
   }
@@ -79,9 +82,42 @@ export class Player {
     this.dustT = 0;
   }
 
+  // A faint shaft of light from the lens to the spot, so you can see where the beam comes from.
+  _makeShaft() {
+    const c = document.createElement('canvas');
+    c.width = 4; c.height = 64;
+    const x = c.getContext('2d');
+    const gr = x.createLinearGradient(0, 0, 0, 64);
+    gr.addColorStop(0, '#fff');
+    gr.addColorStop(0.35, '#777');
+    gr.addColorStop(1, '#000');
+    x.fillStyle = gr;
+    x.fillRect(0, 0, 4, 64);
+    // a cone along -y, from the tip (lens) at 0 to a 1-wide end at -1
+    const geo = new THREE.CylinderGeometry(0.03, 1, 1, 20, 1, true).translate(0, -0.5, 0);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xfff1d6, alphaMap: new THREE.CanvasTexture(c), transparent: true, opacity: 0.07, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, fog: false });
+    this.shaft = new THREE.Mesh(geo, mat);
+    this.shaft.frustumCulled = false;
+    this.shaft.visible = false;
+    this.camera.add(this.shaft);
+    this._down = new THREE.Vector3(0, -1, 0);
+    this._dir = new THREE.Vector3();
+  }
+
   updateDust(dt) {
     const on = this.flashOn && this.flModel.visible && ['explore', 'cutscene', 'puzzle'].includes(this.game.mode);
     this.dust.visible = on;
+    this.shaft.visible = on;
+    if (on) {
+      // from the lens to the middle of the screen, as wide as the beam
+      const len = Math.min(this.aimDist, 7);
+      this._dir.set(-this.lens.x, -this.lens.y, -this.aimDist - this.lens.z).normalize();
+      this.shaft.position.copy(this.lens);
+      this.shaft.quaternion.setFromUnitVectors(this._down, this._dir);
+      const r = len * 0.32;
+      this.shaft.scale.set(r, len, r);
+      this.shaft.material.opacity = 0.07 * this.nearDim * (this.spot.intensity > 0 ? 1 : 0);
+    }
     if (!on) return;
     this.dustT += dt;
     const p = this.dust.geometry.attributes.position;
@@ -92,8 +128,8 @@ export class Player {
       const z = -0.6 - ((c * 7 + t * 0.12 * (0.5 + a)) % 7);
       const r = Math.tan(0.4) * -z * Math.sqrt(b);
       const ang = a * Math.PI * 2 + t * 0.15 * (b - 0.5);
-      const k = 1 + z / 10; // (the beam's axis, from beside your eye to the middle of the screen)
-      p.setXYZ(i, 0.06 * k + Math.cos(ang) * r + Math.sin(t * 0.7 + i) * 0.03, -0.05 * k + Math.sin(ang) * r * 0.9 + Math.cos(t * 0.5 + i * 1.3) * 0.03, z);
+      const k = Math.max(0, 1 + z / this.aimDist); // (the beam's axis, from the lens to the middle of the screen)
+      p.setXYZ(i, this.lens.x * k + Math.cos(ang) * r + Math.sin(t * 0.7 + i) * 0.03, this.lens.y * k + Math.sin(ang) * r * 0.9 + Math.cos(t * 0.5 + i * 1.3) * 0.03, z);
     }
     p.needsUpdate = true;
   }
@@ -210,9 +246,11 @@ export class Player {
     }
     // up close, the beam dims so whatever it lights stays about as bright as it would from 3 m away
     if (this.flashOn) {
-      const d = Math.max(0.2, this.beamDistance(colliders, 3));
+      const far = this.beamDistance(colliders, 25);
+      const d = Math.max(0.2, Math.min(far, 3));
       const target = clamp(Math.pow(d / 3, 1.3), 0.1, 1);
       this.nearDim += (target - this.nearDim) * Math.min(1, dt * 8);
+      this.aimDist += (clamp(far, 0.8, 25) - this.aimDist) * Math.min(1, dt * 10);
     }
     const beam = this.baseIntensity * this.nearDim;
     // flashlight flicker
@@ -231,8 +269,14 @@ export class Player {
     cam.position.set(this.pos.x + bobX, this.height + this.eyeOffset + bobY, this.pos.z);
     cam.rotation.set(this.pitch, this.yaw, 0, 'YXZ');
     // flashlight sway
-    this.flModel.position.set(0.27 - this.swayX + bobX * 0.4, -0.25 + this.swayY + bobY * 0.6, -0.5);
-    this.flModel.rotation.set(0.05 + this.swayY, 0.08 - this.swayX * 2, 0);
+    // the flashlight points at the middle of the screen, and the beam comes out of its lens
+    const m = this.flModel, aim = this.aimDist;
+    m.position.set(0.2 - this.swayX + bobX * 0.4, -0.23 + this.swayY + bobY * 0.6, -0.48);
+    const ax = -m.position.x, ay = -m.position.y, az = -aim - m.position.z;
+    m.rotation.set(Math.atan2(ay, Math.hypot(ax, az)) + this.swayY, Math.atan2(-ax, -az) - this.swayX * 2, 0, 'YXZ');
+    this.lens.set(0, 0, -0.15).applyEuler(m.rotation).add(m.position);
+    this.spot.position.copy(this.lens);
+    this.spot.target.position.set(0, 0, -aim);
   }
 }
 

@@ -1,4 +1,4 @@
-<title>Dev Line Booth</title>
+<title>__TITLE__</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,6 +38,13 @@
   .bar .g { background: var(--mint); } .bar .s { background: var(--gold); }
   .notice { padding: 12px 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-weight: 700; font-size: 14px; }
   .notice b { color: var(--ink); }
+  /* who you're recording (a booth can have more than one character) */
+  .cast { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .who { appearance: none; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 8px 14px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel); color: var(--ink); font: 900 16px var(--body); cursor: pointer; text-align: left; }
+  .who .e { font-size: 22px; }
+  .who small { display: block; color: var(--dim); font-weight: 800; font-size: 12px; }
+  .who[aria-pressed="true"] { border-color: var(--pink); background: var(--panel-2); }
+  .who:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
 
   /* the teleprompter card */
   .stage { background: var(--panel); border: 2px solid var(--line); border-radius: 22px; padding: 18px; display: grid; gap: 14px; }
@@ -83,7 +90,8 @@
 
 <div class="wrap">
   <header>
-    <div class="brand"><h1>DEV LINE B<span class="o">O</span><span class="o">O</span>TH</h1><span class="ver" id="ver"></span></div>
+    <div class="brand"><h1>__BRAND__</h1><span class="ver" id="ver"></span></div>
+    <div class="cast" id="cast" role="group" aria-label="Who you're recording" hidden></div>
     <div class="tally" id="tally"></div>
     <div class="bar" id="bar" aria-hidden="true"></div>
     <div class="notice" id="notice" hidden></div>
@@ -100,7 +108,7 @@
     <div class="take" id="take" hidden><video id="preview" controls playsinline></video></div>
     <div class="status" id="status"></div>
     <div class="actions"><button class="btn ghost" id="prev" type="button">← Back</button><button class="btn ghost" id="next" type="button">Next line →</button></div>
-    <div class="tip">Hold the phone at face height, front camera, in a quiet room. Say the line exactly as written with the face it asks for. A few seconds is plenty. Not happy with a take? Record it again; the new one replaces it.</div>
+    <div class="tip">Hold the phone at face height, front camera, in a quiet room. Say the line with the face it asks for. A few seconds is plenty. Not happy with a take? Record it again; the new one replaces it. Just want your voice in the game? Cover the camera: a dark video goes in as voice only.</div>
   </section>
 
   <section style="display:grid;gap:10px">
@@ -116,6 +124,7 @@
 
 <script>
 const LINES = /*LINES*/[];
+const CAST = /*CAST*/[]; // [{ who, name, emoji }]
 const RECORDED = /*RECORDED*/{};
 const EMOTIONS = /*EMOTIONS*/{};
 const VERSION = /*VERSION*/'';
@@ -128,6 +137,9 @@ const $ = (s) => document.querySelector(s);
 let db = null, assets = null, ready = false;
 const takes = {}; // line id -> { asset, hash, mime, size, at }
 let sel = 0, filter = 'todo', busy = false;
+let who = CAST[0]?.who;
+// the lines of whoever you're recording right now (sel is an index into these)
+const view = () => LINES.filter((L) => L.who === who);
 
 function stateOf(L) {
   const h = hash(L.text), t = takes[L.id], r = RECORDED[L.id];
@@ -142,20 +154,38 @@ const matches = (L) => {
 };
 
 function render() {
+  const V = view();
   const counts = { new: 0, redo: 0, sent: 0, game: 0 };
-  for (const L of LINES) counts[stateOf(L)]++;
+  for (const L of V) counts[stateOf(L)]++;
   const todo = counts.new + counts.redo;
   $('#ver').textContent = `${LINES.length} lines · game ${VERSION}`;
+  const cast = $('#cast');
+  cast.hidden = CAST.length < 2;
+  cast.textContent = '';
+  for (const C of CAST) {
+    const lines = LINES.filter((L) => L.who === C.who);
+    const left = lines.filter((L) => ['new', 'redo'].includes(stateOf(L))).length;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'who';
+    b.setAttribute('aria-pressed', String(C.who === who));
+    b.innerHTML = '<span class="e"></span><span><span class="n"></span><small></small></span>';
+    b.querySelector('.e').textContent = C.emoji;
+    b.querySelector('.n').textContent = C.name;
+    b.querySelector('small').textContent = left ? `${left} of ${lines.length} to record` : `all ${lines.length} done`;
+    b.onclick = () => { if (busy || C.who === who) return; who = C.who; sel = firstToDo(); showTake(); render(); };
+    cast.append(b);
+  }
   $('#tally').innerHTML = `<span>🎬 ${todo} to record</span><span>📨 ${counts.sent} sent</span><span>✅ ${counts.game} in the game</span>`;
-  const pct = (n) => (100 * n) / Math.max(1, LINES.length);
+  const pct = (n) => (100 * n) / Math.max(1, V.length);
   $('#bar').innerHTML = `<i class="g" style="width:${pct(counts.game)}%"></i><i class="s" style="width:${pct(counts.sent)}%"></i>`;
   for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-pressed', String(b.dataset.f === filter));
 
-  const L = LINES[sel];
+  const L = V[sel];
   if (L) {
     const e = EMOTIONS[L.mood] || { emoji: '🙂', label: L.mood, act: '' };
     const st = stateOf(L), [cls, txt] = CHIP[st];
-    $('#lid').textContent = `${L.id} · ${sel + 1} of ${LINES.length}`;
+    $('#lid').textContent = `${L.id} · ${sel + 1} of ${V.length}`;
     $('#lchip').className = 'chip ' + cls;
     $('#lchip').textContent = txt;
     $('#mood').innerHTML = `<span class="e"></span><span><span class="lbl"></span><small></small></span>`;
@@ -168,11 +198,11 @@ function render() {
   const canRecord = ready && !busy;
   for (const id of ['#recBtn', '#pickBtn']) $(id).setAttribute('aria-disabled', String(!canRecord));
   $('#prev').disabled = sel <= 0;
-  $('#next').disabled = sel >= LINES.length - 1;
+  $('#next').disabled = sel >= V.length - 1;
 
   const list = $('#list');
   list.textContent = '';
-  const vis = LINES.filter(matches);
+  const vis = V.filter(matches);
   if (!vis.length) {
     const d = document.createElement('div');
     d.className = 'empty';
@@ -188,7 +218,7 @@ function render() {
     b.querySelector('.id').textContent = R.id;
     b.querySelector('.tx').textContent = R.text;
     b.querySelector('.chip').textContent = txt;
-    b.onclick = () => { if (busy) return; sel = LINES.indexOf(R); showTake(); render(); scrollTo({ top: 0, behavior: 'smooth' }); };
+    b.onclick = () => { if (busy) return; sel = V.indexOf(R); showTake(); render(); scrollTo({ top: 0, behavior: 'smooth' }); };
     list.append(b);
   }
 }
@@ -197,7 +227,7 @@ function status(msg, kind = '') { const s = $('#status'); s.textContent = msg; s
 
 function showTake(url) {
   const v = $('#preview');
-  const t = takes[LINES[sel]?.id];
+  const t = takes[view()[sel]?.id];
   const src = url || (t ? '/_blob/' + t.asset : '');
   $('#take').hidden = !src;
   if (src && v.getAttribute('src') !== src) v.src = src;
@@ -241,7 +271,7 @@ async function shrink(file) {
 
 async function useVideo(file) {
   if (!file || busy || !ready) return;
-  const L = LINES[sel];
+  const L = view()[sel];
   busy = true;
   render();
   showTake(URL.createObjectURL(file));
@@ -282,14 +312,14 @@ $('#pick').onchange = (e) => useVideo(e.target.files[0]);
 $('#prev').onclick = () => { if (!busy && sel > 0) { sel--; showTake(); render(); } };
 $('#next').onclick = () => {
   if (busy) return;
-  const vis = LINES.filter(matches), i = vis.indexOf(LINES[sel]);
-  const nxt = vis[i + 1] || LINES[sel + 1];
-  if (nxt) { sel = LINES.indexOf(nxt); showTake(); render(); }
+  const V = view(), vis = V.filter(matches), i = vis.indexOf(V[sel]);
+  const nxt = vis[i + 1] || V[sel + 1];
+  if (nxt) { sel = V.indexOf(nxt); showTake(); render(); }
 };
 for (const b of document.querySelectorAll('.tab')) b.onclick = () => { filter = b.dataset.f; render(); };
 
 function firstToDo() {
-  const i = LINES.findIndex((L) => ['new', 'redo'].includes(stateOf(L)));
+  const i = view().findIndex((L) => ['new', 'redo'].includes(stateOf(L)));
   return i >= 0 ? i : 0;
 }
 

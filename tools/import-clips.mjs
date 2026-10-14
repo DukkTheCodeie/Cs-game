@@ -1,16 +1,16 @@
-// Puts recorded dev lines into the game (needs ffmpeg). Each take becomes assets/clips/<lineId>.mp4, a
-// small square video that plays everywhere, or assets/clips/<lineId>.mp3 when the video is black (camera
-// covered: then the game plays just the voice and the cartoon dev talks along). Silence at the start and
+// Puts recorded lines (the dev's, the guard's, Aaron's) into the game (needs ffmpeg). Each take becomes
+// assets/clips/<lineId>.mp4, a small square video that plays everywhere, or assets/clips/<lineId>.mp3 when
+// the video is black (camera covered: then the game plays just the voice and the cartoon talks along). Silence at the start and
 // end is trimmed and the volume evened out. assets/clips/recorded.json notes which text (and which take)
-// each clip is, so lines that change later show up as "re-record" in the Dev Line Booth.
-//   node tools/import-dev-clips.mjs <takes.json> <folder with the videos>
+// each clip is, so lines that change later show up as "re-record" in the line booths.
+//   node tools/import-clips.mjs <takes.json> <folder with the videos>
 // takes.json: { "dev01": { "file": "dev01.mp4", "hash": "...", "text": "...", "asset": "..." }, ... }
 import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const [manifestPath, dir] = process.argv.slice(2);
-if (!manifestPath || !dir) { console.error('usage: node tools/import-dev-clips.mjs <takes.json> <folder>'); process.exit(1); }
+if (!manifestPath || !dir) { console.error('usage: node tools/import-clips.mjs <takes.json> <folder>'); process.exit(1); }
 const clips = new URL('../assets/clips/', import.meta.url).pathname;
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
 const recFile = join(clips, 'recorded.json');
@@ -30,7 +30,7 @@ function brightness(file) {
 }
 
 for (const [id, m] of Object.entries(manifest)) {
-  if (!/^dev\d+$/.test(id) || !/^[\w.-]+$/.test(m.file)) { console.warn('skipping', id); continue; }
+  if (!/^(dev|guard|aaron)\d+$/.test(id) || !/^[\w.-]+$/.test(m.file)) { console.warn('skipping', id); continue; }
   const src = join(dir, m.file);
   const voiceOnly = brightness(src) < 6;
   const out = join(clips, `${id}.${voiceOnly ? 'mp3' : 'mp4'}`);

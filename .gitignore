@@ -4,3 +4,4 @@ node_modules/
 # the one-file build (npm run single) is attached to each GitHub release instead
 locked-out.html
 dev-recorder.html
+cast-recorder.html
