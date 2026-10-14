@@ -164,7 +164,8 @@ export class Dialogue {
       this.tvBubble?.(text);
     }
 
-    const media = await g.clips.forLine(clip, who, mood);
+    // (recordings of the lines are off unless Settings → Recorded voices is on)
+    const media = await g.clips.forLine(g.save.settings.recorded ? clip : null, who, mood);
     if (token.skipped) return this._end(token, st);
     const timeout = (s) => new Promise((r) => setTimeout(r, s * 1000));
 

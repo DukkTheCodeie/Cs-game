@@ -31,3 +31,5 @@ line: `{ asset, hash, text, mime, size, at }`.
   Tell the user which words were hard to make out.
 - The one-file build (`npm run single`, attached to every release) packs `assets/clips/` in, so students
   see the clips there too.
+- Recorded lines only play when *Settings → Recorded voices* is on (`settings.recorded`, off by default);
+  otherwise lines use the *Character voices* setting. Check a line plays with it turned on.

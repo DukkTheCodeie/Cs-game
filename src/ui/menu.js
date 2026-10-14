@@ -256,6 +256,7 @@ export class Menu {
     range('music', 'Music', 0, 1, 0.05);
     range('sfx', 'Sound effects', 0, 1, 0.05);
     select('voice', 'Character voices', [['tts', 'Robot voices (text-to-speech)'], ['babble', 'Cute beeps'], ['off', 'Off (subtitles only)']]);
+    select('recorded', 'Recorded voices', [[false, 'Off (default)'], [true, 'On']], 'Lines recorded by the dev, instead of the voice above');
     select('subtitles', 'Subtitles', [['medium', 'On'], ['large', 'Large'], ['off', 'Off']]);
     select('talkSpeed', 'Talking speed', [['normal', 'Normal'], ['fast', 'Fast'], ['faster', 'Faster']]);
     select('cast', 'Characters', [['classic', 'Classic (default)'], ['mixed', 'New guard, Aaron + mummy'], ['new', 'All new']], 'Changes from the next chapter you start');
