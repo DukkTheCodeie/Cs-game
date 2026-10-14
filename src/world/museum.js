@@ -3,7 +3,7 @@ import { Level, boxUV, worldBoxUV } from './level.js';
 import { tex, signTexture, makeCanvas, canvasTexture, plaqueTexture } from './textures.js';
 import { surface } from './surfaces.js';
 import * as P from './props.js';
-import { TRex } from './trex.js';
+import { TRex, trexMount } from './trex.js';
 import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
 import { drawGlyph, drawNumeral, GLYPH_KEYS } from './glyphs.js';
 import { drawCCTV } from './screens.js';
@@ -12,6 +12,7 @@ import { collide } from '../game/player.js';
 import { VISITOR_LINES } from '../game/script.js';
 import { batchStatic, bakeColors } from './batch.js';
 import * as X from './exhibits.js';
+import { City } from './city.js';
 
 // The City Museum of Natural History. Layout (meters, y up, north = -z):
 //   Security office  x[-20,-12] z[-5,5]
@@ -63,7 +64,7 @@ const SECRETS = [
   { id: 'egypt_obelisk', wall: 'sandWall', axis: 'z', at: 39, from: -27.2, to: -24.8, side: 1, h: 2.7, clue: 'eye', prompt: 'Press the Eye of Horus', style: 'treasure', sign: "PHARAOH'S SNACKS", frosting: 4 },
   { id: 'egypt_jars', wall: 'sandWall', axis: 'x', at: -37, from: 33.4, to: 35.8, side: -1, h: 2.7, clue: 'scarab', prompt: 'Turn the stone scarab', style: 'treasure', sign: 'TOMB OF DONUTS', frosting: 2 },
   { id: 'roman_chariot', wall: 'romanWall', axis: 'z', at: 40, from: -8.4, to: -6.0, side: 1, h: 2.7, clue: 'torch', prompt: 'Pull the torch holder', style: 'armory', sign: 'GLADIATOR LOCKER', frosting: 3 },
-  { id: 'roman_caligula', wall: 'romanWall', axis: 'x', at: 9, from: 23.6, to: 25.9, side: 1, h: 2.7, clue: 'bust', prompt: 'Push the bust of CALIGULA', style: 'armory', sign: 'CALIGULA WAS HERE', frosting: 0 },
+  { id: 'roman_caligula', wall: 'romanWall', axis: 'z', at: 40, from: 6.0, to: 8.4, side: 1, h: 2.7, clue: 'bust', prompt: 'Push the bust of CALIGULA', style: 'armory', sign: 'CALIGULA WAS HERE', frosting: 0 },
 ];
 // The four pillars: each has a symbol and a number in Egyptian numerals (∩ = 10, | = 1). The Pharaoh's
 // Lock wants the symbols from the smallest number to the biggest: bird 13, eye 22, snake 24, ankh 31.
@@ -75,12 +76,12 @@ export const EGYPT_PILLARS = [
 ];
 
 export class Museum extends Level {
-  constructor(game, { time = 'night' } = {}) {
+  constructor(game, { time = 'night', city = true } = {}) {
     super(game);
     this.time = time;
     this.night = time === 'night';
     this.refs = {};
-    this.surfaceAt = (x, z) => (x < -12 ? 'wood' : x > 15.2 && z < -9.3 ? 'stone' : x > 12 ? 'marble' : z < -10 ? 'stone' : 'marble');
+    this.surfaceAt = (x, z) => (z > 10 ? 'stone' : x < -12 ? 'wood' : x > 15.2 && z < -9.3 ? 'stone' : x > 12 ? 'marble' : z < -10 ? 'stone' : 'marble');
     const s = this.scene;
     s.background = new THREE.Color(this.night ? 0x020308 : 0xbfd2e6);
     s.fog = this.night ? new THREE.FogExp2(0x03050b, 0.028) : new THREE.Fog(0xcfdbe8, 40, 140);
@@ -137,6 +138,12 @@ export class Museum extends Level {
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
     const moves = (o) => dynamic.has(o) || o.userData.dynamic === true;
     this.measureColliders(moves);
+    // the city outside the windows (in the morning also the plaza out front, with its own colliders).
+    // It merges and hides its own meshes, so the passes below leave it alone.
+    if (city) {
+      this.city = new City(this, { night: this.night });
+      this.addUpdater((dt) => this.city.update(dt, this.game.player.pos));
+    }
     bakeColors(this.scene, moves);
     batchStatic(this.scene, moves);
     // the small lamps (braziers, consoles, screens, the T-Rex's eye...) share 8 real lights
@@ -311,7 +318,9 @@ export class Museum extends Level {
     // south wall: entrance + windows (nothing on the outside: that's the front of the building)
     this.wallX(10, -12, 12, 8, m.lobbyWall, [{ c: -7.5, w: 4, h: 6.5, frame: true }, { c: 0, w: 6, h: 4.2, frame: true }, { c: 7.5, w: 4, h: 6.5, frame: true }], 3, { noTrim: 1 });
     // window glass glow + mullions
-    const winMat = P.MATS.glass(); // see-through: the city is out there
+    // see-through: the city is out there. Clear glass that doesn't throw the flashlight back in your eyes.
+    const winMat = new THREE.MeshStandardMaterial({ color: 0xb8d0dc, roughness: 0.35, transparent: true, opacity: 0.12, depthWrite: false });
+    winMat.userData.batch = true;
     for (const wx of [-7.5, 7.5]) {
       const wg = new THREE.Mesh(new THREE.PlaneGeometry(4, 6.5), winMat);
       wg.position.set(wx, 3.25, 10.1);
@@ -326,13 +335,13 @@ export class Museum extends Level {
     this.addCollider(-9.5, -5.5, 9.8, 10.2);
     this.addCollider(5.5, 9.5, 9.8, 10.2);
     // entrance glass doors, hinged at the sides: locked at night, propped open in the morning
-    const glass = P.MATS.glass(), metal = P.MATS.metal();
+    const metal = P.MATS.metal();
     for (const side of [-1, 1]) {
       const hinge = new THREE.Group();
       hinge.position.set(side * 3, 0, 10);
       const door = new THREE.Group();
       const c = -side * 1.5; // the door's middle, from the hinge
-      const pane = P.box(2.84, 4.04, 0.04, glass, c, 0.03, 0);
+      const pane = P.box(2.84, 4.04, 0.04, winMat, c, 0.03, 0);
       pane.castShadow = false;
       door.add(pane);
       for (const ex of [-1.44, 1.44]) door.add(P.box(0.08, 4.1, 0.1, metal, c + ex, 0, 0));
@@ -345,6 +354,32 @@ export class Museum extends Level {
       if (!this.night) this.addCollider(side * 3 - 0.08, side * 3 + 0.08, 10.1, 12.95);
     }
     if (this.night) this.addCollider(-3, 3, 9.8, 10.2);
+    // at night the streetlamps out front throw a little warm light in through the windows and doors
+    if (this.night) {
+      const [cv, x] = makeCanvas(64, 64);
+      const fade = x.createLinearGradient(0, 0, 0, 64); // (the bottom of the picture is the window end)
+      fade.addColorStop(0, 'rgba(255,255,255,0)');
+      fade.addColorStop(0.55, 'rgba(255,255,255,0.4)');
+      fade.addColorStop(1, 'rgba(255,255,255,1)');
+      x.fillStyle = fade;
+      x.fillRect(0, 0, 64, 64);
+      x.globalCompositeOperation = 'destination-in';
+      const sides = x.createLinearGradient(0, 0, 64, 0);
+      sides.addColorStop(0, 'rgba(0,0,0,0)');
+      sides.addColorStop(0.2, 'rgba(0,0,0,1)');
+      sides.addColorStop(0.8, 'rgba(0,0,0,1)');
+      sides.addColorStop(1, 'rgba(0,0,0,0)');
+      x.fillStyle = sides;
+      x.fillRect(0, 0, 64, 64);
+      const poolMat = new THREE.MeshBasicMaterial({ map: canvasTexture(cv, { srgb: false }), color: 0xffa860, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false });
+      for (const [px, w, len] of [[-7.5, 4.6, 5], [0, 6.2, 4], [7.5, 4.6, 5]]) {
+        const pool = new THREE.Mesh(new THREE.PlaneGeometry(w, len), poolMat);
+        pool.rotation.x = -Math.PI / 2;
+        pool.position.set(px, 0.015, 9.9 - len / 2);
+        pool.renderOrder = 1;
+        s.add(pool);
+      }
+    }
     // archive door (closed, decorative)
     // (the STAFF ONLY door itself is a secret — see _secretRooms)
     const asign = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 0.35), new THREE.MeshStandardMaterial({ map: signTexture('ARCHIVES\nSTAFF ONLY', { w: 256, h: 64, bg: '#a01818', fg: '#fff', font: 'bold 22px Arial' }) }));
@@ -497,7 +532,12 @@ export class Museum extends Level {
       f.scale.setScalar(1.6);
       s.add(f);
     }
-    // THE T-REX
+    // THE T-REX, on its steel museum mount (which stays put when the T-Rex... doesn't)
+    const mount = trexMount();
+    mount.position.copy(SPOTS.trex);
+    mount.rotation.y = 0.3;
+    mount.userData.noMeasure = true; // thin posts: the flashlight still shines across the platform
+    s.add(mount);
     const trex = new TRex();
     trex.group.position.copy(SPOTS.trex);
     trex.group.rotation.y = 0.3;
@@ -620,12 +660,13 @@ export class Museum extends Level {
       this.addBoxCollider(cx, cz, 1.25, 1.25);
     }
     // busts
-    const names = [['JULIUS CAESAR', 19.25, -8], ['NERO', 30.25, -8], ['MARCUS AURELIUS', 19.25, 8], ['CALIGULA', 24.75, 8], ['HADRIAN', 30.25, 8]];
+    const names = [['JULIUS CAESAR', 19.25, -8], ['NERO', 30.25, -8], ['MARCUS AURELIUS', 19.25, 8], ['AUGUSTUS', 24.75, 8], ['HADRIAN', 30.25, 8]];
     for (const [n, x, z] of names) {
-      const bust = this.add(P.makeBust(n), x, 0, z, z > 0 ? Math.PI : 0);
-      const bc = this.addBoxCollider(x, z, 0.85, 0.85);
-      if (n === 'CALIGULA') this.refs.caligula = { obj: bust, col: bc };
+      this.add(P.makeBust(n), x, 0, z, z > 0 ? Math.PI : 0);
+      this.addBoxCollider(x, z, 0.85, 0.85);
     }
+    // ...and Caligula, off on his own in the corner (there's a secret room behind him)
+    this.refs.caligula = { obj: this.add(P.makeBust('CALIGULA'), 39.3, 0, 7.2, -Math.PI / 2), col: this.addBoxCollider(39.3, 7.2, 0.85, 0.85) };
     // chariot
     this.add(P.makeChariot(), 25, 0, 0, Math.PI / 2 + 0.2);
     this.addCollider(23.2, 27.4, -1.1, 1.1);
@@ -1310,14 +1351,16 @@ export class Museum extends Level {
       // pulled like a lever: the top tips out toward the hall
       pre = () => g.tween(0.45, (k) => { torch.rotation[ax] = S.side * 0.9 * k * (alongZ ? 1 : -1); });
     } else if (S.clue === 'bust') {
+      // slides along the wall, out of the way (toward the middle of the hall)
       const b = this.refs.caligula;
       mover = b.obj;
       cluePos.set(b.obj.position.x, 1.5, b.obj.position.z);
-      const x0 = b.obj.position.x, c0 = { ...b.col };
+      const ax = alongZ ? 'z' : 'x', lo = alongZ ? 'minZ' : 'minX', hi = alongZ ? 'maxZ' : 'maxX', dir = alongZ ? -1 : 1;
+      const p0 = b.obj.position[ax], c0 = { ...b.col };
       pre = () => g.tween(0.9, (k) => {
-        b.obj.position.x = x0 + 1.4 * k;
-        b.col.minX = c0.minX + 1.4 * k;
-        b.col.maxX = c0.maxX + 1.4 * k;
+        b.obj.position[ax] = p0 + dir * 1.4 * k;
+        b.col[lo] = c0[lo] + dir * 1.4 * k;
+        b.col[hi] = c0[hi] + dir * 1.4 * k;
       });
     }
     const sec = { S, panel, col, lamp, mover, opened: false };

@@ -200,7 +200,7 @@ export class Game {
   // ------------------------------------------------------------ boot
   async boot() {
     this.clips.init();
-    this.menuLevel = new Museum(this, { time: 'night' });
+    this.menuLevel = new Museum(this, { time: 'night', city: false }); // (the menu camera never sees outside)
     this.menuLevel.persistent = true;
     this.setLevel(this.menuLevel);
     this.renderer.compile(this.menuLevel.scene, this.camera);
@@ -250,6 +250,7 @@ export class Game {
     if (this.level) {
       if (this.useBloom) {
         this.renderPass.scene = this.level.scene;
+        this.bloom.threshold = this.level.bloomThreshold ?? 0.82; // (out in the sun it's higher)
         this.composer.render(rawDt);
       } else this.renderer.render(this.level.scene, cam);
       this.level.renderExtra?.(this.renderer);

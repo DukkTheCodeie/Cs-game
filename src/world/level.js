@@ -124,7 +124,7 @@ export class Level {
     const bb = new THREE.Box3();
     this.scene.updateMatrixWorld(true);
     const walk = (o) => {
-      if (o !== this.scene && skip(o)) return;
+      if (o !== this.scene && (skip(o) || o.userData.noMeasure)) return;
       measure(o);
       for (const c of o.children) walk(c);
     };

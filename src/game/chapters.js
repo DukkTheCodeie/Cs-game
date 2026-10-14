@@ -1000,7 +1000,7 @@ async function morning(g) {
   hat.add(brim);
   const badge = box(0.07, 0.06, 0.01, MATS.brass(), 0, 0.0, 0.21);
   hat.add(badge);
-  hat.position.set(0, 0.5, 0.35);
+  hat.position.set(0, 0.53, 0.35);
   hat.rotation.z = 0.2;
   trex.headPivot.children[0].add(hat);
   // a donut stuck on a tooth
@@ -1014,6 +1014,40 @@ async function morning(g) {
   aaron.group.rotation.y = Math.PI * 0.8;
   lvl.scene.add(aaron.group);
   lvl.addUpdater((dt) => aaron.update(dt));
+  // the parade: it starts when you walk up to the front windows (or out the doors). You hear the band
+  // before you see it, and it gets louder as it marches up to the museum.
+  const city = lvl.city;
+  const free = () => g.mode === 'explore' && !g.dialogue.current;
+  let paradeSeen = false;
+  if (city) city.onParadeStart = () => {
+    g.audio.playMusic('parade', 2);
+    g.audio.setMusicLevel(0.25, 0.05);
+    if (paradeSeen) return;
+    paradeSeen = true;
+    g.until(() => city.paradeNear > 0.45 && free()).then(async () => {
+      await g.say('guard60');
+      await g.wait(5);
+      await g.until(free);
+      g.say('dev33');
+    });
+    // the donut float comes last
+    g.until(() => {
+      const x = city.paradeX('donut');
+      return x !== null && Math.abs(x - g.player.pos.x) < 16 && g.player.pos.z > 3 && free();
+    }).then(() => g.say('guard61'));
+  };
+  if (city) city.onParadeEnd = () => { if (g.audio.trackName === 'parade') g.audio.playMusic('morning', 2); };
+  // your first step outside (once nobody's talking, if you're still out there)
+  lvl.addTrigger({ minX: -16, maxX: 16, minZ: 10.6, maxZ: 19, onEnter: () => {
+    g.until(() => free() || g.player.pos.z < 10.2).then(() => { if (g.player.pos.z > 10.2) g.say('guard62'); });
+  } });
+  lvl.addUpdater(() => {
+    if (!city || g.audio.trackName !== 'parade') return;
+    // loudest out front, quieter the deeper you go into the museum
+    const p = g.player.pos;
+    const where = p.z > 9.8 ? 1 : p.z > -10 && p.x > -12 && p.x < 12 ? 0.75 : 0.3;
+    g.audio.setMusicLevel((0.3 + 0.7 * city.paradeNear) * where);
+  });
 
   // you wake up on the floor of the Dinosaur Hall
   g.player.setPose(0.6, -19.6, 0.05, 0.55);

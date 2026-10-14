@@ -565,7 +565,7 @@ export class Runner extends Level {
       tr.visible = true;
       tr.position.set(st.x * 0.5, 0, st.z + lerp(17, 5.2, st.danger));
       tr.rotation.y = Math.PI;
-      this.trex.setMode('run', st.speed * 0.8);
+      this.trex.setMode('run', st.speed); // it moves exactly as fast as you do, so its feet stay planted
     }
     this.trex.update(dt);
 
