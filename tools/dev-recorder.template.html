@@ -1,0 +1,321 @@
+<title>Dev Line Booth</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@500;700;800;900&display=swap">
+<style>
+  /* Layout: one column, phone first. The line you're recording sits on top like a teleprompter card,
+     the full script runs below it. One dark look on purpose: it's the game's own menu palette. */
+  :root {
+    --bg: #0b0f1a;
+    --panel: #151b2b;
+    --panel-2: #1c2438;
+    --ink: #f3ecdc;
+    --dim: #9aa3b8;
+    --line: rgba(233, 196, 106, 0.28);
+    --pink: #ff6fae;
+    --gold: #e9c46a;
+    --mint: #6dff9e;
+    --red: #ff6b6b;
+    --on-accent: #1a0d14;
+    --display: 'Bungee', 'Arial Black', Impact, sans-serif;
+    --body: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  html, body { background: var(--bg); color: var(--ink); }
+  body { font: 500 16px/1.45 var(--body); }
+  .wrap { max-width: 720px; margin: 0 auto; padding-block: 18px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 18px; }
+  header { display: grid; gap: 10px; }
+  .brand { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  h1 { margin: 0; font: 400 clamp(22px, 6vw, 30px)/1 var(--display); letter-spacing: 0.02em; }
+  h1 .o { color: var(--pink); }
+  .ver { color: var(--dim); font: 800 12px var(--body); letter-spacing: 0.08em; text-transform: uppercase; }
+  .tally { display: flex; gap: 8px; flex-wrap: wrap; font-weight: 800; font-size: 14px; }
+  .tally span { padding: 4px 10px; border-radius: 99px; background: var(--panel); border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .bar { height: 8px; border-radius: 99px; background: var(--panel); overflow: hidden; display: flex; }
+  .bar i { display: block; height: 100%; }
+  .bar .g { background: var(--mint); } .bar .s { background: var(--gold); }
+  .notice { padding: 12px 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); color: var(--dim); font-weight: 700; font-size: 14px; }
+  .notice b { color: var(--ink); }
+
+  /* the teleprompter card */
+  .stage { background: var(--panel); border: 2px solid var(--line); border-radius: 22px; padding: 18px; display: grid; gap: 14px; }
+  .stage-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .lid { font: 700 13px var(--mono); color: var(--dim); }
+  .mood { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: var(--panel-2); font-weight: 800; font-size: 14px; }
+  .mood .e { font-size: 22px; line-height: 1; }
+  .mood small { display: block; color: var(--dim); font-weight: 700; }
+  .say { margin: 0; font: 900 clamp(22px, 5.4vw, 30px)/1.25 var(--body); text-wrap: balance; }
+  .say::before { content: '“'; color: var(--pink); } .say::after { content: '”'; color: var(--pink); }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 18px; border-radius: 14px; border: 2px solid var(--line); background: var(--panel-2); color: var(--ink); font: 900 16px var(--body); cursor: pointer; text-decoration: none; }
+  .btn:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .btn.rec { background: var(--pink); border-color: var(--pink); color: var(--on-accent); flex: 1 1 200px; }
+  .btn.ghost { background: transparent; }
+  .btn[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+  .btn input { display: none; }
+  .take { display: grid; gap: 8px; }
+  [hidden] { display: none !important; }
+  .take video { width: 100%; max-width: 100%; max-height: 52vh; border-radius: 14px; background: #000; }
+  .status { min-height: 1.4em; font-weight: 800; font-size: 15px; color: var(--gold); }
+  .status.ok { color: var(--mint); } .status.err { color: var(--red); }
+  .tip { color: var(--dim); font-size: 13px; font-weight: 700; }
+
+  /* the script */
+  .tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tab { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--dim); font: 800 13px var(--body); padding: 6px 12px; border-radius: 99px; cursor: pointer; }
+  .tab[aria-pressed="true"] { background: var(--gold); color: var(--on-accent); border-color: var(--gold); }
+  .list { display: grid; border-top: 1px solid var(--line); }
+  .row { appearance: none; text-align: left; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 11px 4px; border: 0; border-bottom: 1px solid rgba(233, 196, 106, 0.1); background: transparent; color: var(--ink); font: 600 14px/1.35 var(--body); cursor: pointer; }
+  .row:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+  .row.cur { background: var(--panel); }
+  .row .id { font: 700 12px var(--mono); color: var(--dim); }
+  .row .tx { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .chip { font: 900 11px var(--body); letter-spacing: 0.04em; padding: 3px 8px; border-radius: 99px; white-space: nowrap; }
+  .chip.new { background: var(--pink); color: var(--on-accent); }
+  .chip.redo { background: var(--red); color: var(--on-accent); }
+  .chip.sent { background: var(--gold); color: var(--on-accent); }
+  .chip.game { background: transparent; color: var(--mint); border: 1px solid var(--mint); }
+  .empty { padding: 18px 4px; color: var(--dim); font-weight: 700; }
+  @media (prefers-reduced-motion: no-preference) { .btn, .tab, .row { transition: background 0.15s, border-color 0.15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><h1>DEV LINE B<span class="o">O</span><span class="o">O</span>TH</h1><span class="ver" id="ver"></span></div>
+    <div class="tally" id="tally"></div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="notice" id="notice" hidden></div>
+  </header>
+
+  <section class="stage" aria-live="polite">
+    <div class="stage-top"><span class="lid" id="lid"></span><span class="chip" id="lchip"></span></div>
+    <div class="mood" id="mood"></div>
+    <p class="say" id="say"></p>
+    <div class="actions">
+      <label class="btn rec" id="recBtn"><span id="recTxt">🎥 Record this line</span><input id="capture" type="file" accept="video/*" capture="user"></label>
+      <label class="btn ghost" id="pickBtn">Choose a video<input id="pick" type="file" accept="video/*"></label>
+    </div>
+    <div class="take" id="take" hidden><video id="preview" controls playsinline></video></div>
+    <div class="status" id="status"></div>
+    <div class="actions"><button class="btn ghost" id="prev" type="button">← Back</button><button class="btn ghost" id="next" type="button">Next line →</button></div>
+    <div class="tip">Hold the phone at face height, front camera, in a quiet room. Say the line exactly as written with the face it asks for. A few seconds is plenty. Not happy with a take? Record it again; the new one replaces it.</div>
+  </section>
+
+  <section style="display:grid;gap:10px">
+    <div class="tabs" role="group" aria-label="Show">
+      <button class="tab" type="button" data-f="todo" id="tab-todo">To record</button>
+      <button class="tab" type="button" data-f="sent" id="tab-sent">Sent to Claude</button>
+      <button class="tab" type="button" data-f="game" id="tab-game">In the game</button>
+      <button class="tab" type="button" data-f="all" id="tab-all">All lines</button>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
+
+<script>
+const LINES = /*LINES*/[];
+const RECORDED = /*RECORDED*/{};
+const EMOTIONS = /*EMOTIONS*/{};
+const VERSION = /*VERSION*/'';
+const MAX = 19.5 * 1024 * 1024; // (the storage takes files up to 20 MB)
+
+// The same little hash as the game's tools: a changed line gets a different one, so it needs a new take.
+function hash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(16); }
+const $ = (s) => document.querySelector(s);
+
+let db = null, assets = null, ready = false;
+const takes = {}; // line id -> { asset, hash, mime, size, at }
+let sel = 0, filter = 'todo', busy = false;
+
+function stateOf(L) {
+  const h = hash(L.text), t = takes[L.id], r = RECORDED[L.id];
+  if (t && t.hash === h && (!r || t.asset !== r.asset)) return 'sent';
+  if (r && r.hash === h) return 'game';
+  return r ? 'redo' : 'new';
+}
+const CHIP = { new: ['new', 'NEW'], redo: ['redo', 'RE-RECORD'], sent: ['sent', 'SENT ✓'], game: ['game', 'IN THE GAME'] };
+const matches = (L) => {
+  const st = stateOf(L);
+  return filter === 'all' || (filter === 'todo' ? st === 'new' || st === 'redo' : st === filter);
+};
+
+function render() {
+  const counts = { new: 0, redo: 0, sent: 0, game: 0 };
+  for (const L of LINES) counts[stateOf(L)]++;
+  const todo = counts.new + counts.redo;
+  $('#ver').textContent = `${LINES.length} lines · game ${VERSION}`;
+  $('#tally').innerHTML = `<span>🎬 ${todo} to record</span><span>📨 ${counts.sent} sent</span><span>✅ ${counts.game} in the game</span>`;
+  const pct = (n) => (100 * n) / Math.max(1, LINES.length);
+  $('#bar').innerHTML = `<i class="g" style="width:${pct(counts.game)}%"></i><i class="s" style="width:${pct(counts.sent)}%"></i>`;
+  for (const b of document.querySelectorAll('.tab')) b.setAttribute('aria-pressed', String(b.dataset.f === filter));
+
+  const L = LINES[sel];
+  if (L) {
+    const e = EMOTIONS[L.mood] || { emoji: '🙂', label: L.mood, act: '' };
+    const st = stateOf(L), [cls, txt] = CHIP[st];
+    $('#lid').textContent = `${L.id} · ${sel + 1} of ${LINES.length}`;
+    $('#lchip').className = 'chip ' + cls;
+    $('#lchip').textContent = txt;
+    $('#mood').innerHTML = `<span class="e"></span><span><span class="lbl"></span><small></small></span>`;
+    $('#mood .e').textContent = e.emoji;
+    $('#mood .lbl').textContent = `Act: ${e.label}`;
+    $('#mood small').textContent = e.act;
+    $('#say').textContent = L.text;
+    $('#recTxt').textContent = st === 'new' || st === 'redo' ? '🎥 Record this line' : '🎥 Record it again';
+  }
+  const canRecord = ready && !busy;
+  for (const id of ['#recBtn', '#pickBtn']) $(id).setAttribute('aria-disabled', String(!canRecord));
+  $('#prev').disabled = sel <= 0;
+  $('#next').disabled = sel >= LINES.length - 1;
+
+  const list = $('#list');
+  list.textContent = '';
+  const vis = LINES.filter(matches);
+  if (!vis.length) {
+    const d = document.createElement('div');
+    d.className = 'empty';
+    d.textContent = filter === 'todo' ? 'Every line is recorded. When new lines are added to the game, they show up here.' : 'Nothing here yet.';
+    list.append(d);
+  }
+  for (const R of vis) {
+    const [cls, txt] = CHIP[stateOf(R)];
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'row' + (R === L ? ' cur' : '');
+    b.innerHTML = `<span class="id"></span><span class="tx"></span><span class="chip ${cls}"></span>`;
+    b.querySelector('.id').textContent = R.id;
+    b.querySelector('.tx').textContent = R.text;
+    b.querySelector('.chip').textContent = txt;
+    b.onclick = () => { if (busy) return; sel = LINES.indexOf(R); showTake(); render(); scrollTo({ top: 0, behavior: 'smooth' }); };
+    list.append(b);
+  }
+}
+
+function status(msg, kind = '') { const s = $('#status'); s.textContent = msg; s.className = 'status ' + kind; }
+
+function showTake(url) {
+  const v = $('#preview');
+  const t = takes[LINES[sel]?.id];
+  const src = url || (t ? '/_blob/' + t.asset : '');
+  $('#take').hidden = !src;
+  if (src && v.getAttribute('src') !== src) v.src = src;
+  if (!src) v.removeAttribute('src');
+  status('');
+}
+
+// A phone video can be big: re-record it smaller in the page (plays it once through a canvas).
+async function shrink(file) {
+  const v = document.createElement('video');
+  v.src = URL.createObjectURL(file);
+  v.playsInline = true;
+  await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = () => rej(new Error('That video could not be opened.')); });
+  const s = 480 / Math.max(v.videoWidth, v.videoHeight);
+  const c = document.createElement('canvas');
+  c.width = Math.round(v.videoWidth * s / 2) * 2; c.height = Math.round(v.videoHeight * s / 2) * 2;
+  const g = c.getContext('2d');
+  const ac = new (window.AudioContext || window.webkitAudioContext)();
+  const dest = ac.createMediaStreamDestination();
+  ac.createMediaElementSource(v).connect(dest);
+  const stream = new MediaStream([...c.captureStream(30).getVideoTracks(), ...dest.stream.getAudioTracks()]);
+  const type = ['video/mp4', 'video/webm;codecs=vp8,opus', 'video/webm'].find((t) => window.MediaRecorder?.isTypeSupported?.(t));
+  if (!type) throw new Error('This browser cannot shrink videos. Record a shorter take.');
+  const rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 900000 });
+  const chunks = [];
+  rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+  const done = new Promise((r) => (rec.onstop = r));
+  let raf = 0;
+  const draw = () => { g.drawImage(v, 0, 0, c.width, c.height); raf = requestAnimationFrame(draw); };
+  rec.start();
+  draw();
+  await ac.resume();
+  await v.play();
+  await new Promise((r) => (v.onended = r));
+  cancelAnimationFrame(raf);
+  rec.stop();
+  await done;
+  ac.close();
+  return new Blob(chunks, { type: type.split(';')[0] });
+}
+
+async function useVideo(file) {
+  if (!file || busy || !ready) return;
+  const L = LINES[sel];
+  busy = true;
+  render();
+  showTake(URL.createObjectURL(file));
+  try {
+    let blob = file;
+    if (blob.size > MAX) {
+      status('That video is big. Making it smaller (this plays it once)...');
+      blob = await shrink(file);
+      if (blob.size > MAX) throw new Error('Still too big. Record a shorter take.');
+    }
+    // the storage takes mp4 and webm; an iPhone .mov is the same kind of file inside
+    const type = /webm/.test(blob.type) ? 'video/webm' : 'video/mp4';
+    status(`Sending ${(blob.size / 1048576).toFixed(1)} MB...`);
+    const up = await assets.upload(blob, { type });
+    const old = takes[L.id]?.asset;
+    const take = { asset: up.id, hash: hash(L.text), text: L.text, mime: type, size: up.sizeBytes, at: Date.now() };
+    await db.collection('takes').doc(L.id).set(take);
+    takes[L.id] = take;
+    // the take it replaced isn't needed anymore (unless it's the one in the game)
+    if (old && old !== up.id && old !== RECORDED[L.id]?.asset) assets.delete(old).catch(() => {});
+    status(`Saved ${L.id}. Claude will put it in the game.`, 'ok');
+  } catch (err) {
+    const code = err && err.code;
+    status(code === 'too_large' ? 'That video is over 20 MB. Record a shorter take.'
+      : code === 'quota_or_state' ? 'The storage is full. Ask Claude to clear out old takes.'
+      : code === 'rate_limited' ? 'Too many uploads at once. Wait a moment and try again.'
+      : (err && err.message) || 'That did not save. Try again.', 'err');
+  } finally {
+    busy = false;
+    $('#capture').value = '';
+    $('#pick').value = '';
+    render();
+  }
+}
+
+$('#capture').onchange = (e) => useVideo(e.target.files[0]);
+$('#pick').onchange = (e) => useVideo(e.target.files[0]);
+$('#prev').onclick = () => { if (!busy && sel > 0) { sel--; showTake(); render(); } };
+$('#next').onclick = () => {
+  if (busy) return;
+  const vis = LINES.filter(matches), i = vis.indexOf(LINES[sel]);
+  const nxt = vis[i + 1] || LINES[sel + 1];
+  if (nxt) { sel = LINES.indexOf(nxt); showTake(); render(); }
+};
+for (const b of document.querySelectorAll('.tab')) b.onclick = () => { filter = b.dataset.f; render(); };
+
+function firstToDo() {
+  const i = LINES.findIndex((L) => ['new', 'redo'].includes(stateOf(L)));
+  return i >= 0 ? i : 0;
+}
+
+sel = firstToDo();
+render();
+showTake();
+status('Connecting...');
+
+(async () => {
+  const use = window.claude?.use;
+  if (!use) { notice('Open this page on claude.ai, signed in, to record. Your takes are saved with the page.'); status(''); return; }
+  [db, assets] = await Promise.all([use('db'), use('assets')]);
+  if (!db || !assets) {
+    notice('Only the owner of this page can record. Open it signed in to the account that made it.');
+    status('');
+    return;
+  }
+  db.collection('takes').onSnapshot((snap) => {
+    for (const d of snap.docs) if (d.exists) takes[d.id] = d.data();
+    const first = !ready;
+    ready = true;
+    if (first) { sel = firstToDo(); showTake(); }
+    if (!busy) status(first ? '' : $('#status').textContent, $('#status').className.replace('status', '').trim());
+    render();
+  }, () => { notice('Lost the connection to the saved takes. Reload the page.'); });
+})();
+
+function notice(msg) { const n = $('#notice'); n.textContent = msg; n.hidden = false; }
+</script>

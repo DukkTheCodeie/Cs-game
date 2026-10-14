@@ -10,6 +10,8 @@ import { LINES, SPEAKER_EMOTIONS } from '../game/script.js';
 // Videos: .mp4 / .webm / .mov · photos: .jpg / .jpeg / .png / .webp
 
 export const CLIP_DIR = 'assets/clips/';
+// the one-file build (locked-out.html) carries its clips inside it, as { 'dev01.mp4': 'data:...' }
+const PACKED = (typeof window !== 'undefined' && window.LOCKED_OUT_CLIPS) || null;
 const VIDEO_EXTS = ['mp4', 'webm', 'mov'];
 const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
 export const ACTORS = ['guard', 'dev', 'aaron', 'mummy'];
@@ -64,6 +66,13 @@ export class ClipLibrary {
     if (!this.probes[key]) {
       this.probes[key] = (async () => {
         for (const ext of kind === 'video' ? VIDEO_EXTS : IMAGE_EXTS) {
+          if (PACKED) { // (nothing to look for next to a single file)
+            const url = PACKED[`${base}.${ext}`];
+            if (!url) continue;
+            this.found[key] = { url, kind };
+            this._emit();
+            return this.found[key];
+          }
           const url = `${CLIP_DIR}${base}.${ext}`;
           if (await probe(url, kind)) {
             this.found[key] = { url, kind };
