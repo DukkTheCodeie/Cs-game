@@ -132,6 +132,7 @@ export const LINES = {
   guard59: { who: 'guard', mood: 'sleepy', text: "Look at that. The whole city's asleep. Lucky city." },
   guard60: { who: 'guard', mood: 'shocked', text: 'Wait. Is that a marching band? A PARADE?! Nobody tells me ANYTHING around here.' },
   guard61: { who: 'guard', mood: 'happy', text: 'Is that... a GIANT DONUT?! Best. Parade. EVER.' },
+  guard62: { who: 'guard', mood: 'happy', text: "Fresh air! Sunshine! A whole city out here! ...I should probably go log in, though." },
 
   // ---------------- Chapter 6: morning
   guard28: { who: 'guard', mood: 'confused', text: "Mmh... huh? It's MORNING?!" },

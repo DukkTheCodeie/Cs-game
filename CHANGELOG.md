@@ -4,6 +4,39 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.4.0 — 2026-10-14
+
+**The city outside**
+- There's a whole city outside the museum now, through the lobby windows and the front doors: the museum's
+  front steps and plaza, a street with a crosswalk and traffic lights, a donut shop with a giant donut on
+  the roof, a cinema, a bookstore, a diner, apartments, towers and a skyline.
+- At night it's asleep: a few lit windows, streetlamps (one of them flickers), the diner that never
+  closes, and a car or the night bus driving past now and then. You can hear them go by.
+- In the morning the shops are open, people walk the sidewalks, and cars stop at the crosswalk.
+- The front doors are open in the morning, so you can walk out onto the plaza (there's a bronze
+  triceratops out there).
+- At night the streetlamps throw a little warm light in through the lobby windows.
+
+**The parade**
+- Walk up to the front windows (or out the doors) in the morning and the museum's 50th birthday parade
+  comes down the street: a police car, a banner, a marching band, a pterodactyl balloon and a whale
+  balloon, and floats for the museum, the T-Rex, the Egyptian Wing, the Roman Hall... and a giant donut.
+  Confetti cannons, ticker tape, and a street sweeper at the end to clean up.
+- The crowd behind the barricades cheers, waves and points as the floats go by.
+- It has its own march. You hear the band before you see it, and it gets louder as it comes closer.
+- The guard (and the dev) have something to say about it.
+
+**The T-Rex**
+- A new skeleton: a real skull with openings, a rib cage, hips, little arms and a long tail, on a steel
+  display mount. It walks, roars and runs like before, and its legs step properly now.
+- In the chase it runs exactly as fast as you do, so its feet don't slide.
+
+**Fixes**
+- The front glass no longer throws the flashlight back in your eyes.
+- The flashlight still dims properly near the T-Rex's platform.
+- Caligula's bust (and what's behind it) moved to the far corner of the Roman Hall, to make room for
+  the museum's new front. Augustus took his old spot.
+
 ## v0.3.0 — 2026-10-13
 
 **The museum**

@@ -68,6 +68,8 @@ const GEO = {
     return g;
   }),
   pyramid: () => baseGeo('pyr', () => new THREE.ConeGeometry(0.5 * Math.SQRT2, 1, 4, 1).rotateY(PI / 4)),
+  // half of a flat disc (radius 0.5, 1 thick) on the +x side of the y axis
+  halfDisc: () => baseGeo('hdisc', () => new THREE.CylinderGeometry(0.5, 0.5, 1, 16, 1, false, 0, PI)),
 };
 
 function paint(g, color, k = 1) {
@@ -1209,7 +1211,7 @@ export class City {
       return g;
     };
     // plaza (and the gardens' paths) — 1 repeat = 4 m
-    flat(G.paving, -16.4, 16.4, Z_WALL - 0.7, Z_PLAZA, 0, 4, 4);
+    flat(G.paving, -16.4, 16.4, Z_WALL - 0.2, Z_PLAZA, 0, 4, 4); // (from the lobby floor's edge)
     // gardens
     flat(G.lawn, -44, -16.4, Z_WING, Z_PLAZA, 0.01, 4, 4);
     flat(G.lawn, 16.4, 44, Z_WING, Z_PLAZA, 0.01, 4, 4);
@@ -1376,19 +1378,30 @@ export class City {
   _statue(V, x, z) {
     V.box(x, 0.45, z, 2.6, 0.9, 1.5, 0xb9ad94);
     V.box(x, 0.93, z, 2.75, 0.08, 1.62, 0xd6caae);
-    const B = 0x6b4e2e, B2 = 0x7d5c37;
-    V.push(x, 0.97, z, 0.35);
-    V.sph(0, 0.75, 0, 0.62, B, 12, 8, 0.75);
-    V.add(GEO.sph(10, 7), B, 0, 0.72, 0, 1.6, 0.85, 0.95);
-    for (const [lx, lz] of [[-0.45, -0.3], [-0.45, 0.3], [0.4, -0.3], [0.4, 0.3]]) V.cyl(lx, 0, lz, 0.13, 0.55, B2, 7);
-    V.add(GEO.cone(8), B, -1.0, 0.75, 0, 0.35, 1.0, 0.35, 0, 0, PI / 2);
-    // head, frill, horns
-    V.sph(0.9, 0.85, 0, 0.32, B2, 10, 7);
-    V.add(GEO.cyl(16), B2, 0.72, 1.08, 0, 1.25, 0.1, 1.25, 0, 0, PI / 2 - 0.45);
-    for (let k = 0; k < 7; k++) { const a = -PI / 2 + (k / 6) * PI; V.sph(0.7 + Math.cos(a) * 0.05, 1.08 + Math.cos(a) * 0.62 * 0.9, Math.sin(a) * 0.62, 0.07, B, 5, 4); }
-    V.add(GEO.cone(6), 0xd9b25a, 1.18, 1.14, -0.15, 0.1, 0.6, 0.1, 0, 0, -1.0);
-    V.add(GEO.cone(6), 0xd9b25a, 1.18, 1.14, 0.15, 0.1, 0.6, 0.1, 0, 0, -1.0);
-    V.add(GEO.cone(6), 0xd9b25a, 1.28, 0.88, 0, 0.09, 0.28, 0.09, 0, 0, -1.25);
+    // a bronze triceratops, its nose horn rubbed shiny by a million visitors
+    const B = 0x5f4527, B2 = 0x6e5030, SH = 0xd2a659;
+    V.push(x, 0.97, z, 0.35, 0.66);
+    V.add(GEO.sph(12, 9), B, 0.05, 1.0, 0, 1.9, 0.98, 1.08); // body
+    V.add(GEO.sph(10, 8), B, -0.55, 1.1, 0, 1.0, 0.95, 1.0); // hips
+    V.add(GEO.cone(8), B, -1.4, 0.95, 0, 0.44, 1.25, 0.38, 0, 0, PI / 2 + 0.22); // tail
+    for (const [lx, lz, r, h] of [[0.6, -0.34, 0.15, 0.66], [0.6, 0.34, 0.15, 0.66], [-0.58, -0.38, 0.2, 0.76], [-0.58, 0.38, 0.2, 0.76]]) {
+      V.cyl(lx, 0, lz, r, h, B2, 8, r * 1.15);
+      V.add(GEO.sph(8, 5), B2, lx + 0.05, 0.05, lz, r * 2.7, 0.14, r * 2.4); // foot
+    }
+    // head: skull, beak, frill (with knobs around its edge), brow horns, nose horn, eyes
+    V.add(GEO.sph(10, 8), B2, 1.12, 1.02, 0, 0.82, 0.56, 0.54);
+    V.add(GEO.cone(8), B2, 1.55, 0.88, 0, 0.27, 0.42, 0.25, 0, 0, -PI / 2 - 0.5);
+    const th = PI / 2 + 0.55, fx = 0.84, fy = 1.18, fr = 0.78;
+    V.add(GEO.halfDisc(), B, fx, fy, 0, fr * 2, 0.09, fr * 2, 0, 0, th);
+    for (let k = 0; k <= 8; k++) {
+      const a = (k / 8) * PI, sa = Math.sin(a);
+      V.sph(fx + fr * sa * Math.cos(th), fy + fr * sa * Math.sin(th), fr * Math.cos(a), 0.075, B2, 6, 4);
+    }
+    for (const sz of [-0.16, 0.16]) {
+      V.add(GEO.cone(8), B2, 1.46, 1.46, sz, 0.12, 0.8, 0.12, 0, 0, -1.0);
+      V.sph(1.3, 1.12, sz * 1.3, 0.05, 0x1c140c, 6, 4);
+    }
+    V.add(GEO.cone(8), SH, 1.43, 1.13, 0, 0.1, 0.28, 0.1, 0, 0, -0.5);
     V.pop();
   }
   _globeLamp(l) {
@@ -3247,18 +3260,37 @@ if (slot > 0.5) {
       for (let k = 0; k < 3; k++) B.box(1.0, H + 0.5, s * 0.68, 0.04, 0.95, 0.04, 0x5a3a22, 0, 0, (k * PI) / 3);
     }
     for (const s of [-1, 1]) {
-      const hx = 3.4, hz = s * 0.5;
-      B.add(GEO.sph(10, 8), 0xf2f0ea, hx, H + 1.25, hz, 1.45, 0.75, 0.6);
-      B.add(GEO.cyl(8), 0xf2f0ea, hx + 0.65, H + 1.65, hz, 0.28, 0.75, 0.28, 0, 0, -0.6);
-      B.box(hx + 0.95, H + 1.95, hz, 0.55, 0.28, 0.24, 0xf2f0ea, 0, 0, -0.25);
-      B.add(GEO.cone(6), 0xd01818, hx + 0.8, H + 2.25, hz, 0.12, 0.35, 0.12);
-      for (const lx of [-0.45, 0.45]) for (const lz of [-0.15, 0.15]) B.cyl(hx + lx, H, hz + lz, 0.06, 1.0, 0xf2f0ea, 6);
-      B.add(GEO.cone(6), 0xd8d4cc, hx - 0.85, H + 1.05, hz, 0.14, 0.7, 0.14, 0, 0, 2.4);
-      B.box(hx + 0.4, H + 1.85, hz, 0.5, 0.25, 0.08, 0x8a5a2a); // mane
-      B.box((hx + 1.15) / 2, H + 1.1, hz * 0.6, hx - 1.2, 0.03, 0.03, 0x5a3a22); // reins
+      this._horse(B, 2.95, H, s * 0.48, 0xf2f0ea, 0x8a5a2a);
+      B.box(2.35, H + 1.32, s * 0.36, 1.3, 0.03, 0.03, 0x5a3a22); // reins
     }
     B.add(GEO.torus(0.07, 6, 20), 0x3f8f3a, 4.75, H + 1.4, 0, 1.2, 1.2, 1.2);
     return { group: this._floatGroup(B, T), anim: null };
+  }
+
+  // a horse with a red plume, facing +x, hooves on y (for the Roman float)
+  _horse(B, x, y, z, color, mane) {
+    B.push(x, y, z);
+    B.add(GEO.sph(10, 8), color, 0, 1.12, 0, 1.25, 0.6, 0.52); // barrel
+    B.add(GEO.sph(10, 8), color, 0.5, 1.17, 0, 0.6, 0.62, 0.5); // chest
+    B.add(GEO.sph(10, 8), color, -0.5, 1.2, 0, 0.62, 0.62, 0.52); // rump
+    B.add(GEO.cyl(8), color, 0.78, 1.55, 0, 0.3, 0.8, 0.26, 0, 0, -0.65); // neck
+    B.add(GEO.box(), color, 1.17, 1.69, 0, 0.55, 0.24, 0.22, 0, 0, -0.9); // head
+    B.sph(1.34, 1.47, 0, 0.12, color, 8, 6); // muzzle
+    for (const ez of [-0.06, 0.06]) {
+      B.add(GEO.cone(6), color, 0.98, 2.02, ez, 0.06, 0.15, 0.05);
+      B.sph(1.2, 1.78, ez * 1.9, 0.03, 0x161616, 5, 4);
+    }
+    B.box(0.72, 1.74, 0, 0.1, 0.72, 0.06, mane, 0, 0, -0.65);
+    B.add(GEO.cone(7), mane, -0.99, 0.97, 0, 0.24, 0.8, 0.18, 0, 0, -0.47); // tail
+    for (const [lx, lz] of [[0.5, -0.15], [0.5, 0.15], [-0.5, -0.15], [-0.5, 0.15]]) {
+      B.cyl(lx, 0.55, lz, 0.07, 0.5, color, 7, 0.09);
+      B.cyl(lx, 0.07, lz, 0.05, 0.52, color, 6);
+      B.cyl(lx, 0, lz, 0.065, 0.09, 0x2a2420, 7);
+    }
+    B.box(0.46, 1.2, 0, 0.06, 0.5, 0.56, 0xa01020); // harness
+    B.sph(0.5, 1.25, 0, 0.06, 0xd4a72c, 8, 6); // (its gold boss)
+    B.add(GEO.cone(6), 0xd01818, 0.98, 2.2, 0, 0.13, 0.38, 0.13); // plume
+    B.pop();
   }
 
   _floatDonut() {

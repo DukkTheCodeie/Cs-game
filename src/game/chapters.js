@@ -1037,6 +1037,10 @@ async function morning(g) {
     }).then(() => g.say('guard61'));
   };
   if (city) city.onParadeEnd = () => { if (g.audio.trackName === 'parade') g.audio.playMusic('morning', 2); };
+  // your first step outside (once nobody's talking, if you're still out there)
+  lvl.addTrigger({ minX: -16, maxX: 16, minZ: 10.6, maxZ: 19, onEnter: () => {
+    g.until(() => free() || g.player.pos.z < 10.2).then(() => { if (g.player.pos.z > 10.2) g.say('guard62'); });
+  } });
   lvl.addUpdater(() => {
     if (!city || g.audio.trackName !== 'parade') return;
     // loudest out front, quieter the deeper you go into the museum
