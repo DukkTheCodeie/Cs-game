@@ -6,6 +6,7 @@
   "scripts": {
     "build": "esbuild src/main.js --bundle --format=iife --target=es2020 --minify --legal-comments=none --outfile=dist/game.js",
     "clips-readme": "node --no-warnings tools/clips-readme.mjs",
+    "single": "node tools/single-file.mjs",
     "dev": "esbuild src/main.js --bundle --format=iife --target=es2020 --sourcemap --outfile=dist/game.js --serve=8080 --servedir=. --watch"
   },
   "devDependencies": {

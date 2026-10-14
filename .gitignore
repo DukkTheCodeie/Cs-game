@@ -1,3 +1,5 @@
 node_modules/
 *.map
 .DS_Store
+# the one-file build (npm run single) is attached to each GitHub release instead
+locked-out.html

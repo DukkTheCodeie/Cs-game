@@ -13,6 +13,11 @@ The first one is in the Dino exhibit. You like the Dino exhibit. What could go w
 Or put it online for free with GitHub Pages: repo **Settings → Pages → Deploy from a branch → `main` / root**.
 Then anyone can play at `https://<your-username>.github.io/<repo-name>/`.
 
+**Or as one file:** every [release](https://github.com/Hudsoonvid/Cs-game/releases/latest) has
+`locked-out.html` attached: the whole game in a single file. Double-click it to play, share it in Google
+Classroom or Drive, or drop it on any website host (rename it `index.html` first). It needs the internet
+only for its fonts. To make it yourself: `npm run build && npm run single`.
+
 | Action | Keys |
 |---|---|
 | Move / look | `W A S D` + mouse |
