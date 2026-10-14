@@ -7,6 +7,7 @@
     "build": "esbuild src/main.js --bundle --format=iife --target=es2020 --minify --legal-comments=none --outfile=dist/game.js",
     "clips-readme": "node --no-warnings tools/clips-readme.mjs",
     "single": "node tools/single-file.mjs",
+    "site": "npm run build && node tools/site.mjs",
     "recorder": "node --no-warnings tools/booth.mjs dev",
     "recorder:cast": "node --no-warnings tools/booth.mjs cast",
     "clips-todo": "node --no-warnings tools/booth.mjs --todo",

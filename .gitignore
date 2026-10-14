@@ -5,3 +5,5 @@ node_modules/
 locked-out.html
 dev-recorder.html
 cast-recorder.html
+# the website, put together by npm run site (Vercel builds it)
+public/
