@@ -5,6 +5,7 @@ import { CHAPTERS } from '../game/chapters.js';
 import { TOTAL_DONUTS, DONUT_IDS } from '../game/constants.js';
 import { VERSION, RELEASES_URL, latestVersion, isNewer } from '../version.js';
 import { logEvent } from '../core/analytics.js';
+import { openAdmin, unlockAll } from './admin.js';
 
 export class Menu {
   constructor(game) {
@@ -219,10 +220,13 @@ export class Menu {
     const donuts = () => { save.donuts = DONUT_IDS.slice(); save.flags.devDonuts = true; };
     // the ending's done (and the dev has already said his "you came back?" lines)
     const ending = () => Object.assign(save.flags, { ending: 'done', kicked: true, backAgain: true, backAgain2: true, welcomed: true });
-    tool('🔓 UNLOCK EVERYTHING', 'all of the below', () => { chapters(); donuts(); ending(); });
+    tool('🔓 UNLOCK EVERYTHING', 'all of the below', () => unlockAll(g));
     tool('📖 Every chapter', `${CHAPTERS.length} chapters in CHAPTERS`, chapters);
     tool('🍩 Every hidden donut', `${TOTAL_DONUTS}/${TOTAL_DONUTS} donuts`, donuts);
     tool('🏁 The ending', '"You beat the game" badge', ending);
+    const adm = el('button', 'btn pink', '🛠 ADMIN PANEL <small style="opacity:.7">(or press ` in the game)</small>');
+    adm.onclick = () => { m.close(); openAdmin(g); };
+    list.append(adm);
     if (!save.flags.devMode) {
       save.flags.devMode = true;
       g.persist();

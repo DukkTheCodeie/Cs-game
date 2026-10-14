@@ -79,7 +79,8 @@ Change the names shown in subtitles (and the game title) in [`game-config.js`](g
 
 **Dev mode:** on the menu, tap the **LOCKED OUT** logo 7 times and type the dev code to unlock every chapter,
 every hidden donut and the ending. The code is `devCode` in [`game-config.js`](game-config.js) (`IAMTHEDEV` until
-you change it — the repo is public, so pick your own). Set it to `''` to turn dev mode off.
+you change it — the repo is public, so pick your own). Set it to `''` to turn dev mode off. Once it's on, press <kbd>`</kbd> in the game (or use the pause menu) for the **admin panel**: jump to
+any chapter, trigger events and title cards, teleport, and cheats like endless donuts and walking through walls.
 
 ## 🔢 Versions
 

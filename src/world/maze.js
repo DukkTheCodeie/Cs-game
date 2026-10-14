@@ -58,8 +58,9 @@ function shuffle(arr, rng) {
 }
 
 export class Maze extends Level {
-  constructor(game, { stage = 0, keysTaken = [] } = {}) {
+  constructor(game, { stage = 0, keysTaken = [], seed = Math.floor(Math.random() * 1e9) } = {}) {
     super(game);
+    this.seed = seed; // a different archive every run (the same one again after a checkpoint)
     const s = this.scene;
     this.surface = 'concrete';
     s.background = new THREE.Color(0x010102);
@@ -118,7 +119,7 @@ export class Maze extends Level {
   layout(b) {
     if (this.layouts[b]) return this.layouts[b];
     const entryC = b === 0 ? ENTRY_C : this.layout(b - 1).exit.c;
-    const rng = mulberry32(4242 + b * 7919);
+    const rng = mulberry32(this.seed + 4242 + b * 7919);
     const north = [], east = [];
     for (let r = 0; r < BAND; r++) { north.push(new Array(W).fill(true)); east.push(new Array(W).fill(true)); }
     const seen = new Set([`${entryC},0`]);
@@ -292,7 +293,7 @@ export class Maze extends Level {
   _buildBand(b) {
     const L = this.layout(b);
     const R0 = b * BAND;
-    const rng = mulberry32(9001 + b * 313);
+    const rng = mulberry32(this.seed + 9001 + b * 313);
     const group = new THREE.Group();
     const band = { b, group, owned: new Set(), dynamic: new Set() };
     this.bands.set(b, band);
@@ -385,10 +386,25 @@ export class Maze extends Level {
     const used = new Set([`${L.entry.c},0`]);
     const take = (list) => { const cl = list.find((x) => !used.has(`${x.c},${x.r}`)); if (cl) used.add(`${cl.c},${cl.r}`); return cl; };
     if (this.gateKind(b) === 'keys') {
+      // spread the keys out: the first in one of the farther dead ends, then each as far as possible
+      // from the ones already placed (so they're never lined up in a row)
       const n = this.puzzleParams(b).count;
-      for (let i = 0; i < n; i++) {
-        const cl = take(L.dead) || take(L.far);
-        if (cl) this._key(band, b, i, cl, own);
+      const pool = (L.dead.length >= n ? L.dead : [...L.dead, ...L.far]).filter((x) => !used.has(`${x.c},${x.r}`));
+      const picked = [];
+      for (let i = 0; i < n && pool.length; i++) {
+        let best = 0;
+        if (!picked.length) best = Math.floor(rng() * Math.max(1, Math.ceil(pool.length / 2)));
+        else {
+          let bestD = -1;
+          pool.forEach((x, j) => {
+            const d = Math.min(...picked.map((p) => Math.abs(p.c - x.c) + Math.abs(p.r - x.r))) + rng() * 0.5;
+            if (d > bestD) { bestD = d; best = j; }
+          });
+        }
+        const cl = pool.splice(best, 1)[0];
+        used.add(`${cl.c},${cl.r}`);
+        picked.push(cl);
+        this._key(band, b, i, cl, own);
       }
     }
     const handmade = b < HANDMADE;

@@ -12,6 +12,12 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
   Turn this off with `checkUpdates: false` in `game-config.js`.
 - **Dev mode:** tap the LOCKED OUT logo on the menu 7 times and type the dev code (`devCode` in
   `game-config.js`) to unlock every chapter, every hidden donut and the ending.
+- **Admin panel** (dev mode): press <kbd>`</kbd> in the game, or open it from the pause menu, to jump to
+  any chapter, set off events (the T-Rex vanishing, waking up and roaring, the lights flickering, the
+  parade...), play any title card, teleport around the museum, and cheat (endless donuts, walk
+  through walls, triple speed, every password piece).
+- **The archives are different every time:** a new layout each run, and the three lost keys are
+  spread out instead of lined up.
 - **Credits:** Hudson Saunders, lead developer.
 
 ## v0.4.0 — 2026-10-14
