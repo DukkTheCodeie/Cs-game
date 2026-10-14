@@ -12,6 +12,7 @@ import { collide } from '../game/player.js';
 import { VISITOR_LINES } from '../game/script.js';
 import { batchStatic, bakeColors } from './batch.js';
 import * as X from './exhibits.js';
+import { City } from './city.js';
 
 // The City Museum of Natural History. Layout (meters, y up, north = -z):
 //   Security office  x[-20,-12] z[-5,5]
@@ -75,7 +76,7 @@ export const EGYPT_PILLARS = [
 ];
 
 export class Museum extends Level {
-  constructor(game, { time = 'night' } = {}) {
+  constructor(game, { time = 'night', city = true } = {}) {
     super(game);
     this.time = time;
     this.night = time === 'night';
@@ -137,6 +138,12 @@ export class Museum extends Level {
       ...this.collectibles.map((c) => c.obj), ...(this.visitors || []).map((v) => v.p.group)]);
     const moves = (o) => dynamic.has(o) || o.userData.dynamic === true;
     this.measureColliders(moves);
+    // the city outside the windows (in the morning also the plaza out front, with its own colliders).
+    // It merges and hides its own meshes, so the passes below leave it alone.
+    if (city) {
+      this.city = new City(this, { night: this.night });
+      this.addUpdater((dt) => this.city.update(dt, this.game.player.pos));
+    }
     bakeColors(this.scene, moves);
     batchStatic(this.scene, moves);
     // the small lamps (braziers, consoles, screens, the T-Rex's eye...) share 8 real lights
@@ -311,7 +318,9 @@ export class Museum extends Level {
     // south wall: entrance + windows (nothing on the outside: that's the front of the building)
     this.wallX(10, -12, 12, 8, m.lobbyWall, [{ c: -7.5, w: 4, h: 6.5, frame: true }, { c: 0, w: 6, h: 4.2, frame: true }, { c: 7.5, w: 4, h: 6.5, frame: true }], 3, { noTrim: 1 });
     // window glass glow + mullions
-    const winMat = P.MATS.glass(); // see-through: the city is out there
+    // see-through: the city is out there. Clear glass that doesn't throw the flashlight back in your eyes.
+    const winMat = new THREE.MeshStandardMaterial({ color: 0xb8d0dc, roughness: 0.35, transparent: true, opacity: 0.12, depthWrite: false });
+    winMat.userData.batch = true;
     for (const wx of [-7.5, 7.5]) {
       const wg = new THREE.Mesh(new THREE.PlaneGeometry(4, 6.5), winMat);
       wg.position.set(wx, 3.25, 10.1);
@@ -326,13 +335,13 @@ export class Museum extends Level {
     this.addCollider(-9.5, -5.5, 9.8, 10.2);
     this.addCollider(5.5, 9.5, 9.8, 10.2);
     // entrance glass doors, hinged at the sides: locked at night, propped open in the morning
-    const glass = P.MATS.glass(), metal = P.MATS.metal();
+    const metal = P.MATS.metal();
     for (const side of [-1, 1]) {
       const hinge = new THREE.Group();
       hinge.position.set(side * 3, 0, 10);
       const door = new THREE.Group();
       const c = -side * 1.5; // the door's middle, from the hinge
-      const pane = P.box(2.84, 4.04, 0.04, glass, c, 0.03, 0);
+      const pane = P.box(2.84, 4.04, 0.04, winMat, c, 0.03, 0);
       pane.castShadow = false;
       door.add(pane);
       for (const ex of [-1.44, 1.44]) door.add(P.box(0.08, 4.1, 0.1, metal, c + ex, 0, 0));

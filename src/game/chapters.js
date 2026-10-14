@@ -1021,7 +1021,7 @@ async function morning(g) {
   let paradeSeen = false;
   if (city) city.onParadeStart = () => {
     g.audio.playMusic('parade', 2);
-    g.audio.setMusicLevel(0.12, 0.05);
+    g.audio.setMusicLevel(0.25, 0.05);
     if (paradeSeen) return;
     paradeSeen = true;
     g.until(() => city.paradeNear > 0.45 && free()).then(async () => {
@@ -1042,7 +1042,7 @@ async function morning(g) {
     // loudest out front, quieter the deeper you go into the museum
     const p = g.player.pos;
     const where = p.z > 9.8 ? 1 : p.z > -10 && p.x > -12 && p.x < 12 ? 0.75 : 0.3;
-    g.audio.setMusicLevel(Math.max(0.12, city.paradeNear) * where);
+    g.audio.setMusicLevel((0.3 + 0.7 * city.paradeNear) * where);
   });
 
   // you wake up on the floor of the Dinosaur Hall
