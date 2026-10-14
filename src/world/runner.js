@@ -4,7 +4,7 @@ import { tex, paintingTexture, signTexture } from './textures.js';
 import { surface } from './surfaces.js';
 import * as P from './props.js';
 import { TRex, buildSkull, trexMats } from './trex.js';
-import { makeGuard } from './people.js';
+import { makeGuard } from './cast.js';
 import { mulberry32, damp, clamp, lerp } from '../core/util.js';
 import { batchStatic } from './batch.js';
 

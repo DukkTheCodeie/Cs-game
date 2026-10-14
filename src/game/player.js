@@ -22,8 +22,9 @@ export class Player {
 
     // flashlight
     const spot = (this.spot = new THREE.SpotLight(0xfff1d6, 0, 36, 0.48, 0.6, 1.2));
-    spot.position.set(0.18, -0.15, 0.1);
-    spot.target.position.set(0.05, -0.2, -6);
+    // (just beside your eye, aimed down the middle of the screen, so the beam lands where you look)
+    spot.position.set(0.06, -0.05, 0);
+    spot.target.position.set(0, 0, -10);
     spot.castShadow = true;
     spot.shadow.mapSize.set(1024, 1024);
     spot.shadow.bias = -0.0004;
@@ -91,7 +92,8 @@ export class Player {
       const z = -0.6 - ((c * 7 + t * 0.12 * (0.5 + a)) % 7);
       const r = Math.tan(0.4) * -z * Math.sqrt(b);
       const ang = a * Math.PI * 2 + t * 0.15 * (b - 0.5);
-      p.setXYZ(i, 0.1 + Math.cos(ang) * r + Math.sin(t * 0.7 + i) * 0.03, -0.15 + Math.sin(ang) * r * 0.9 + Math.cos(t * 0.5 + i * 1.3) * 0.03, z);
+      const k = 1 + z / 10; // (the beam's axis, from beside your eye to the middle of the screen)
+      p.setXYZ(i, 0.06 * k + Math.cos(ang) * r + Math.sin(t * 0.7 + i) * 0.03, -0.05 * k + Math.sin(ang) * r * 0.9 + Math.cos(t * 0.5 + i * 1.3) * 0.03, z);
     }
     p.needsUpdate = true;
   }

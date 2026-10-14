@@ -21,6 +21,7 @@ import { TOTAL_DONUTS, FRAGMENTS, DONUT_IDS } from './constants.js';
 import { VERSION } from '../version.js';
 import { openAdmin, devOn } from '../ui/admin.js';
 import { logEvent } from '../core/analytics.js';
+import { setCastStyle } from '../world/cast.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
 export { TOTAL_DONUTS };
@@ -28,7 +29,7 @@ export { TOTAL_DONUTS };
 function defaultSave() {
   return {
     chapter: null, reached: [], solved: {}, donuts: [], fragments: [], flags: {},
-    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal' },
+    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal', characters: 'mixed' },
   };
 }
 
@@ -187,6 +188,7 @@ export class Game {
     this.composer.setSize(innerWidth, innerHeight);
     this.useBloom = q === 'high';
     this.renderer.toneMappingExposure = s.brightness ?? 1.15;
+    setCastStyle(s.characters); // (the next level that's built uses it)
     this.player.spot.castShadow = q !== 'low';
     document.documentElement.style.setProperty('--sub-size', s.subtitles === 'large' ? '28px' : innerWidth < 720 ? '17px' : '22px');
     this.persist();

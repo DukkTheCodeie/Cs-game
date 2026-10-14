@@ -46,7 +46,9 @@ export class Station {
     this.t += dt;
     this.blinkT -= dt;
     if (this.blinkT < 0) { this.blink = 1; if (this.blinkT < -0.12) { this.blink = 0; this.blinkT = 2 + Math.random() * 3; } }
-    const target = this.speaking ? Math.abs(Math.sin(this.t * 17)) * (0.5 + Math.random() * 0.5) : 0;
+    // (with a recorded voice, the mouth follows how loud it is)
+    const lvl = this.speaking && this.voiceLevel ? this.voiceLevel() : null;
+    const target = !this.speaking ? 0 : lvl != null ? Math.min(1, lvl * 7) : Math.abs(Math.sin(this.t * 17)) * (0.5 + Math.random() * 0.5);
     this.talk += (target - this.talk) * Math.min(1, dt * 25);
     this.frame.classList.toggle('talking', this.speaking);
     drawAvatar(this.ctx, this.who, { t: this.t, talk: this.talk, mood: this.mood, blink: this.blink });
@@ -98,10 +100,11 @@ export class Dialogue {
   update(dt) {
     if (this.current) {
       this.typeT += dt;
-      const n = Math.min(this.fullText.length, Math.floor(this.typeT * 55 * this.speed()));
+      const n = Math.min(this.fullText.length, Math.floor(this.typeT * (this.typeCps || 55 * this.speed())));
       if (n !== this.shown) {
         this.shown = n;
         this.subText.textContent = this.fullText.slice(0, n);
+        this._scrollSub(); // (keep the newest words in view)
         this.sub.classList.toggle('done', n >= this.fullText.length);
       }
     }
@@ -128,6 +131,7 @@ export class Dialogue {
     g.audio.duck(true);
 
     const st = this.stationFor(who);
+    st.owner = token; // (a line that gets cut off only tidies up what's still its own)
     st.who = who;
     st.mood = mood;
     const name = nameOverride || SPEAKERS[who]?.name() || who.toUpperCase();
@@ -141,8 +145,10 @@ export class Dialogue {
     // *stage directions* show without the asterisks
     this.fullText = text.replace(/\*([^*]+)\*/g, '$1');
     this.typeT = 0;
+    this.typeCps = 0;
     this.shown = -1;
     this.subText.textContent = '';
+    this.subText.classList.remove('more');
     this.sub.classList.remove('done');
     this.sub.style.animation = 'none';
     void this.sub.offsetWidth;
@@ -163,18 +169,34 @@ export class Dialogue {
     const timeout = (s) => new Promise((r) => setTimeout(r, s * 1000));
 
     if (media?.type === 'line') {
-      st.setMode('video');
-      const v = st.video;
+      // a recording of this line: a video, or just a voice (then the cartoon, or your photo, talks along)
+      const voiceOnly = media.kind === 'audio';
+      let v;
+      if (voiceOnly) {
+        st.showFace(g.clips.face(who, mood));
+        st.speaking = true;
+        v = this._voiceEl();
+        st.voiceLevel = this.voiceLevel;
+      } else {
+        st.setMode('video');
+        st.speaking = false;
+        v = st.video;
+      }
+      const rate = this.speed(); // (the talking speed setting speeds up recordings too, same pitch)
       v.src = media.url;
       v.loop = false;
       v.muted = false;
       v.volume = Math.min(1, g.save.settings.master * 1.1);
       v.currentTime = 0;
-      st.speaking = false;
+      v.defaultPlaybackRate = v.playbackRate = rate;
+      v.owner = token;
+      // subtitles keep pace with the recording
+      v.onloadedmetadata = () => { if (v.duration > 0 && isFinite(v.duration)) this.typeCps = Math.max(10, (this.fullText.length / (v.duration / rate)) * 1.15); };
       const ended = new Promise((r) => { v.onended = r; v.onerror = r; });
       try { await v.play(); } catch (_) { v.muted = true; v.play().catch(() => {}); }
-      await Promise.race([ended, skipped, timeout(30)]);
-      v.pause();
+      await Promise.race([ended, skipped, timeout(90)]);
+      if (v.owner === token) v.pause();
+      if (st.owner === token) { st.speaking = false; st.voiceLevel = null; }
     } else {
       st.showFace(media);
       st.speaking = true;
@@ -198,6 +220,7 @@ export class Dialogue {
       if ('speechSynthesis' in window) speechSynthesis.cancel();
       st.speaking = false;
       this.subText.textContent = this.fullText;
+      this._scrollSub();
       this.sub.classList.add('done');
       if (!token.skipped) await Promise.race([timeout(hold / sp), skipped]);
     }
@@ -215,6 +238,36 @@ export class Dialogue {
       st.speaking = false;
       st.showFace(st === this.facecam ? null : this.game.clips.face(st.who, st.mood));
     }
+  }
+
+  // The player for recorded voices, run through an analyser so the cartoon's mouth can follow the voice.
+  _voiceEl() {
+    if (this.voice) return this.voice;
+    const a = (this.voice = new Audio());
+    this.voiceLevel = null;
+    const ctx = this.game.audio.ctx;
+    if (ctx) {
+      try {
+        const an = ctx.createAnalyser();
+        an.fftSize = 512;
+        ctx.createMediaElementSource(a).connect(an);
+        an.connect(ctx.destination);
+        const buf = new Float32Array(an.fftSize);
+        this.voiceLevel = () => {
+          an.getFloatTimeDomainData(buf);
+          let sum = 0;
+          for (let i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+          return Math.sqrt(sum / buf.length);
+        };
+      } catch (_) { /* (plays without the analyser) */ }
+    }
+    return a;
+  }
+
+  _scrollSub() {
+    const t = this.subText;
+    t.scrollTop = t.scrollHeight;
+    t.classList.toggle('more', t.scrollTop > 0);
   }
 
   // how fast people talk (Settings → Talking speed)
@@ -244,8 +297,13 @@ export class Dialogue {
 
   setPaused(p) {
     const v = this.facecam.video;
-    if (p) { v.pause(); if ('speechSynthesis' in window) speechSynthesis.pause(); }
-    else { if (this.current && v.src && !v.ended && this.facecam.frame.classList.contains('has-video')) v.play().catch(() => {}); if ('speechSynthesis' in window) speechSynthesis.resume(); }
+    const a = this.voice;
+    if (p) { v.pause(); a?.pause(); if ('speechSynthesis' in window) speechSynthesis.pause(); }
+    else {
+      if (this.current && v.src && !v.ended && this.facecam.frame.classList.contains('has-video')) v.play().catch(() => {});
+      if (this.current && a?.src && !a.ended && a.currentTime > 0) a.play().catch(() => {});
+      if ('speechSynthesis' in window) speechSynthesis.resume();
+    }
   }
 }
 

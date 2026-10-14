@@ -72,6 +72,10 @@ videos **in this repo** are used, so only you decide who's in the game.
   *"WHAT?! Who changed my password?!"*, plays with your own voice.
 * **One photo for everything:** `assets/clips/guard.jpg` (or `dev.jpg`, `aaron.jpg`, `mummy.jpg`).
 
+**Recording the dev's lines on your phone:** the Dev Line Booth (ask Claude for the link) shows each of the dev's
+lines like a teleprompter, records them with your phone's camera and sends them to Claude, who puts them in the game.
+When new dev lines are added, they show up there marked NEW.
+
 The full list of emotions to act, file names and lines is in [`assets/clips/README.md`](assets/clips/README.md),
 with steps for uploading on GitHub.
 

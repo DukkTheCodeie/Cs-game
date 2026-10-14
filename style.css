@@ -171,11 +171,13 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #subtitle[data-who='museos'] .sub-name { color: var(--mint); }
 #subtitle[data-who='mummy'] .sub-name { color: var(--sand); }
 #subtitle[data-who='museos'] .sub-text { font-family: var(--mono); font-size: calc(var(--sub-size) * 1.25); color: var(--mint); }
-.sub-text { font: 700 var(--sub-size) var(--body); line-height: 1.35; }
+.sub-text { display: block; font: 700 var(--sub-size) var(--body); line-height: 1.35; max-height: 8.2em; overflow: hidden; } /* (long lines scroll up as they're typed) */
+.sub-text.more { -webkit-mask-image: linear-gradient(transparent, #000 1.2em); mask-image: linear-gradient(transparent, #000 1.2em); }
 .sub-next { position: absolute; right: 14px; bottom: 8px; color: var(--gold); opacity: 0; animation: nextBlink 0.8s infinite; }
 #subtitle.done .sub-next { opacity: 1; }
 @keyframes nextBlink { 50% { transform: translateX(4px); } }
 #subtitle[data-place='tv'] { position: fixed; right: 5vw; bottom: calc(12vh + min(330px, 40vw) * 0.75 + 70px); max-width: min(400px, 44vw); }
+#subtitle[data-place='tv'] .sub-text { max-height: min(8.2em, max(4.1em, calc(88vh - min(330px, 40vw) * 0.75 - 150px))); }
 #subtitle[data-place='left'] { position: fixed; left: 258px; bottom: 120px; max-width: min(460px, 44vw); }
 #skip-btn { position: fixed; right: 22px; bottom: calc(9vh + 14px); z-index: 31; padding: 8px 16px; border-radius: 12px; border: 2px solid rgba(255, 255, 255, 0.25); background: rgba(0, 0, 0, 0.6); color: #ddd; font: 800 14px var(--body); cursor: pointer; }
 #skip-btn small { opacity: 0.6; margin-left: 6px; }
@@ -396,6 +398,7 @@ body:has(.computer-modal) #dialogue { padding-bottom: 14px; }
 .setting input[type='range'] { width: 100%; accent-color: var(--gold); }
 .setting select { background: #111; color: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 6px; font: 700 15px var(--body); }
 .setting .val { color: var(--dim); text-align: right; }
+.setting .note { display: block; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--dim); }
 .chapters { display: grid; gap: 10px; }
 .chapter-btn { text-align: left; display: flex; justify-content: space-between; }
 .chapter-btn.locked { opacity: 0.35; pointer-events: none; }

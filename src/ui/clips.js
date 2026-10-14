@@ -2,29 +2,36 @@ import { LINES, SPEAKER_EMOTIONS } from '../game/script.js';
 
 // Your clips and photos come ONLY from files in the repo (assets/clips/), so only people who can
 // change the repo (you) can put things in the game. For each line, the first match wins:
-//   1. assets/clips/<lineId>.mp4        you saying that line (plays with its own sound)
+//   1. assets/clips/<lineId>.mp4        you saying that line (plays with its own sound), or
+//      assets/clips/<lineId>.mp3        just your voice (the cartoon or your photo talks along)
 //   2. assets/clips/<who>-<emotion>.mp4 a short reaction for that emotion (plays muted, looped)
 //   3. assets/clips/<who>-<emotion>.jpg a photo of you making that face
 //   4. assets/clips/<who>.jpg           your normal photo
 //   5. the cartoon, making that face
-// Videos: .mp4 / .webm / .mov · photos: .jpg / .jpeg / .png / .webp
+// Videos: .mp4 / .webm / .mov · voice only: .mp3 / .m4a · photos: .jpg / .jpeg / .png / .webp
 
 export const CLIP_DIR = 'assets/clips/';
+// the one-file build (locked-out.html) carries its clips inside it, as { 'dev01.mp4': 'data:...' }
+const PACKED = (typeof window !== 'undefined' && window.LOCKED_OUT_CLIPS) || null;
 const VIDEO_EXTS = ['mp4', 'webm', 'mov'];
+const AUDIO_EXTS = ['mp3', 'm4a'];
 const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'webp'];
+// what to look for: a line is a video or, failing that, just a voice
+const LOOK = { video: VIDEO_EXTS.map((e) => [e, 'video']), img: IMAGE_EXTS.map((e) => [e, 'img']), line: [...VIDEO_EXTS.map((e) => [e, 'video']), ...AUDIO_EXTS.map((e) => [e, 'audio'])] };
 export const ACTORS = ['guard', 'dev', 'aaron', 'mummy'];
 
 function probe(url, kind) {
   return new Promise((resolve) => {
     let done = false;
-    const el = document.createElement(kind === 'video' ? 'video' : 'img');
+    const media = kind === 'video' || kind === 'audio';
+    const el = document.createElement(kind === 'img' ? 'img' : kind);
     const fin = (ok) => {
       if (done) return;
       done = true;
-      if (kind === 'video') { el.removeAttribute('src'); try { el.load(); } catch (_) { /* ignore */ } }
+      if (media) { el.removeAttribute('src'); try { el.load(); } catch (_) { /* ignore */ } }
       resolve(ok);
     };
-    if (kind === 'video') {
+    if (media) {
       el.preload = 'metadata';
       el.muted = true;
       el.onloadedmetadata = () => fin(true);
@@ -54,16 +61,23 @@ export class ClipLibrary {
     };
     faces('dev'); // the menu TV shows up first
     for (const who of ACTORS) if (who !== 'dev') faces(who);
-    for (const id of Object.keys(LINES)) jobs.push(() => this._find(`line:${id}`, id, 'video'));
+    for (const id of Object.keys(LINES)) jobs.push(() => this._find(`line:${id}`, id, 'line'));
     let i = 0;
     const worker = async () => { while (i < jobs.length) await jobs[i++](); };
     Promise.all([worker(), worker(), worker(), worker(), worker(), worker()]).then(() => this._emit());
   }
 
-  _find(key, base, kind) {
+  _find(key, base, look) {
     if (!this.probes[key]) {
       this.probes[key] = (async () => {
-        for (const ext of kind === 'video' ? VIDEO_EXTS : IMAGE_EXTS) {
+        for (const [ext, kind] of LOOK[look]) {
+          if (PACKED) { // (nothing to look for next to a single file)
+            const url = PACKED[`${base}.${ext}`];
+            if (!url) continue;
+            this.found[key] = { url, kind };
+            this._emit();
+            return this.found[key];
+          }
           const url = `${CLIP_DIR}${base}.${ext}`;
           if (await probe(url, kind)) {
             this.found[key] = { url, kind };
@@ -79,7 +93,7 @@ export class ClipLibrary {
 
   _candidates(id, who, mood) {
     const c = [];
-    if (id) c.push([`line:${id}`, id, 'video', 'line']);
+    if (id) c.push([`line:${id}`, id, 'line', 'line']);
     if (ACTORS.includes(who)) {
       c.push([`emovid:${who}-${mood}`, `${who}-${mood}`, 'video', 'emotion']);
       c.push([`emoimg:${who}-${mood}`, `${who}-${mood}`, 'img', 'emotion']);
