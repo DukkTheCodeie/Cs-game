@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { makeCanvas, canvasTexture } from './textures.js';
 import { mulberry32 } from '../core/util.js';
+import { npcsAreNew } from './cast.js';
 
 // THE CITY OUTSIDE the City Museum of Natural History: what you see through the lobby's south windows
 // and doors (and, in the morning, from the plaza out front).
@@ -667,34 +668,55 @@ function partGeo(list) {
   });
   return mergeGeometries(parts, false);
 }
-const PARTS = {};
-function personParts() {
-  if (PARTS.torso) return PARTS;
+// two sets of body parts, like the two looks of people.js / people-classic.js (the "Characters" setting)
+const PART_SETS = {};
+function personParts(fresh) {
+  const key = fresh ? 'new' : 'classic';
+  if (PART_SETS[key]) return PART_SETS[key];
+  const PARTS = (PART_SETS[key] = {});
   // (a little lower-poly than people.js: limbs are 6-sided, and there can be 60 of them on screen)
   const caps = (r, l, c, n) => baseGeo(`caps${r}_${l}_${c}_${n}`, () => new THREE.CapsuleGeometry(r, l, c, n));
   const limb = (r, l) => baseGeo(`limb${r}_${l}`, () => new THREE.CylinderGeometry(r, r * 0.88, l + r * 1.3, 6));
-  const hair = baseGeo('hair', () => new THREE.SphereGeometry(0.145, 9, 3, 0, TAU, 0, PI * 0.55));
-  const quad = GEO.plane();
+  // hair: a cap that stops at the forehead, and a back-and-sides piece that comes down to the ears
+  const hairTop = baseGeo('hairTop', () => new THREE.SphereGeometry(0.145, 10, 3, 0, TAU, 0, PI * 0.36));
+  const hairBack = baseGeo('hairBack', () => new THREE.SphereGeometry(0.145, 9, 4, PI * 0.8, PI * 1.4, 0, PI * 0.62));
+  const smile = baseGeo('smile', () => new THREE.SphereGeometry(0.5, 8, 3, 0, TAU, PI / 2, PI / 2));
   PARTS.torso = partGeo([
     [caps(0.18, 0.3, 1, 8), S_SHIRT, null, 0, 0.27, 0, 1.05, 1, 0.72],
     [GEO.box(), 0, 0x111111, 0, 0.02, 0, 0.36, 0.06, 0.24],
     [GEO.cyl(5), S_SKIN, null, 0, 0.6, 0, 0.115, 0.1, 0.115],
     [GEO.box(), S_PANTS, null, 0, -0.08, 0, 0.34, 0.2, 0.21],
   ]);
-  const head = [
+  // the new face matches people.js: dark eyes with a glint, brows, a nose and a little half-moon smile
+  const quad = GEO.plane();
+  const head = fresh ? [
+    [GEO.sph(9, 7), S_SKIN, null, 0, 0.12, 0, 0.27 * 0.95, 0.27 * 1.08, 0.27],
+    ...[-1, 1].flatMap((s) => [
+      [GEO.sph(6, 4), 0, 0x1c1820, s * 0.046, 0.135, 0.121, 0.022, 0.03, 0.014, 0, s * 0.33, 0],
+      [GEO.sph(4, 3), 0, 0xffffff, s * 0.046 + 0.006, 0.143, 0.127, 0.007, 0.007, 0.007],
+      [GEO.box(), S_HAIR, null, s * 0.047, 0.178, 0.112, 0.042, 0.01, 0.012, 0, s * 0.35, s * -0.08],
+    ]),
+    [GEO.sph(5, 4), S_SKIN, null, 0, 0.1, 0.133, 0.04, 0.044, 0.04],
+    [smile, 0, 0x5a2028, 0, 0.078, 0.124, 0.05, 0.026, 0.02, 0.42, 0, 0],
+    [hairTop, S_HAIR, null, 0, 0.13, -0.012],
+    [hairBack, S_HAIR, null, 0, 0.13, -0.012],
+  ] : [
     [GEO.sph(9, 7), S_SKIN, null, 0, 0.12, 0, 0.27 * 0.95, 0.27 * 1.08, 0.27],
     [quad, 0, 0x111111, -0.048, 0.14, 0.137, 0.034, 0.038, 1],
     [quad, 0, 0x111111, 0.048, 0.14, 0.137, 0.034, 0.038, 1],
     [GEO.ico(0), S_SKIN, null, 0, 0.1, 0.135, 0.046, 0.046, 0.046],
     [quad, 0, 0x5a2a2a, 0, 0.055, 0.126, 0.05, 0.014, 1],
-    [hair, S_HAIR, null, 0, 0.13, -0.012],
+    [hairTop, S_HAIR, null, 0, 0.13, -0.012],
+    [hairBack, S_HAIR, null, 0, 0.13, -0.012],
   ];
   PARTS.headS = partGeo(head);
-  PARTS.headL = partGeo([...head, [GEO.box(), S_HAIR, null, 0, 0, -0.09, 0.26, 0.28, 0.08]]);
+  PARTS.headL = partGeo([...head, fresh ? [GEO.sph(8, 5), S_HAIR, null, 0, 0.03, -0.07, 0.27, 0.34, 0.13] : [GEO.box(), S_HAIR, null, 0, 0, -0.09, 0.26, 0.28, 0.08]]);
   PARTS.uarm = partGeo([[limb(0.058, 0.2), S_SHIRT, null, 0, -0.14, 0]]);
-  PARTS.farm = partGeo([[limb(0.052, 0.19), S_SLEEVE, null, 0, -0.13, 0], [GEO.ico(0), S_SKIN, null, 0, -0.28, 0, 0.12, 0.12, 0.12]]);
+  PARTS.farm = partGeo([[limb(0.052, 0.19), S_SLEEVE, null, 0, -0.13, 0], fresh ? [GEO.sph(6, 4), S_SKIN, null, 0, -0.28, 0, 0.11, 0.12, 0.1] : [GEO.ico(0), S_SKIN, null, 0, -0.28, 0, 0.12, 0.12, 0.12]]);
   PARTS.thigh = partGeo([[limb(0.075, 0.3), S_PANTS, null, 0, -0.21, 0]]);
-  PARTS.shin = partGeo([[limb(0.066, 0.3), S_PANTS, null, 0, -0.2, 0], [GEO.box(), 0, 0x151515, 0, -0.42, 0.05, 0.11, 0.07, 0.25]]);
+  PARTS.shin = partGeo([[limb(0.066, 0.3), S_PANTS, null, 0, -0.2, 0], ...(fresh
+    ? [[GEO.sph(8, 5), S_ACC, null, 0, -0.415, 0.045, 0.115, 0.08, 0.25], [GEO.cyl(10), 0, 0xe9e4da, 0, -0.443, 0.05, 0.125, 0.026, 0.265]] // a sneaker in the accent color on a light sole
+    : [[GEO.box(), 0, 0x151515, 0, -0.42, 0.05, 0.11, 0.07, 0.25]])]);
   // things people wear and carry
   const coneB = baseGeo('bellcone', () => new THREE.ConeGeometry(0.5, 1, 12, 1, true));
   const taper = baseGeo('shakoBody', () => new THREE.CylinderGeometry(0.46, 0.5, 1, 12));
@@ -2311,7 +2333,7 @@ if (slot > 0.5) {
 }`);
     };
     mat.customProgramCacheKey = () => 'city-crowd';
-    const PG = personParts();
+    const PG = personParts(npcsAreNew());
     const N = 96;
     const mk = (name, max) => {
       const geo = PG[name].clone();

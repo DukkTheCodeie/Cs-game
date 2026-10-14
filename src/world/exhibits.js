@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { box, mat, MATS, shadowAll, makeTriceratopsSkull } from './props.js';
 import { makeCanvas, canvasTexture, signTexture, paintingTexture } from './textures.js';
 import { mulberry32 } from '../core/util.js';
-import { Person } from './people.js';
+import { makeNpc, npcsAreNew } from './cast.js';
 import { drawGlyph } from './glyphs.js';
 
 // More things to look at in every room: hanging flying reptiles, fossil slabs, a dig site, a gift shop,
@@ -518,7 +518,7 @@ export function makeHangingSign(text, w = 2.6, h = 0.6, colors = ['#14100c', '#e
 // ------------------------------------------------------------------ statues (people, carved in marble)
 export function makeStatue(pose = 'point', seed = 1, tone = 0xece6da, name = '') {
   const r = mulberry32(seed);
-  const p = new Person({ hairStyle: r() < 0.5 ? 'short' : 'long', sleeves: 'long', scale: 1.05 });
+  const p = makeNpc({ hairStyle: r() < 0.5 ? 'short' : 'long', sleeves: 'long', scale: 1.05 });
   p.setMode(pose);
   for (let i = 0; i < 30; i++) p.update(0.05);
   const marble = mat('statue' + tone, { color: tone, roughness: 0.4 });
@@ -547,19 +547,20 @@ export function makeStatue(pose = 'point', seed = 1, tone = 0xece6da, name = '')
 
 // A Roman legionary on a stand: red tunic, bronze helmet, a big curved shield and a spear.
 export function makeLegionary() {
-  const p = new Person({ shirt: 0x9c1c1c, pants: 0x9c1c1c, skin: 0xd9b38c, hairStyle: 'short', sleeves: 'short' });
+  const p = makeNpc({ shirt: 0x9c1c1c, pants: 0x9c1c1c, skin: 0xd9b38c, hairStyle: 'short', sleeves: 'short' });
+  const fresh = npcsAreNew(); // (the new heads and bodies are a bit rounder)
   p.update(0);
   const g = new THREE.Group();
   g.add(box(0.9, 0.12, 0.9, MATS.darkWood()));
   p.group.position.y = 0.12;
   g.add(p.group);
   const bronze = MATS.bronze();
-  const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), bronze);
-  helmet.position.set(0, 1.84, 0);
+  const helmet = new THREE.Mesh(new THREE.SphereGeometry(fresh ? 0.2 : 0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), bronze);
+  helmet.position.set(0, fresh ? 1.88 : 1.84, 0);
   g.add(helmet);
-  const crest = box(0.04, 0.12, 0.3, MATS.red(), 0, 1.98, 0);
+  const crest = box(0.04, 0.12, 0.3, MATS.red(), 0, fresh ? 2.11 : 1.98, 0);
   g.add(crest);
-  g.add(box(0.36, 0.3, 0.24, bronze, 0, 1.3, 0)); // breastplate
+  g.add(fresh ? box(0.38, 0.32, 0.3, bronze, 0, 1.3, 0) : box(0.36, 0.3, 0.24, bronze, 0, 1.3, 0)); // breastplate
   // the scutum: a curved red shield with a golden boss
   const sg = new THREE.CylinderGeometry(0.75, 0.75, 1.05, 16, 1, true, -0.45, 0.9);
   const shield = new THREE.Mesh(sg, mat('scutum', { color: 0x8a1022, roughness: 0.6, side: THREE.DoubleSide }));

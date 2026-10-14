@@ -4,7 +4,7 @@ import { tex, signTexture, makeCanvas, canvasTexture, plaqueTexture } from './te
 import { surface } from './surfaces.js';
 import * as P from './props.js';
 import { TRex, trexMount } from './trex.js';
-import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
+import { makeGuard, makeVisitor, makeMummy, makeAaron } from './cast.js';
 import { drawGlyph, drawNumeral, GLYPH_KEYS } from './glyphs.js';
 import { drawCCTV } from './screens.js';
 import { mulberry32, lerp } from '../core/util.js';
@@ -1679,7 +1679,6 @@ export class Museum extends Level {
   }
 
   makeAaron() {
-    const a = new Person({ shirt: 0x8fb3e0, pants: 0x1b2440, cap: true, badge: true, nameTag: true, hair: 0x111111, skin: 0xc68e64 });
-    return a;
+    return (this.aaron = makeAaron());
   }
 }

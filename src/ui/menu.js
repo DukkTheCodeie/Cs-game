@@ -35,7 +35,7 @@ export class Menu {
     const idle = () => { if (this.speaker && !this.game.dialogue.current) st.showFace(this.game.clips.face('dev', st.mood)); };
     idle();
     this._offClips = this.game.clips.onChange(idle);
-    const POKES = ['dev06', 'dev07', 'dev36', 'dev08', 'dev09', 'dev38', 'dev11', 'dev39', 'dev13', 'dev40', 'dev14', 'dev41', 'dev15', 'dev42', 'dev16', 'dev43', 'dev44', 'dev45', 'dev37', 'dev46', 'dev47', 'dev48', 'dev49', 'dev12'];
+    const POKES = ['dev06', 'dev36', 'dev08', 'dev09', 'dev38', 'dev11', 'dev39', 'dev13', 'dev41', 'dev15', 'dev16', 'dev44', 'dev45', 'dev46', 'dev47', 'dev48', 'dev49', 'dev12'];
     sp.addEventListener('click', () => {
       if (this.busy || this.game.dialogue.current) return;
       this.game.audio.play('static', { dur: 0.15 });
@@ -117,12 +117,9 @@ export class Menu {
       save.flags.devDonuts = true;
       g.persist();
       setTimeout(() => this.open && !this.busy && g.say('dev18'), 1200);
-    } else if (save.flags.seenVersion !== VERSION) {
-      setTimeout(() => this.open && !this.busy && g.say('dev30'), 1200);
-    } else if (Math.random() < 0.4) {
+    } else if (save.flags.seenVersion === VERSION && Math.random() < 0.4) {
       // just coming back to the menu
-      const id = ['dev53', 'dev54'][Math.floor(Math.random() * 2)];
-      setTimeout(() => this.open && !this.busy && !g.dialogue.current && g.say(id), 1500);
+      setTimeout(() => this.open && !this.busy && !g.dialogue.current && g.say('dev54'), 1500);
     }
     save.flags.seenVersion = VERSION;
     g.persist();
@@ -157,7 +154,6 @@ export class Menu {
     else if (act === 'settings') this.settings(() => {
       const s = g.save.settings;
       if (s.voice === 'off') this.quip('dev27');
-      else if (s.talkSpeed === 'faster') this.quip('dev51');
       else if (s.quality === 'low') this.quip('dev28');
       else this.quip('dev20');
     });
@@ -203,7 +199,7 @@ export class Menu {
         g.audio.play('buzz');
         input.value = '';
         input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
-        this.quip(this.quipped?.has('dev35') ? 'dev55' : 'dev35');
+        this.quip('dev35');
         return;
       }
       m.close();
@@ -250,8 +246,8 @@ export class Menu {
       inp.oninput = () => { s[key] = Number(inp.value); $('.val', row).textContent = fmt(s[key]); g.applySettings(); };
       box.append(row);
     };
-    const select = (key, label, opts) => {
-      const row = el('div', 'setting', `<span>${label}</span><select>${opts.map(([v, t]) => `<option value="${v}" ${String(s[key]) === String(v) ? 'selected' : ''}>${t}</option>`).join('')}</select><span></span>`);
+    const select = (key, label, opts, note = '') => {
+      const row = el('div', 'setting', `<span>${label}${note ? `<small class="note">${note}</small>` : ''}</span><select>${opts.map(([v, t]) => `<option value="${v}" ${String(s[key]) === String(v) ? 'selected' : ''}>${t}</option>`).join('')}</select><span></span>`);
       const sel = $('select', row);
       sel.onchange = () => { const v = sel.value; s[key] = v === 'true' ? true : v === 'false' ? false : v; g.applySettings(); g.audio.play('click'); };
       box.append(row);
@@ -262,6 +258,7 @@ export class Menu {
     select('voice', 'Character voices', [['tts', 'Robot voices (text-to-speech)'], ['babble', 'Cute beeps'], ['off', 'Off (subtitles only)']]);
     select('subtitles', 'Subtitles', [['medium', 'On'], ['large', 'Large'], ['off', 'Off']]);
     select('talkSpeed', 'Talking speed', [['normal', 'Normal'], ['fast', 'Fast'], ['faster', 'Faster']]);
+    select('characters', 'Characters', [['mixed', 'New guard, Aaron + mummy (default)'], ['new', 'All new'], ['classic', 'All classic']], 'Changes from the next chapter you start');
     range('sensitivity', 'Mouse sensitivity', 0.2, 3, 0.1, (v) => v.toFixed(1) + '×');
     select('invertY', 'Invert mouse Y', [[false, 'No'], [true, 'Yes']]);
     range('fov', 'Field of view', 60, 100, 1, (v) => v + '°');

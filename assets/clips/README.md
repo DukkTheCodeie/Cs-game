@@ -30,16 +30,16 @@ One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
-| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 14 |
-| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 2 |
-| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 6 |
+| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 10 |
+| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 1 |
+| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 4 |
 | 🤔 **Confused** | Squint and tilt your head. "Huh?" | `dev-confused.jpg` | `dev-confused.mp4` | 4 |
-| 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 7 |
+| 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 6 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `dev-angry.jpg` | `dev-angry.mp4` | 3 |
 | 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `dev-shocked.jpg` | `dev-shocked.mp4` | 5 |
 | 😱 **Scared** | Hands on your cheeks. Silent scream. | `dev-scared.jpg` | `dev-scared.mp4` | 2 |
 | 😢 **Sad** | Big pout. Fake cry. | `dev-sad.jpg` | `dev-sad.mp4` | 5 |
-| 😴 **Sleepy** | Huge yawn, eyes half closed. | `dev-sleepy.jpg` | `dev-sleepy.mp4` | 5 |
+| 😴 **Sleepy** | Huge yawn, eyes half closed. | `dev-sleepy.jpg` | `dev-sleepy.mp4` | 3 |
 
 One photo for everything: `dev.jpg` (used for any emotion you didn't make).
 
@@ -75,9 +75,11 @@ One photo for everything: `mummy.jpg` (used for any emotion you didn't make).
 
 Want your real voice? Record yourself saying a line and name the video after the line's **id** (left column below),
 for example `guard05.mp4`. It plays **with sound** instead of the robot voice, for that line only.
+Just your voice works too: `guard05.mp3` (then the cartoon, or your photo, talks along).
+The dev's lines are easiest to record on your phone in the Dev Line Booth (ask Claude for the link).
 
 **Which one is used?** For each line the game picks the first one it finds:
-1. `<line id>.mp4` — you saying that line
+1. `<line id>.mp4` — you saying that line (or `<line id>.mp3`, just your voice)
 2. `<who>-<emotion>.mp4` — your silent reaction video for that emotion
 3. `<who>-<emotion>.jpg` — your photo making that face
 4. `<who>.jpg` — your normal photo
@@ -165,59 +167,49 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 
 | File name | Emotion | Line |
 |---|---|---|
-| `dev01.mp4` | 😄 Happy | Oh hey! Welcome to my game. I made it myself. It's really good, I promise. |
+| `dev01.mp4` | 😄 Happy | Oh hey! Welcome to my game. Made it myself. It's really good, brother. You should, like, play it. You should press that big PLAY button right there. Truly. Press it. |
 | `dev02.mp4` | 😢 Sad | Bro, I was up all night making this. |
-| `dev03.mp4` | 😠 Angry | HELL NAW. |
+| `dev03.mp4` | 😠 Angry | Aw, HELL no, boy! |
 | `dev04.mp4` | 😠 Angry | GET OUT OF MY GAME! |
-| `dev05.mp4` | 😒 Annoyed | ...Oh. You're back. Fine. You can play it again. But NO complaining. |
+| `dev05.mp4` | 😒 Annoyed | Oh. You're back. Okay, fine. You can play again. Just don't complain this time, you little dingle chub. |
 | `dev06.mp4` | 😒 Annoyed | Stop poking the TV. |
-| `dev07.mp4` | 😄 Happy | Psst. There's a MUMMY in this game now. I made it at three in the morning. |
-| `dev08.mp4` | 🤔 Confused | Why do you keep clicking me? I'm a TV. ...Kind of. |
-| `dev09.mp4` | 😄 Happy | Fun fact: I made every sound in this game with code. Even the munching. |
-| `dev11.mp4` | 🤤 Hungry | Got any donuts? Asking for a friend. The friend is me. |
-| `dev12.mp4` | 😒 Annoyed | Okay, that's a LOT of pokes. I'm counting, you know. |
+| `dev08.mp4` | 🤔 Confused | Why do you keep clicking on my monitor? Stop! It's annoying. |
+| `dev09.mp4` | 😄 Happy | Fun fact: I made every line in this game with code. Like, I wrote it all. So, like, even the munching of you, you fatty, eating the dang donuts. Fatty. |
+| `dev11.mp4` | 🤤 Hungry | Got any donuts? I'm asking for a friend. That friend is me. |
+| `dev12.mp4` | 😒 Annoyed | That is a LOT of pokes. I'm counting, you know. That's like, at least two. |
 | `dev13.mp4` | 😱 Scared | Please don't tell the T-Rex where I live. |
-| `dev14.mp4` | 😴 Sleepy | I made this game at three in the morning. It's still three in the morning. Help. |
-| `dev15.mp4` | 😲 Shocked | Wait, have you found the secret rooms? There are EIGHT of them! |
+| `dev15.mp4` | 😲 Shocked | Wait, have you found the secret rooms? There's like EIGHT of them. That's at least two. |
 | `dev16.mp4` | 😢 Sad | Nobody ever reads the plaques. I wrote SO many plaques. |
-| `dev17.mp4` | 😒 Annoyed | You fell asleep? In MY game? ...Rude. Try again. |
-| `dev18.mp4` | 😲 Shocked | You found ALL the donuts?! Even I can't do that. And I hid them! |
-| `dev19.mp4` | 😴 Sleepy | ...So are you gonna press play, or are we just staring at each other? |
-| `dev20.mp4` | 😄 Happy | Did you turn the music up? Turn it up. I worked really hard on that music. |
-| `dev21.mp4` | 😄 Happy | Hey, you found one of my secret rooms! Take the donut. I insist. |
-| `dev23.mp4` | 😢 Sad | Aww. Sweet dreams, little guard. Don't worry, it's almost morning. |
-| `dev24.mp4` | 😎 Cool | Pro tip: you can sprint. It burns donuts, though. Just like real life. |
-| `dev25.mp4` | 😄 Happy | Did you see my name in the credits? I put it there myself. Very proud of it. |
-| `dev26.mp4` | 🤔 Confused | Back already? The museum misses you. Well, the T-Rex does. |
-| `dev27.mp4` | 😒 Annoyed | You turned the voices off? ...Fine. I will just type REALLY loudly. |
-| `dev28.mp4` | 😢 Sad | Fast graphics? My beautiful cylinders... they look so blurry now. |
-| `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap. Wake me up when you press play. |
-| `dev30.mp4` | 😄 Happy | New in this version: sixteen new posters, the archives are different every time, and people talk faster. Plus some secret dev stuff. Shh. |
-| `dev34.mp4` | 😎 Cool | Oh hey, me. Dev mode's on. Everything's unlocked. Don't tell the players. |
-| `dev35.mp4` | 😠 Angry | Nice try. That's not the code. I'd know, I made it up. |
-| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over fifty thousand triangles. I counted. Well, the computer counted. |
-| `dev37.mp4` | 😎 Cool | The poster in the archives is different every time. I drew SIXTEEN of them. You're welcome. |
+| `dev17.mp4` | 😒 Annoyed | You fell asleep? In MY game? How rude. |
+| `dev18.mp4` | 😲 Shocked | What? You found ALL the donuts? I can't even do that, and I ate th- hid them. HID them. |
+| `dev19.mp4` | 😴 Sleepy | So are you gonna press the big goddamn play button? Or are you just gonna be stuck here looking at my hunter eyes? Look me in my hunter eyes! |
+| `dev20.mp4` | 😄 Happy | Did you turn the music up? I worked really hard making that music. I'm quite literally... contrast. All right? And if you don't turn that gosh dang music up, you're gonna be bu-bu-bugging. |
+| `dev21.mp4` | 😄 Happy | Oh hey! You found one of my secret rooms! Take the donut, fatty. I insist! |
+| `dev23.mp4` | 😢 Sad | Sweet dreams, little guard. It's almost morning. |
+| `dev24.mp4` | 😎 Cool | Pro tip: you can sprint, but it burns donuts, though. Just like in real life. Maybe you should be sprinting more, fatty. |
+| `dev25.mp4` | 😄 Happy | Did you see my name in the credits? Uh, Hudson Saunders? Yeah, put it there myself. And I'm very proud of it. Okay, so you better look at it. Right? You'll be like, "Oh my gosh, is that really the big H? Hudson S-A-U-N-D-E-R-S Saunders?" Oh my gosh. I feel like I'm in his otherworldly presence right now. It's amazing. I can almost feel his six-foot-tall dread-head aura washing over me. |
+| `dev26.mp4` | 🤔 Confused | Back already? Then you're really bad at this game. |
+| `dev27.mp4` | 😒 Annoyed | You turned the voices off? Fine. I'll just type REALLY loudly. |
+| `dev28.mp4` | 😢 Sad | Fast graphics? What do you want, a potato? My beautiful cylinders... they look like hexagons. |
+| `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap, so wake me up when you press play. |
+| `dev34.mp4` | 😎 Cool | Oh hey, it's me, playing my game. While dev mode's on. Don't tell the players. |
+| `dev35.mp4` | 😠 Angry | Yeah, bud, nice try. I know that's not the code. You wanna know how? 'Cause I made it. |
+| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fatty. |
 | `dev38.mp4` | 🤔 Confused | Have you tried turning the T-Rex off and on again? |
-| `dev39.mp4` | 😄 Happy | This whole game runs in your browser. No downloads. I'm basically a wizard. |
-| `dev40.mp4` | 🤤 Hungry | My favorite donut? Pink frosting, rainbow sprinkles. Look at the logo. It was never a choice. |
-| `dev41.mp4` | 😒 Annoyed | If you see a bug, it's a feature. If you see a REAL bug, that's the museum's problem. |
-| `dev42.mp4` | 😄 Happy | Say hi to Aaron for me. He has no idea he is in a video game. |
-| `dev43.mp4` | 😴 Sleepy | I've had four energy drinks. My code has never been faster. My hands are shaking. |
-| `dev44.mp4` | 😱 Scared | Every time I close the game, the T-Rex moves a little. I'm not joking. Check the cameras. |
-| `dev45.mp4` | 😎 Cool | The mummy's on a strict diet. Ancient grains only. Donuts don't count, apparently. |
-| `dev46.mp4` | 😲 Shocked | Wait, the archives are different every single time now?! ...Oh. Right. I did that. |
-| `dev47.mp4` | 😄 Happy | There is a talking speed setting now. So I can talk REALLY fast. Like this. Wow. Efficient. |
-| `dev48.mp4` | 🤔 Confused | Is it weird that I'm in my own game? It's weird. Don't think about it too hard. |
-| `dev49.mp4` | 😢 Sad | Someone said the parade was too long. It's a PARADE. Being long is the whole point. |
-| `dev50.mp4` | 😄 Happy | Pick any chapter you've reached. Chapter four is my favorite. Don't tell the other chapters. |
-| `dev51.mp4` | 😎 Cool | Faster talking? Say less. Literally. I will say less. Per second. You know what I mean. |
-| `dev52.mp4` | 😴 Sleepy | ...zzz... five more minutes... zzz... no, the T-Rex can wait... zzz... |
-| `dev53.mp4` | 😄 Happy | Welcome back! The donuts missed you. I did not eat any. Okay, I ate some. |
-| `dev54.mp4` | 😎 Cool | Oh hey, it's you again. Good. The museum's been way too quiet. |
-| `dev55.mp4` | 😒 Annoyed | Ask your teacher for the dev code. Actually, no. Do NOT ask your teacher for the dev code. |
-| `dev33.mp4` | 😄 Happy | Oh, you found my parade! I built every float myself. The donut one is my favorite. Obviously. |
-| `dev32.mp4` | 😲 Shocked | You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again. |
-| `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game? And you came BACK? You must really like donuts. |
+| `dev39.mp4` | 😄 Happy | This whole game runs in your browser. No download needed. I'm basically a wizard. |
+| `dev41.mp4` | 😒 Annoyed | If you find a bug, it's a feature. If you find a REAL bug, maybe you should clean your room, with all that food in it, fatty. |
+| `dev44.mp4` | 😱 Scared | Every time I close and reopen the game, the T-Rex moves a little. Scary. I think it's coming for your mama. |
+| `dev45.mp4` | 😎 Cool | The mummy is on a strict diet. Ancient grains only. I think you should join him, fatty. |
+| `dev46.mp4` | 😲 Shocked | Wait, the archives are different every single time now? Oh wait, I just remembered. I did that. 'Cause I'm Megamind. |
+| `dev47.mp4` | 😄 Happy | In the game there's a talking speed setting, so now I can talk really, really fast, like this. I'm talking so fast. Supersonic speed. Uh... I'm superhuman. |
+| `dev48.mp4` | 🤔 Confused | Is it weird that I'm in my own game? Oh wait, I made it, and I'm the best. So, uh, no, it's not weird. And I'm the GOAT. I'm the aura farmer. |
+| `dev49.mp4` | 😢 Sad | Someone said that the parade is too long. Like, brother. It's a PARADE. That's the whole point! |
+| `dev50.mp4` | 😄 Happy | Pick a chapter, any chapter. My favorite chapter is chapter four. Don't tell the other chapters. |
+| `dev52.mp4` | 😴 Sleepy | Mmm... no, no... five more minutes... the T-Rex can wait, Mom... wait... |
+| `dev54.mp4` | 😎 Cool | Oh, you're back! The museum's been real quiet since you left. I've been talking to the dino, but... I'm scared he's gonna start talking back. |
+| `dev33.mp4` | 😄 Happy | Oh, you found the parade! Yeah, I made it myself. Not to brag, but I'm lowkey the GOAT. And look at the end, 'cause I think you're gonna get something you like, all right? Trash cleaning. 'Cause you need to clean up the trash, fatty. |
+| `dev32.mp4` | 😲 Shocked | You got EATEN by my T-Rex? Looking at you, I'm surprised you didn't eat HIM! |
+| `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game, and you came BACK? You must really like donuts, fatty. |
 
 ## 🧢 Aaron
 

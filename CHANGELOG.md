@@ -4,6 +4,21 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.0 — 2026-10-14
+
+- **The dev talks with a real voice.** All 43 of the dev's lines are recorded, and the cartoon face on the
+  TV moves its mouth with the voice. The subtitles match what's actually said in the recordings (a lot of
+  lines changed), and the 10 lines that weren't recorded are gone.
+- **New characters:** the guard, Aaron and the mummy are rebuilt: rounder bodies, faces with eyes, brows
+  and a smile, proper shoes, and a walk where feet don't slide. Visitors can get the new look too.
+- **Characters setting:** *New guard, Aaron + mummy* (the default, with the classic visitors), *All new*,
+  or *All classic*. It changes from the next chapter you start.
+- **The flashlight shines where you look,** right in the middle of the screen.
+- Long lines scroll in the speech bubble instead of running off the screen, and the *Talking speed* setting
+  speeds up recorded lines too.
+- The people outside no longer have their hair over their faces.
+- Behind the scenes: the **Dev Line Booth**, a page for recording the dev's lines on a phone.
+
 ## v0.5.0 — 2026-10-14
 
 - **16 posters** for the torn-poster puzzle in the archives, a different one each time (dinosaurs,

@@ -46,9 +46,11 @@ md += `### Tips
 
 Want your real voice? Record yourself saying a line and name the video after the line's **id** (left column below),
 for example \`guard05.mp4\`. It plays **with sound** instead of the robot voice, for that line only.
+Just your voice works too: \`guard05.mp3\` (then the cartoon, or your photo, talks along).
+The dev's lines are easiest to record on your phone in the Dev Line Booth (ask Claude for the link).
 
 **Which one is used?** For each line the game picks the first one it finds:
-1. \`<line id>.mp4\` — you saying that line
+1. \`<line id>.mp4\` — you saying that line (or \`<line id>.mp3\`, just your voice)
 2. \`<who>-<emotion>.mp4\` — your silent reaction video for that emotion
 3. \`<who>-<emotion>.jpg\` — your photo making that face
 4. \`<who>.jpg\` — your normal photo

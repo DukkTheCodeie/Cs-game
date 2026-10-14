@@ -16,7 +16,7 @@ const swap = (tag, inline) => {
 };
 swap('<link rel="stylesheet" href="style.css">', `<style>\n${safe(read('style.css'), 'style')}\n</style>`);
 // clips and photos, as data: URLs the game finds by file name
-const TYPES = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+const TYPES = { mp4: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime', m4a: 'audio/mp4', mp3: 'audio/mpeg', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
 const packed = {};
 for (const f of readdirSync(new URL('../assets/clips/', import.meta.url))) {
   const ext = f.split('.').pop().toLowerCase();

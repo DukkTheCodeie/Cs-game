@@ -493,10 +493,10 @@ export function makeMonitor(w = 0.95, h = 0.6, resW = 1024, resH = 640) {
 
 export function makeFlashlightModel() {
   const g = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.03, 0.26, 12), mat('flbody', { color: 0x1c1c1c, roughness: 0.4, metalness: 0.6 }));
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.028, 0.03, 0.26, 12), mat('flbody', { color: 0x3a3a3c, roughness: 0.45, metalness: 0.35, emissive: 0x1c1c1e }));
   body.rotation.x = Math.PI / 2;
   g.add(body);
-  const head = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 0.08, 14), mat('flhead', { color: 0x2a2a2a, roughness: 0.3, metalness: 0.8 }));
+  const head = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.03, 0.08, 14), mat('flhead', { color: 0x5a5a5e, roughness: 0.3, metalness: 0.5, emissive: 0x232326 }));
   head.rotation.x = Math.PI / 2;
   head.position.z = -0.16;
   g.add(head);
@@ -504,7 +504,7 @@ export function makeFlashlightModel() {
   lens.position.z = -0.201;
   lens.rotation.y = Math.PI;
   g.add(lens);
-  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.031, 0.031, 0.1, 12), mat('flgrip', { color: 0x333333, roughness: 0.9 }));
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.031, 0.031, 0.1, 12), mat('flgrip', { color: 0x333333, roughness: 0.9, emissive: 0x141414 }));
   grip.rotation.x = Math.PI / 2;
   grip.position.z = 0.06;
   g.add(grip);
