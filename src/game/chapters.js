@@ -1000,7 +1000,7 @@ async function morning(g) {
   hat.add(brim);
   const badge = box(0.07, 0.06, 0.01, MATS.brass(), 0, 0.0, 0.21);
   hat.add(badge);
-  hat.position.set(0, 0.5, 0.35);
+  hat.position.set(0, 0.53, 0.35);
   hat.rotation.z = 0.2;
   trex.headPivot.children[0].add(hat);
   // a donut stuck on a tooth

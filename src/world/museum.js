@@ -3,7 +3,7 @@ import { Level, boxUV, worldBoxUV } from './level.js';
 import { tex, signTexture, makeCanvas, canvasTexture, plaqueTexture } from './textures.js';
 import { surface } from './surfaces.js';
 import * as P from './props.js';
-import { TRex } from './trex.js';
+import { TRex, trexMount } from './trex.js';
 import { makeGuard, makeVisitor, makeMummy, Person } from './people.js';
 import { drawGlyph, drawNumeral, GLYPH_KEYS } from './glyphs.js';
 import { drawCCTV } from './screens.js';
@@ -497,7 +497,12 @@ export class Museum extends Level {
       f.scale.setScalar(1.6);
       s.add(f);
     }
-    // THE T-REX
+    // THE T-REX, on its steel museum mount (which stays put when the T-Rex... doesn't)
+    const mount = trexMount();
+    mount.position.copy(SPOTS.trex);
+    mount.rotation.y = 0.3;
+    mount.userData.noMeasure = true; // thin posts: the flashlight still shines across the platform
+    s.add(mount);
     const trex = new TRex();
     trex.group.position.copy(SPOTS.trex);
     trex.group.rotation.y = 0.3;
