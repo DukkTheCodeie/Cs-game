@@ -7,3 +7,5 @@ dev-recorder.html
 cast-recorder.html
 # the website, put together by npm run site (Vercel builds it)
 public/
+# wrangler (Cloudflare) local state
+.wrangler/
