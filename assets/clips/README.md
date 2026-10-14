@@ -194,7 +194,7 @@ The dev's lines are easiest to record on your phone in the Dev Line Booth (ask C
 | `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap, so wake me up when you press play. |
 | `dev34.mp4` | 😎 Cool | Oh hey, it's me, playing my game. While dev mode's on. Don't tell the players. |
 | `dev35.mp4` | 😠 Angry | Yeah, bud, nice try. I know that's not the code. You wanna know how? 'Cause I made it. |
-| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fattetuh. |
+| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fatty. |
 | `dev38.mp4` | 🤔 Confused | Have you tried turning the T-Rex off and on again? |
 | `dev39.mp4` | 😄 Happy | This whole game runs in your browser. No download needed. I'm basically a wizard. |
 | `dev41.mp4` | 😒 Annoyed | If you find a bug, it's a feature. If you find a REAL bug, maybe you should clean your room, with all that food in it, fatty. |

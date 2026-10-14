@@ -6,8 +6,9 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
 
 ## v0.7.1 — 2026-10-14
 
-- Subtitle fixes for the dev's recorded lines: "Khantrast", "Fattetuh", "dingle chud" and "bradar" are now
-  spelled the way they're said.
+- Subtitle fixes for the dev's recorded lines: "Khantrast", "dingle chud" and "bradar" are now spelled the
+  way they're said.
+- If the game can't start, the "Uh oh" screen now says to try refreshing your tab, with a button that does it.
 
 ## v0.7.0 — 2026-10-14
 

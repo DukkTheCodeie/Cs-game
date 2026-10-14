@@ -180,7 +180,7 @@ export const LINES = {
   dev29: { who: 'dev', mood: 'sleepy', text: "Okay, I'm taking a nap, so wake me up when you press play." },
   dev34: { who: 'dev', mood: 'cool', text: "Oh hey, it's me, playing my game. While dev mode's on. Don't tell the players." },
   dev35: { who: 'dev', mood: 'angry', text: "Yeah, bud, nice try. I know that's not the code. You wanna know how? 'Cause I made it." },
-  dev36: { who: 'dev', mood: 'happy', text: "Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fattetuh." },
+  dev36: { who: 'dev', mood: 'happy', text: "Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fatty." },
   dev38: { who: 'dev', mood: 'confused', text: 'Have you tried turning the T-Rex off and on again?' },
   dev39: { who: 'dev', mood: 'happy', text: "This whole game runs in your browser. No download needed. I'm basically a wizard." },
   dev41: { who: 'dev', mood: 'annoyed', text: "If you find a bug, it's a feature. If you find a REAL bug, maybe you should clean your room, with all that food in it, fatty." },

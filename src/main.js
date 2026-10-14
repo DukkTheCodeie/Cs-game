@@ -14,7 +14,10 @@ function fatal(err) {
   b.querySelector('.boot-inner').innerHTML = `
     <div class="boot-logo" style="font-size:48px">UH OH 🍩</div>
     <div class="boot-tips" style="max-width:520px">The game couldn't start. Your browser might not support WebGL, or something broke.<br><br>
-    <code style="color:#ff8a8a">${String(err?.message || err).replace(/</g, '&lt;')}</code><br><br>${VERSION}</div>`;
+    <b>Try refreshing your tab.</b><br><br>
+    <code style="color:#ff8a8a">${String(err?.message || err).replace(/</g, '&lt;')}</code><br><br>${VERSION}</div>
+    <button class="btn" style="margin-top:18px">REFRESH</button>`;
+  b.querySelector('.boot-inner button').onclick = () => location.reload();
 }
 
 addEventListener('DOMContentLoaded', async () => {
