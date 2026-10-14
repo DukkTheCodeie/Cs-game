@@ -4,7 +4,13 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
-## v0.4.1 — 2026-10-14
+## v0.5.0 — 2026-10-14
+
+- **16 posters** for the torn-poster puzzle in the archives, a different one each time (dinosaurs,
+  Egypt, Rome, a whale, the mummy, volcanoes, a mammoth, gems, a rocket, the great donut heist...). The
+  poster on the wall in the archives shows the real torn pieces too.
+- **People talk faster**, and there's a new **Talking speed** setting (Normal, Fast, Faster).
+- **The dev** has a new look: medium-dark skin and curly black hair. And 20 new things to say.
 
 - **The whole game in one file:** every release now comes with `locked-out.html`. Double-click it to
   play, share it in Google Classroom or Drive, or put it on any website host.

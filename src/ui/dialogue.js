@@ -98,7 +98,7 @@ export class Dialogue {
   update(dt) {
     if (this.current) {
       this.typeT += dt;
-      const n = Math.min(this.fullText.length, Math.floor(this.typeT * 55));
+      const n = Math.min(this.fullText.length, Math.floor(this.typeT * 55 * this.speed()));
       if (n !== this.shown) {
         this.shown = n;
         this.subText.textContent = this.fullText.slice(0, n);
@@ -116,7 +116,7 @@ export class Dialogue {
   }
 
   // beeps: always speak in beeps (unless voices are off), e.g. the morning visitors; pitch: their voice
-  async sayRaw(who, text, { mood = 'normal', clip = null, hold = 0.35, showCam = true, beeps = false, pitch = 1, name: nameOverride = null } = {}) {
+  async sayRaw(who, text, { mood = 'normal', clip = null, hold = 0.25, showCam = true, beeps = false, pitch = 1, name: nameOverride = null } = {}) {
     const g = this.game;
     if (g.sched.skipping) return;
     this.skipLine();
@@ -178,7 +178,8 @@ export class Dialogue {
     } else {
       st.showFace(media);
       st.speaking = true;
-      const est = 1.2 + text.length * 0.055;
+      const sp = this.speed();
+      const est = (0.8 + text.length * 0.042) / sp;
       const voice = beeps ? (g.save.settings.voice === 'off' ? 'off' : 'beeps') : g.save.settings.voice || 'tts';
       let done;
       if (voice === 'tts' && 'speechSynthesis' in window && this.voices.length && !this.ttsBroken) {
@@ -186,11 +187,11 @@ export class Dialogue {
           // The browser refused to speak (e.g. blocked autoplay): use beeps from now on.
           if (r === 'nostart' && !token.skipped) {
             this.ttsBroken = true;
-            return timeout(Math.max(g.audio.babble(text, who), 0.6));
+            return timeout(Math.max(g.audio.babble(text, who, undefined, 1, sp), 0.6));
           }
         });
       } else if (voice !== 'off') {
-        const d = g.audio.babble(text, who, undefined, pitch);
+        const d = g.audio.babble(text, who, undefined, pitch, sp);
         done = timeout(Math.max(d, 0.6));
       } else done = timeout(est);
       await Promise.race([done, skipped]);
@@ -198,7 +199,7 @@ export class Dialogue {
       st.speaking = false;
       this.subText.textContent = this.fullText;
       this.sub.classList.add('done');
-      if (!token.skipped) await Promise.race([timeout(hold), skipped]);
+      if (!token.skipped) await Promise.race([timeout(hold / sp), skipped]);
     }
     return this._end(token, st);
   }
@@ -216,6 +217,11 @@ export class Dialogue {
     }
   }
 
+  // how fast people talk (Settings → Talking speed)
+  speed() {
+    return { normal: 1, fast: 1.25, faster: 1.5 }[this.game.save.settings.talkSpeed] ?? 1;
+  }
+
   _tts(who, text) {
     return new Promise((resolve) => {
       const clean = text.replace(/\*[^*]+\*/g, '').replace(/—/g, ', ').replace(/MUSE-OS/g, 'Muse O S');
@@ -224,7 +230,7 @@ export class Dialogue {
       const prefs = { guard: 0, dev: 1, aaron: 2, museos: 3, mummy: 1 };
       u.voice = vs[(prefs[who] ?? 0) % vs.length];
       u.pitch = { guard: 1.05, dev: 0.85, aaron: 1.3, museos: 0.4, mummy: 0.1 }[who] ?? 1;
-      u.rate = { guard: 1.08, dev: 1.0, aaron: 1.12, museos: 0.88, mummy: 0.75 }[who] ?? 1;
+      u.rate = Math.min(2.2, ({ guard: 1.3, dev: 1.25, aaron: 1.32, museos: 1.1, mummy: 0.95 }[who] ?? 1.25) * this.speed());
       u.volume = Math.min(1, (this.game.save.settings.master ?? 0.8) * 1.1);
       let started = false;
       u.onstart = () => { started = true; };

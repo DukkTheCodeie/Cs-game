@@ -30,16 +30,16 @@ One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
-| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 8 |
-| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 1 |
-| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 2 |
-| 🤔 **Confused** | Squint and tilt your head. "Huh?" | `dev-confused.jpg` | `dev-confused.mp4` | 2 |
-| 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 5 |
+| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 14 |
+| 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 2 |
+| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 6 |
+| 🤔 **Confused** | Squint and tilt your head. "Huh?" | `dev-confused.jpg` | `dev-confused.mp4` | 4 |
+| 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 7 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `dev-angry.jpg` | `dev-angry.mp4` | 3 |
-| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `dev-shocked.jpg` | `dev-shocked.mp4` | 4 |
-| 😱 **Scared** | Hands on your cheeks. Silent scream. | `dev-scared.jpg` | `dev-scared.mp4` | 1 |
-| 😢 **Sad** | Big pout. Fake cry. | `dev-sad.jpg` | `dev-sad.mp4` | 4 |
-| 😴 **Sleepy** | Huge yawn, eyes half closed. | `dev-sleepy.jpg` | `dev-sleepy.mp4` | 3 |
+| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `dev-shocked.jpg` | `dev-shocked.mp4` | 5 |
+| 😱 **Scared** | Hands on your cheeks. Silent scream. | `dev-scared.jpg` | `dev-scared.mp4` | 2 |
+| 😢 **Sad** | Big pout. Fake cry. | `dev-sad.jpg` | `dev-sad.mp4` | 5 |
+| 😴 **Sleepy** | Huge yawn, eyes half closed. | `dev-sleepy.jpg` | `dev-sleepy.mp4` | 5 |
 
 One photo for everything: `dev.jpg` (used for any emotion you didn't make).
 
@@ -192,9 +192,29 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `dev27.mp4` | 😒 Annoyed | You turned the voices off? ...Fine. I will just type REALLY loudly. |
 | `dev28.mp4` | 😢 Sad | Fast graphics? My beautiful cylinders... they look so blurry now. |
 | `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap. Wake me up when you press play. |
-| `dev30.mp4` | 😄 Happy | New in this version: there's a whole CITY outside! Look out the front windows. And in the morning... well. You'll see. |
+| `dev30.mp4` | 😄 Happy | New in this version: sixteen new posters, the archives are different every time, and people talk faster. Plus some secret dev stuff. Shh. |
 | `dev34.mp4` | 😎 Cool | Oh hey, me. Dev mode's on. Everything's unlocked. Don't tell the players. |
 | `dev35.mp4` | 😠 Angry | Nice try. That's not the code. I'd know, I made it up. |
+| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over fifty thousand triangles. I counted. Well, the computer counted. |
+| `dev37.mp4` | 😎 Cool | The poster in the archives is different every time. I drew SIXTEEN of them. You're welcome. |
+| `dev38.mp4` | 🤔 Confused | Have you tried turning the T-Rex off and on again? |
+| `dev39.mp4` | 😄 Happy | This whole game runs in your browser. No downloads. I'm basically a wizard. |
+| `dev40.mp4` | 🤤 Hungry | My favorite donut? Pink frosting, rainbow sprinkles. Look at the logo. It was never a choice. |
+| `dev41.mp4` | 😒 Annoyed | If you see a bug, it's a feature. If you see a REAL bug, that's the museum's problem. |
+| `dev42.mp4` | 😄 Happy | Say hi to Aaron for me. He has no idea he is in a video game. |
+| `dev43.mp4` | 😴 Sleepy | I've had four energy drinks. My code has never been faster. My hands are shaking. |
+| `dev44.mp4` | 😱 Scared | Every time I close the game, the T-Rex moves a little. I'm not joking. Check the cameras. |
+| `dev45.mp4` | 😎 Cool | The mummy's on a strict diet. Ancient grains only. Donuts don't count, apparently. |
+| `dev46.mp4` | 😲 Shocked | Wait, the archives are different every single time now?! ...Oh. Right. I did that. |
+| `dev47.mp4` | 😄 Happy | There is a talking speed setting now. So I can talk REALLY fast. Like this. Wow. Efficient. |
+| `dev48.mp4` | 🤔 Confused | Is it weird that I'm in my own game? It's weird. Don't think about it too hard. |
+| `dev49.mp4` | 😢 Sad | Someone said the parade was too long. It's a PARADE. Being long is the whole point. |
+| `dev50.mp4` | 😄 Happy | Pick any chapter you've reached. Chapter four is my favorite. Don't tell the other chapters. |
+| `dev51.mp4` | 😎 Cool | Faster talking? Say less. Literally. I will say less. Per second. You know what I mean. |
+| `dev52.mp4` | 😴 Sleepy | ...zzz... five more minutes... zzz... no, the T-Rex can wait... zzz... |
+| `dev53.mp4` | 😄 Happy | Welcome back! The donuts missed you. I did not eat any. Okay, I ate some. |
+| `dev54.mp4` | 😎 Cool | Oh hey, it's you again. Good. The museum's been way too quiet. |
+| `dev55.mp4` | 😒 Annoyed | Ask your teacher for the dev code. Actually, no. Do NOT ask your teacher for the dev code. |
 | `dev33.mp4` | 😄 Happy | Oh, you found my parade! I built every float myself. The donut one is my favorite. Obviously. |
 | `dev32.mp4` | 😲 Shocked | You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again. |
 | `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game? And you came BACK? You must really like donuts. |
