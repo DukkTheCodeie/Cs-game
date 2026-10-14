@@ -1,4 +1,4 @@
-// Puts the website together in public/ (what Vercel, or any static host, serves): the page, its style
+// Puts the website together in public/ (what Cloudflare, or any static host, serves): the page, its style
 // and config, the built game, and the clips. Run `npm run site` (it builds first).
 import { cpSync, rmSync, mkdirSync } from 'node:fs';
 

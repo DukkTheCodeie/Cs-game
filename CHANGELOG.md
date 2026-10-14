@@ -8,7 +8,8 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
 
 - **The recorded voice lines are off by default.** Turn them on in *Settings → Recorded voices*; until
   then everyone talks in the voice picked under *Character voices*.
-- The game can be put online with Vercel (it builds the site into `public/`).
+- The game goes online with Cloudflare Workers: `npm run site` builds the site into `public/` and
+  `wrangler.jsonc` serves it.
 
 ## v0.7.1 — 2026-10-14
 
