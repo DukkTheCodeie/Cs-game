@@ -1,14 +1,14 @@
 // Which look each character gets, from the "Characters" setting:
-//   'mixed' (the default): the new guard, Aaron and mummy, with the classic visitors, street crowd and statues
+//   'classic' (the default): everyone in the classic look (people-classic.js)
+//   'mixed': the new guard, Aaron and mummy, with the classic visitors, street crowd and statues
 //   'new': everyone in the new look (people.js)
-//   'classic': everyone in the classic look (people-classic.js)
 // The game sets it from the settings (setCastStyle), and it applies to the next level that's built.
 import * as fresh from './people.js';
 import * as classic from './people-classic.js';
 
-export const CAST_STYLES = ['mixed', 'new', 'classic'];
-let style = 'mixed';
-export function setCastStyle(s) { style = CAST_STYLES.includes(s) ? s : 'mixed'; }
+export const CAST_STYLES = ['classic', 'mixed', 'new'];
+let style = 'classic';
+export function setCastStyle(s) { style = CAST_STYLES.includes(s) ? s : 'classic'; }
 export const castStyle = () => style;
 
 // the main characters: you, Aaron and the mummy

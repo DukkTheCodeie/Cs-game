@@ -258,7 +258,7 @@ export class Menu {
     select('voice', 'Character voices', [['tts', 'Robot voices (text-to-speech)'], ['babble', 'Cute beeps'], ['off', 'Off (subtitles only)']]);
     select('subtitles', 'Subtitles', [['medium', 'On'], ['large', 'Large'], ['off', 'Off']]);
     select('talkSpeed', 'Talking speed', [['normal', 'Normal'], ['fast', 'Fast'], ['faster', 'Faster']]);
-    select('characters', 'Characters', [['mixed', 'New guard, Aaron + mummy (default)'], ['new', 'All new'], ['classic', 'All classic']], 'Changes from the next chapter you start');
+    select('cast', 'Characters', [['classic', 'Classic (default)'], ['mixed', 'New guard, Aaron + mummy'], ['new', 'All new']], 'Changes from the next chapter you start');
     range('sensitivity', 'Mouse sensitivity', 0.2, 3, 0.1, (v) => v.toFixed(1) + '×');
     select('invertY', 'Invert mouse Y', [[false, 'No'], [true, 'Yes']]);
     range('fov', 'Field of view', 60, 100, 1, (v) => v + '°');
