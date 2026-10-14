@@ -146,14 +146,14 @@ export const LINES = {
   museos12: { who: 'museos', mood: 'normal', text: 'Five is not six. Goodbye.' },
 
   // ---------------- The menu. The developer is watching.
-  dev01: { who: 'dev', mood: 'happy', text: "Oh hey! Welcome to my game. Made it myself. It's really good, brother. You should, like, play it. You should press that big PLAY button right there. Truly. Press it." },
+  dev01: { who: 'dev', mood: 'happy', text: "Oh hey! Welcome to my game. Made it myself. It's really good, bradar. You should, like, play it. You should press that big PLAY button right there. Truly. Press it." },
   guard32: { who: 'guard', mood: 'confused', text: 'Wait... that\'s it? That game was WAY too short.' },
   guard33: { who: 'guard', mood: 'shocked', text: 'Oh my gosh. Are you serious? This is really it? That\'s the WHOLE game?!' },
   dev02: { who: 'dev', mood: 'sad', text: 'Bro, I was up all night making this.' },
   guard34: { who: 'guard', mood: 'annoyed', text: '...I could do better.' },
   dev03: { who: 'dev', mood: 'angry', text: "Aw, HELL no, boy!" },
   dev04: { who: 'dev', mood: 'angry', text: 'GET OUT OF MY GAME!' },
-  dev05: { who: 'dev', mood: 'annoyed', text: "Oh. You're back. Okay, fine. You can play again. Just don't complain this time, you little dingle chub." },
+  dev05: { who: 'dev', mood: 'annoyed', text: "Oh. You're back. Okay, fine. You can play again. Just don't complain this time, you little dingle chud." },
   dev06: { who: 'dev', mood: 'annoyed', text: 'Stop poking the TV.' },
   // poking the TV (they go round in order)
   dev08: { who: 'dev', mood: 'confused', text: "Why do you keep clicking on my monitor? Stop! It's annoying." },
@@ -167,7 +167,7 @@ export const LINES = {
   dev17: { who: 'dev', mood: 'annoyed', text: "You fell asleep? In MY game? How rude." },
   dev18: { who: 'dev', mood: 'shocked', text: "What? You found ALL the donuts? I can't even do that, and I ate th- hid them. HID them." },
   dev19: { who: 'dev', mood: 'sleepy', text: "So are you gonna press the big goddamn play button? Or are you just gonna be stuck here looking at my hunter eyes? Look me in my hunter eyes!" },
-  dev20: { who: 'dev', mood: 'happy', text: "Did you turn the music up? I worked really hard making that music. I'm quite literally... contrast. All right? And if you don't turn that gosh dang music up, you're gonna be bu-bu-bugging." },
+  dev20: { who: 'dev', mood: 'happy', text: "Did you turn the music up? I worked really hard making that music. I'm quite literally Khantrast. All right? And if you don't turn that gosh dang music up, you're gonna be bu-bu-bugging." },
   // popping into the game
   dev21: { who: 'dev', mood: 'happy', text: "Oh hey! You found one of my secret rooms! Take the donut, fatty. I insist!" },
   dev23: { who: 'dev', mood: 'sad', text: "Sweet dreams, little guard. It's almost morning." },
@@ -180,7 +180,7 @@ export const LINES = {
   dev29: { who: 'dev', mood: 'sleepy', text: "Okay, I'm taking a nap, so wake me up when you press play." },
   dev34: { who: 'dev', mood: 'cool', text: "Oh hey, it's me, playing my game. While dev mode's on. Don't tell the players." },
   dev35: { who: 'dev', mood: 'angry', text: "Yeah, bud, nice try. I know that's not the code. You wanna know how? 'Cause I made it." },
-  dev36: { who: 'dev', mood: 'happy', text: "Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fatty." },
+  dev36: { who: 'dev', mood: 'happy', text: "Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fattetuh." },
   dev38: { who: 'dev', mood: 'confused', text: 'Have you tried turning the T-Rex off and on again?' },
   dev39: { who: 'dev', mood: 'happy', text: "This whole game runs in your browser. No download needed. I'm basically a wizard." },
   dev41: { who: 'dev', mood: 'annoyed', text: "If you find a bug, it's a feature. If you find a REAL bug, maybe you should clean your room, with all that food in it, fatty." },
@@ -189,7 +189,7 @@ export const LINES = {
   dev46: { who: 'dev', mood: 'shocked', text: "Wait, the archives are different every single time now? Oh wait, I just remembered. I did that. 'Cause I'm Megamind." },
   dev47: { who: 'dev', mood: 'happy', text: "In the game there's a talking speed setting, so now I can talk really, really fast, like this. I'm talking so fast. Supersonic speed. Uh... I'm superhuman." },
   dev48: { who: 'dev', mood: 'confused', text: "Is it weird that I'm in my own game? Oh wait, I made it, and I'm the best. So, uh, no, it's not weird. And I'm the GOAT. I'm the aura farmer." },
-  dev49: { who: 'dev', mood: 'sad', text: "Someone said that the parade is too long. Like, brother. It's a PARADE. That's the whole point!" },
+  dev49: { who: 'dev', mood: 'sad', text: "Someone said that the parade is too long. Like, bradar. It's a PARADE. That's the whole point!" },
   dev50: { who: 'dev', mood: 'happy', text: "Pick a chapter, any chapter. My favorite chapter is chapter four. Don't tell the other chapters." },
   dev52: { who: 'dev', mood: 'sleepy', text: "Mmm... no, no... five more minutes... the T-Rex can wait, Mom... wait..." },
   dev54: { who: 'dev', mood: 'cool', text: "Oh, you're back! The museum's been real quiet since you left. I've been talking to the dino, but... I'm scared he's gonna start talking back." },
