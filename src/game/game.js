@@ -19,6 +19,7 @@ import { Museum, SPOTS } from '../world/museum.js';
 import { CHAPTERS, START, runChapter, tipFor } from './chapters.js';
 import { TOTAL_DONUTS, FRAGMENTS, DONUT_IDS } from './constants.js';
 import { VERSION } from '../version.js';
+import { openAdmin, devOn } from '../ui/admin.js';
 import { logEvent } from '../core/analytics.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
@@ -27,7 +28,7 @@ export { TOTAL_DONUTS };
 function defaultSave() {
   return {
     chapter: null, reached: [], solved: {}, donuts: [], fragments: [], flags: {},
-    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15 },
+    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal' },
   };
 }
 
@@ -66,6 +67,7 @@ class DonutMeter {
   update(dt) {
     const g = this.g;
     if (!this.enabled || !['explore', 'runner'].includes(g.mode)) return;
+    if (g.devDonuts) { if (this.value < 100) this.set(100); return; } // (admin panel cheat)
     const mul = g.player?.sprinting && g.mode === 'explore' ? 2.4 : 1;
     this.set(this.value - this.drain * mul * dt);
     const drowsy = this.value < 22 ? (22 - this.value) / 22 : 0;
@@ -225,7 +227,7 @@ export class Game {
     if (!this.paused) {
       this.sched.update(dt);
       if (this.mode === 'explore') {
-        this.player.update(dt, this.level?.colliders);
+        this.player.update(dt, this.devNoclip ? null : this.level?.colliders);
         this._interact();
         if (!inp.isTouch && !inp.locked) {
           this.unlockT += rawDt;
@@ -323,6 +325,8 @@ export class Game {
   }
 
   _onKey(e) {
+    // dev mode: ` opens the admin panel anywhere
+    if (e.code === 'Backquote' && devOn(this) && !document.activeElement?.matches?.('input, select, textarea')) { openAdmin(this); return; }
     if (e.code === 'Escape' || e.code === 'KeyP') {
       if (this.mode === 'cutscene' && e.code === 'Escape') this.skipCutscene();
       else if (['explore', 'runner'].includes(this.mode)) this.togglePause();
@@ -369,12 +373,14 @@ export class Game {
         <button class="btn" data-a="controls">CONTROLS</button>
         <button class="btn" data-a="restart">RESTART CHAPTER</button>
         <button class="btn ghost" data-a="menu">QUIT TO MENU</button>
+        ${devOn(this) ? '<button class="btn ghost" data-a="admin">🛠 ADMIN PANEL</button>' : ''}
       </div>`, () => { if (this.paused) this.resume(); }));
     m.panel.querySelector('[data-a=resume]').onclick = () => m.close();
     m.panel.querySelector('[data-a=settings]').onclick = () => { this.audio.ctx?.resume?.(); this.menu.settings(); };
     m.panel.querySelector('[data-a=controls]').onclick = () => this.menu.controls();
     m.panel.querySelector('[data-a=restart]').onclick = () => { this.paused = false; m.close(); this.startChapter(this.save.chapter || 'intro', { mode: 'continue' }); };
     m.panel.querySelector('[data-a=menu]').onclick = () => { this.paused = false; m.close(); this.devQuip = 'dev26'; this.toMenu(); };
+    m.panel.querySelector('[data-a=admin]')?.addEventListener('click', () => openAdmin(this));
   }
 
   resume() {

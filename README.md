@@ -13,6 +13,11 @@ The first one is in the Dino exhibit. You like the Dino exhibit. What could go w
 Or put it online for free with GitHub Pages: repo **Settings → Pages → Deploy from a branch → `main` / root**.
 Then anyone can play at `https://<your-username>.github.io/<repo-name>/`.
 
+**Or as one file:** every [release](https://github.com/Hudsoonvid/Cs-game/releases/latest) has
+`locked-out.html` attached: the whole game in a single file. Double-click it to play, share it in Google
+Classroom or Drive, or drop it on any website host (rename it `index.html` first). It needs the internet
+only for its fonts. To make it yourself: `npm run build && npm run single`.
+
 | Action | Keys |
 |---|---|
 | Move / look | `W A S D` + mouse |
@@ -71,6 +76,11 @@ The full list of emotions to act, file names and lines is in [`assets/clips/READ
 with steps for uploading on GitHub.
 
 Change the names shown in subtitles (and the game title) in [`game-config.js`](game-config.js) — no rebuild needed.
+
+**Dev mode:** on the menu, tap the **LOCKED OUT** logo 7 times and type the dev code to unlock every chapter,
+every hidden donut and the ending. The code is `devCode` in [`game-config.js`](game-config.js) (`IAMTHEDEV` until
+you change it — the repo is public, so pick your own). Set it to `''` to turn dev mode off. Once it's on, press <kbd>`</kbd> in the game (or use the pause menu) for the **admin panel**: jump to
+any chapter, trigger events and title cards, teleport, and cheats like endless donuts and walking through walls.
 
 ## 🔢 Versions
 

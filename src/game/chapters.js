@@ -757,7 +757,9 @@ async function maze(g) {
   let stage = 0;
   while (stage < HANDMADE && solved['maze' + stage]) stage++;
   const keysTaken = KEY_COLORS.filter(([name]) => solved['key_' + name]).map(([name]) => `k1_${name}`);
-  const lvl = new Maze(g, { stage, keysTaken });
+  // a new archive layout every run; the same one when you come back to a checkpoint holding keys
+  if (!keysTaken.length || g.save.mazeSeed == null) g.save.mazeSeed = Math.floor(Math.random() * 1e9);
+  const lvl = new Maze(g, { stage, keysTaken, seed: g.save.mazeSeed });
   await g.loadLevel(lvl);
   g.checkpoint('maze');
   let opened = stage;

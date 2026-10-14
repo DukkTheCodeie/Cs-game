@@ -2,9 +2,10 @@ import { $, $$, el, sleep } from '../core/util.js';
 import { Station } from './dialogue.js';
 import { CONFIG } from '../config.js';
 import { CHAPTERS } from '../game/chapters.js';
-import { TOTAL_DONUTS } from '../game/constants.js';
-import { VERSION, RELEASES_URL } from '../version.js';
+import { TOTAL_DONUTS, DONUT_IDS } from '../game/constants.js';
+import { VERSION, RELEASES_URL, latestVersion, isNewer } from '../version.js';
 import { logEvent } from '../core/analytics.js';
+import { openAdmin, unlockAll } from './admin.js';
 
 export class Menu {
   constructor(game) {
@@ -34,7 +35,7 @@ export class Menu {
     const idle = () => { if (this.speaker && !this.game.dialogue.current) st.showFace(this.game.clips.face('dev', st.mood)); };
     idle();
     this._offClips = this.game.clips.onChange(idle);
-    const POKES = ['dev06', 'dev07', 'dev08', 'dev09', 'dev11', 'dev13', 'dev14', 'dev15', 'dev16', 'dev12'];
+    const POKES = ['dev06', 'dev07', 'dev36', 'dev08', 'dev09', 'dev38', 'dev11', 'dev39', 'dev13', 'dev40', 'dev14', 'dev41', 'dev15', 'dev42', 'dev16', 'dev43', 'dev44', 'dev45', 'dev37', 'dev46', 'dev47', 'dev48', 'dev49', 'dev12'];
     sp.addEventListener('click', () => {
       if (this.busy || this.game.dialogue.current) return;
       this.game.audio.play('static', { dur: 0.15 });
@@ -76,6 +77,23 @@ export class Menu {
       b.addEventListener('mouseenter', () => g.audio.play('hover'));
       b.addEventListener('click', () => this._act(b.dataset.act));
     }
+    // a newer version out? (the one-file copy can't update itself, so point to the download)
+    if (CONFIG.checkUpdates) {
+      latestVersion().then((v) => {
+        if (!v || !isNewer(v, VERSION) || !this.open || $('.menu-update', this.root)) return;
+        const a = el('a', 'menu-update', `🆕 ${v} is out! Get it →`);
+        Object.assign(a, { href: RELEASES_URL + '/latest', target: '_blank', rel: 'noopener' });
+        this.root.append(a);
+      });
+    }
+    // dev mode: tap the logo 7 times in a row
+    let taps = 0, tapT = 0;
+    $('.logo', this.root).addEventListener('click', () => {
+      const now = performance.now();
+      taps = now - tapT < 1500 ? taps + 1 : 1;
+      tapT = now;
+      if (taps >= 7 && CONFIG.devCode && !this.busy && !$('#modal-root').children.length) { taps = 0; this.devMode(); }
+    });
     g.audio.playMusic(save.flags.ending === 'pending' ? 'meta' : 'menu');
     if (save.flags.ending === 'pending') {
       this._metaEnding();
@@ -101,6 +119,10 @@ export class Menu {
       setTimeout(() => this.open && !this.busy && g.say('dev18'), 1200);
     } else if (save.flags.seenVersion !== VERSION) {
       setTimeout(() => this.open && !this.busy && g.say('dev30'), 1200);
+    } else if (Math.random() < 0.4) {
+      // just coming back to the menu
+      const id = ['dev53', 'dev54'][Math.floor(Math.random() * 2)];
+      setTimeout(() => this.open && !this.busy && !g.dialogue.current && g.say(id), 1500);
     }
     save.flags.seenVersion = VERSION;
     g.persist();
@@ -114,7 +136,7 @@ export class Menu {
         if (next) next();
       }, after);
     };
-    idle('dev19', 40000, () => idle('dev29', 45000));
+    idle('dev19', 40000, () => idle('dev29', 45000, () => idle('dev52', 60000)));
   }
 
   hide() {
@@ -131,10 +153,11 @@ export class Menu {
     g.audio.play('select');
     if (act === 'new') g.startChapter('intro');
     else if (act === 'continue') g.startChapter(g.save.chapter);
-    else if (act === 'chapters') this.chapters();
+    else if (act === 'chapters') this.chapters(() => this.quip('dev50'));
     else if (act === 'settings') this.settings(() => {
       const s = g.save.settings;
       if (s.voice === 'off') this.quip('dev27');
+      else if (s.talkSpeed === 'faster') this.quip('dev51');
       else if (s.quality === 'low') this.quip('dev28');
       else this.quip('dev20');
     });
@@ -151,18 +174,70 @@ export class Menu {
     g.say(id);
   }
 
-  chapters() {
+  chapters(onClose) {
     const g = this.game;
-    const m = modal(`<h2>CHAPTERS</h2><div class="sub">Replay any part of the night you've reached.</div><div class="chapters"></div>`);
+    let picked = false;
+    const m = modal(`<h2>CHAPTERS</h2><div class="sub">Replay any part of the night you've reached.</div><div class="chapters"></div>`, () => !picked && onClose?.());
     const list = $('.chapters', m.panel);
     // a chapter is open once you've reached it — or any chapter after it (new chapters unlock for old saves)
     const furthest = Math.max(0, ...CHAPTERS.map((c, i) => (g.save.reached.includes(c.id) ? i : 0)));
     CHAPTERS.forEach((c, i) => {
       const ok = i <= furthest;
       const b = el('button', `btn chapter-btn ${ok ? '' : 'locked'}`, `<span>${c.name}</span><small>${ok ? c.blurb : '🔒 locked'}</small>`);
-      b.onclick = () => { m.close(); g.audio.play('select'); g.startChapter(c.id); };
+      b.onclick = () => { picked = true; m.close(); g.audio.play('select'); g.startChapter(c.id); };
       list.append(b);
     });
+  }
+
+  // For the developer (or a teacher): type the dev code (game-config.js) to unlock everything.
+  devMode() {
+    const g = this.game;
+    g.audio.play('static', { dur: 0.15 });
+    const m = modal(`<h2>DEV MODE</h2><div class="sub">Type the dev code (it's in game-config.js).</div>
+      <form class="dev-form"><input class="dev-code" type="password" autocomplete="off" spellcheck="false" placeholder="dev code"><button class="btn pink" type="submit">ENTER</button></form>`);
+    const input = $('.dev-code', m.panel);
+    setTimeout(() => input.focus(), 50);
+    $('.dev-form', m.panel).onsubmit = (e) => {
+      e.preventDefault();
+      if (input.value.trim().toUpperCase() !== String(CONFIG.devCode).trim().toUpperCase()) {
+        g.audio.play('buzz');
+        input.value = '';
+        input.classList.remove('shake'); void input.offsetWidth; input.classList.add('shake');
+        this.quip(this.quipped?.has('dev35') ? 'dev55' : 'dev35');
+        return;
+      }
+      m.close();
+      this.devPanel();
+    };
+  }
+
+  devPanel() {
+    const g = this.game, save = g.save;
+    g.audio.play('select');
+    const m = modal(`<h2>DEV MODE</h2><div class="sub">Unlocks stay in this browser's save.</div><div class="chapters dev-tools"></div>
+      <div class="sub" style="margin-top:12px">To lock it all again: Settings → Reset save data.</div>`, () => this.show());
+    const list = $('.dev-tools', m.panel);
+    const tool = (label, blurb, fn) => {
+      const b = el('button', 'btn chapter-btn', `<span>${label}</span><small>${blurb}</small>`);
+      b.onclick = () => { fn(); g.persist(); g.audio.play('chime'); b.classList.add('done'); $('small', b).textContent = '✓ done'; };
+      list.append(b);
+    };
+    const chapters = () => { save.reached = CHAPTERS.map((c) => c.id); };
+    const donuts = () => { save.donuts = DONUT_IDS.slice(); save.flags.devDonuts = true; };
+    // the ending's done (and the dev has already said his "you came back?" lines)
+    const ending = () => Object.assign(save.flags, { ending: 'done', kicked: true, backAgain: true, backAgain2: true, welcomed: true });
+    tool('🔓 UNLOCK EVERYTHING', 'all of the below', () => unlockAll(g));
+    tool('📖 Every chapter', `${CHAPTERS.length} chapters in CHAPTERS`, chapters);
+    tool('🍩 Every hidden donut', `${TOTAL_DONUTS}/${TOTAL_DONUTS} donuts`, donuts);
+    tool('🏁 The ending', '"You beat the game" badge', ending);
+    const adm = el('button', 'btn pink', '🛠 ADMIN PANEL <small style="opacity:.7">(or press ` in the game)</small>');
+    adm.onclick = () => { m.close(); openAdmin(g); };
+    list.append(adm);
+    if (!save.flags.devMode) {
+      save.flags.devMode = true;
+      g.persist();
+      setTimeout(() => g.say('dev34'), 300);
+    }
   }
 
   settings(onClose) {
@@ -186,6 +261,7 @@ export class Menu {
     range('sfx', 'Sound effects', 0, 1, 0.05);
     select('voice', 'Character voices', [['tts', 'Robot voices (text-to-speech)'], ['babble', 'Cute beeps'], ['off', 'Off (subtitles only)']]);
     select('subtitles', 'Subtitles', [['medium', 'On'], ['large', 'Large'], ['off', 'Off']]);
+    select('talkSpeed', 'Talking speed', [['normal', 'Normal'], ['fast', 'Fast'], ['faster', 'Faster']]);
     range('sensitivity', 'Mouse sensitivity', 0.2, 3, 0.1, (v) => v.toFixed(1) + '×');
     select('invertY', 'Invert mouse Y', [[false, 'No'], [true, 'Yes']]);
     range('fov', 'Field of view', 60, 100, 1, (v) => v + '°');
@@ -235,6 +311,7 @@ export class Menu {
     modal(`<h2>CREDITS</h2>
       <div class="sub">LOCKED OUT — a night guard story</div>
       <p style="font-weight:800;line-height:1.7">
+        Lead developer: <b style="color:var(--gold)">Hudson Saunders</b><br>
         Story, ideas, starring, directing & yelling: <b style="color:var(--pink)">${CONFIG.devName}</b> (who was up all night)<br>
         The Security Guard: <b style="color:var(--gold)">you</b><br>
         The T-Rex: <b>a bunch of cylinders</b><br>

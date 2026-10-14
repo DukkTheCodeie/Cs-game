@@ -1,6 +1,7 @@
 import { $, el, escapeHtml } from '../core/util.js';
 import { drawGlyph, drawNumeral, GLYPHS, GLYPH_KEYS, PHARAOH_CODE } from '../world/glyphs.js';
 import { EGYPT_PILLARS } from '../world/museum.js';
+import { posterImage } from './posters.js';
 
 // Every puzzle opens in a modal panel. openPuzzle() resolves true when solved, false if closed.
 
@@ -388,7 +389,7 @@ const PUZZLES = {
     sub: 'Someone cut up the museum\'s most famous poster. Slide the pieces back into place.',
     keys: 'Click a tile next to the gap (or arrow keys) · Esc close',
     build({ game, body, solve, params }) {
-      const img = posterImage();
+      const img = posterImage(params.poster); // (a different poster every time)
       let s = [1, 2, 3, 4, 5, 6, 7, 8, 0];
       const neighbors = (i) => [i - 3, i + 3, i % 3 ? i - 1 : -1, i % 3 < 2 ? i + 1 : -1].filter((j) => j >= 0 && j < 9);
       let prev = -1;
@@ -559,45 +560,3 @@ function solveTable() {
   return next;
 }
 
-let posterURL = null;
-function posterImage() {
-  if (posterURL) return posterURL;
-  const c = document.createElement('canvas');
-  c.width = c.height = 360;
-  const x = c.getContext('2d');
-  const g = x.createLinearGradient(0, 0, 0, 360);
-  g.addColorStop(0, '#ff9a5a');
-  g.addColorStop(1, '#7a1f4d');
-  x.fillStyle = g;
-  x.fillRect(0, 0, 360, 360);
-  x.fillStyle = 'rgba(255,255,255,0.15)';
-  for (let i = 0; i < 12; i++) { x.beginPath(); x.moveTo(180, 200); x.arc(180, 200, 300, i * 0.52, i * 0.52 + 0.26); x.fill(); }
-  // donut
-  x.fillStyle = '#d49a5c'; x.beginPath(); x.arc(180, 220, 90, 0, 7); x.fill();
-  x.fillStyle = '#ff7eb6'; x.beginPath(); x.arc(180, 214, 82, 0, 7); x.fill();
-  x.fillStyle = '#7a1f4d'; x.beginPath(); x.arc(180, 216, 30, 0, 7); x.fill();
-  const cols = ['#3bc9ff', '#ffe14d', '#7dff6b', '#fff', '#b86bff'];
-  for (let i = 0; i < 40; i++) {
-    const a = Math.random() * 7, r = 40 + Math.random() * 36;
-    x.save(); x.translate(180 + Math.cos(a) * r, 214 + Math.sin(a) * r); x.rotate(Math.random() * 3);
-    x.fillStyle = cols[i % 5]; x.fillRect(-6, -2, 12, 4); x.restore();
-  }
-  // T-Rex head biting it
-  x.fillStyle = '#2b1d14';
-  x.beginPath(); x.moveTo(260, 120); x.lineTo(350, 90); x.lineTo(360, 150); x.lineTo(300, 175); x.lineTo(250, 160); x.fill();
-  x.fillStyle = '#fff';
-  for (let i = 0; i < 5; i++) { x.beginPath(); x.moveTo(262 + i * 16, 160 - i * 3); x.lineTo(268 + i * 16, 175 - i * 3); x.lineTo(274 + i * 16, 158 - i * 3); x.fill(); }
-  x.fillStyle = '#ff3b3b'; x.beginPath(); x.arc(320, 110, 7, 0, 7); x.fill();
-  x.fillStyle = '#fff';
-  x.font = 'bold 50px Arial Black, Arial';
-  x.textAlign = 'center';
-  x.strokeStyle = '#2b1d14';
-  x.lineWidth = 8;
-  x.strokeText('DONUT DAY', 180, 64);
-  x.fillText('DONUT DAY', 180, 64);
-  x.font = 'bold 30px Arial Black, Arial';
-  x.strokeText('MUSEUM GIFT SHOP', 180, 344);
-  x.fillText('MUSEUM GIFT SHOP', 180, 344);
-  posterURL = c.toDataURL();
-  return posterURL;
-}

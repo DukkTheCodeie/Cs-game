@@ -443,23 +443,34 @@ function drawDev(x, { t, talk, mood, blink, bob, cx, cy }) {
   x.ellipse(cx, cy - 6, 78, 86, 0, 0, TAU);
   x.fill();
   // face
-  const skin = '#f0c4a0';
+  const skin = '#9a6440'; // medium-dark skin
+  // ears
+  x.fillStyle = '#8a5636';
+  for (const s of [-1, 1]) { x.beginPath(); x.ellipse(cx + s * 56, cy + 8, 10, 15, 0, 0, TAU); x.fill(); }
   x.fillStyle = skin;
   x.beginPath();
   x.ellipse(cx, cy + 4, 56, 62, 0, 0, TAU);
   x.fill();
-  // messy hair
-  x.fillStyle = '#2a1a10';
+  // curly black hair: a round crown of curls, a few falling over the forehead
+  const curl = (px, py, r) => { x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill(); };
+  x.fillStyle = '#141011';
   x.beginPath();
-  x.moveTo(cx - 60, cy - 20);
-  for (let i = 0; i <= 10; i++) {
-    const a = Math.PI + (i / 10) * Math.PI;
-    const r = 64 + (i % 2 ? 16 : 0) + Math.sin(t * 3 + i) * 2;
-    x.lineTo(cx + Math.cos(a) * r, cy - 14 + Math.sin(a) * r * 0.85);
-  }
-  x.lineTo(cx + 60, cy - 20);
-  x.quadraticCurveTo(cx, cy - 38, cx - 60, cy - 20);
+  x.ellipse(cx, cy - 30, 64, 42, 0, Math.PI, 0);
   x.fill();
+  for (let i = 0; i <= 14; i++) {
+    const a = Math.PI * 0.94 + (i / 14) * Math.PI * 1.12;
+    curl(cx + Math.cos(a) * 60, cy - 24 + Math.sin(a) * 52, 14 + (i % 3) * 3 + Math.sin(t * 2.2 + i) * 0.6);
+  }
+  for (let i = 0; i < 6; i++) curl(cx - 38 + i * 15, cy - 40 + (i % 2) * 6, 12);
+  // a little shine on the curls
+  x.strokeStyle = 'rgba(255,255,255,0.13)';
+  x.lineWidth = 2.5;
+  for (let i = 0; i < 9; i++) {
+    const a = Math.PI * 1.05 + (i / 8) * Math.PI * 0.9;
+    x.beginPath();
+    x.arc(cx + Math.cos(a) * 54, cy - 28 + Math.sin(a) * 46, 7, Math.PI * 1.1, Math.PI * 1.6);
+    x.stroke();
+  }
   // headphones around neck
   x.strokeStyle = '#111';
   x.lineWidth = 10;
@@ -472,7 +483,7 @@ function drawDev(x, { t, talk, mood, blink, bob, cx, cy }) {
   eyes(x, cx, cy, { mood, blink, t, sep: 24, skin });
   if (mood !== 'cool' && mood !== 'happy') {
     // eye bags (up all night)
-    x.strokeStyle = 'rgba(90,40,90,0.6)';
+    x.strokeStyle = 'rgba(40,16,30,0.55)';
     x.lineWidth = 3;
     for (const s of [-1, 1]) {
       x.beginPath();
@@ -480,7 +491,7 @@ function drawDev(x, { t, talk, mood, blink, bob, cx, cy }) {
       x.stroke();
     }
   }
-  brows(x, cx, cy, mood, '#2a1a10', 24);
+  brows(x, cx, cy, mood, '#141011', 24);
   mouth(x, cx, cy + 36, talk, mood, t);
   extras(x, cx, cy, mood, t, [cx, cy + 4, 56, 62]);
   // mug

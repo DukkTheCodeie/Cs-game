@@ -478,7 +478,7 @@ export class AudioEngine {
   }
 
   // ---------- voices ----------
-  babble(text, who, dest, pitch = 1) {
+  babble(text, who, dest, pitch = 1, speed = 1) {
     if (!this.ctx) return 0;
     const base = ({ guard: 210, dev: 150, aaron: 260, mummy: 120, museos: 520, narrator: 180, kid: 330, visitor: 190 }[who] || 200) * pitch;
     const type = who === 'museos' ? 'sine' : who === 'dev' ? 'sawtooth' : 'triangle';
@@ -489,9 +489,9 @@ export class AudioEngine {
       for (let i = 0; i < syl; i++) {
         const f = base * (0.85 + R() * 0.45) * (w === w.toUpperCase() && w.length > 1 ? 1.25 : 1);
         this.tone({ type, f, f2: f * (0.9 + R() * 0.2), t, a: 0.01, d: 0.07, g: 0.06, dest, filter: { f: 1800 } });
-        t += 0.085;
+        t += 0.064 / speed;
       }
-      t += /[.,!?…]$/.test(w) ? 0.22 : 0.05;
+      t += (/[.,!?…]$/.test(w) ? 0.16 : 0.035) / speed;
     }
     return t - this.now;
   }

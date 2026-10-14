@@ -1,6 +1,7 @@
 # Makes a GitHub release for every game version. The version lives in package.json (the game shows it
 # in the menu corner). When a new version lands on main, this creates the release "vX.Y.Z" with the
-# notes from that version's section in CHANGELOG.md. If the release already exists, it does nothing.
+# notes from that version's section in CHANGELOG.md, and attaches the whole game as one file
+# (locked-out.html, see tools/single-file.mjs). If the release already has it, it does nothing.
 name: Release
 
 on:
@@ -24,9 +25,21 @@ jobs:
           v="v$(node -p "require('./package.json').version")"
           if gh release view "$v" > /dev/null 2>&1; then
             echo "$v is already released."
+          else
+            # the "## vX.Y.Z" section of the changelog becomes the release notes
+            awk -v v="$v" '$0 == "## " v || index($0, "## " v " ") == 1 { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md > notes.md
+            [ -s notes.md ] || echo "Version $v of LOCKED OUT." > notes.md
+            gh release create "$v" --target "$GITHUB_SHA" --title "$v" --notes-file notes.md
+          fi
+
+      - name: Attach the one-file version of the game (if the release doesn't have it yet)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="v$(node -p "require('./package.json').version")"
+          if gh release view "$v" --json assets -q '.assets[].name' | grep -qx locked-out.html; then
+            echo "$v already has locked-out.html."
             exit 0
           fi
-          # the "## vX.Y.Z" section of the changelog becomes the release notes
-          awk -v v="$v" '$0 == "## " v || index($0, "## " v " ") == 1 { on = 1; next } /^## / { on = 0 } on' CHANGELOG.md > notes.md
-          [ -s notes.md ] || echo "Version $v of LOCKED OUT." > notes.md
-          gh release create "$v" --target "$GITHUB_SHA" --title "$v" --notes-file notes.md
+          node tools/single-file.mjs
+          gh release upload "$v" locked-out.html

@@ -7,6 +7,7 @@ import { mulberry32 } from '../core/util.js';
 import { personOutline } from './runner.js';
 import { batchStatic } from './batch.js';
 import { ShelfBuilder, shelfMaterials } from './shelves.js';
+import { posterCanvas, POSTER_COUNT } from '../puzzles/posters.js';
 
 // The Archives: an endless maze of shelves, built one section ("band") at a time as you head north.
 // Every band ends in a locked gate. The first three gates are hand-made (fuse box, three lost keys,
@@ -58,8 +59,9 @@ function shuffle(arr, rng) {
 }
 
 export class Maze extends Level {
-  constructor(game, { stage = 0, keysTaken = [] } = {}) {
+  constructor(game, { stage = 0, keysTaken = [], seed = Math.floor(Math.random() * 1e9) } = {}) {
     super(game);
+    this.seed = seed; // a different archive every run (the same one again after a checkpoint)
     const s = this.scene;
     this.surface = 'concrete';
     s.background = new THREE.Color(0x010102);
@@ -118,7 +120,7 @@ export class Maze extends Level {
   layout(b) {
     if (this.layouts[b]) return this.layouts[b];
     const entryC = b === 0 ? ENTRY_C : this.layout(b - 1).exit.c;
-    const rng = mulberry32(4242 + b * 7919);
+    const rng = mulberry32(this.seed + 4242 + b * 7919);
     const north = [], east = [];
     for (let r = 0; r < BAND; r++) { north.push(new Array(W).fill(true)); east.push(new Array(W).fill(true)); }
     const seen = new Set([`${entryC},0`]);
@@ -165,6 +167,11 @@ export class Maze extends Level {
     return (this.layouts[b] = { b, entry: { c: entryC, r: 0 }, exit, north, east, dist, dead, far });
   }
 
+  // which poster gate k's torn poster is (different every run)
+  posterFor(k) {
+    return Math.floor(mulberry32(this.seed + k * 977)() * POSTER_COUNT);
+  }
+
   // which puzzle guards gate k, and its settings (always the same for the same gate)
   gateKind(k) {
     if (k < HANDMADE) return ['lightsout', 'keys', 'slider'][k];
@@ -181,13 +188,13 @@ export class Maze extends Level {
     const kind = this.gateKind(k);
     const d = Math.max(0, k - HANDMADE); // difficulty
     const rng = mulberry32(31337 + k * 101);
-    if (k < HANDMADE) return kind === 'keys' ? { count: 3 } : kind === 'slider' ? { moves: 22 } : {};
+    if (k < HANDMADE) return kind === 'keys' ? { count: 3 } : kind === 'slider' ? { moves: 22, poster: this.posterFor(k) } : {};
     if (kind === 'lightsout') {
       const n = d >= 6 ? 4 : 3;
       const count = Math.min(n * n - 2, 3 + Math.floor(d / 2) + (n === 4 ? 1 : 0));
       return { n, presses: shuffle([...Array(n * n).keys()], rng).slice(0, count) };
     }
-    if (kind === 'slider') return { moves: 24 + 5 * d };
+    if (kind === 'slider') return { moves: 24 + 5 * d, poster: this.posterFor(k) };
     if (kind === 'roman') return { year: 1000 + Math.floor(rng() * 2999), title: 'VAULT LOCK' };
     if (kind === 'caesar') return { text: CIPHER_LINES[Math.floor(rng() * CIPHER_LINES.length)], shift: 1 + Math.floor(rng() * 9) };
     if (kind === 'simon') return { length: Math.min(10, 4 + Math.floor(d / 2)) };
@@ -292,7 +299,7 @@ export class Maze extends Level {
   _buildBand(b) {
     const L = this.layout(b);
     const R0 = b * BAND;
-    const rng = mulberry32(9001 + b * 313);
+    const rng = mulberry32(this.seed + 9001 + b * 313);
     const group = new THREE.Group();
     const band = { b, group, owned: new Set(), dynamic: new Set() };
     this.bands.set(b, band);
@@ -385,10 +392,25 @@ export class Maze extends Level {
     const used = new Set([`${L.entry.c},0`]);
     const take = (list) => { const cl = list.find((x) => !used.has(`${x.c},${x.r}`)); if (cl) used.add(`${cl.c},${cl.r}`); return cl; };
     if (this.gateKind(b) === 'keys') {
+      // spread the keys out: the first in one of the farther dead ends, then each as far as possible
+      // from the ones already placed (so they're never lined up in a row)
       const n = this.puzzleParams(b).count;
-      for (let i = 0; i < n; i++) {
-        const cl = take(L.dead) || take(L.far);
-        if (cl) this._key(band, b, i, cl, own);
+      const pool = (L.dead.length >= n ? L.dead : [...L.dead, ...L.far]).filter((x) => !used.has(`${x.c},${x.r}`));
+      const picked = [];
+      for (let i = 0; i < n && pool.length; i++) {
+        let best = 0;
+        if (!picked.length) best = Math.floor(rng() * Math.max(1, Math.ceil(pool.length / 2)));
+        else {
+          let bestD = -1;
+          pool.forEach((x, j) => {
+            const d = Math.min(...picked.map((p) => Math.abs(p.c - x.c) + Math.abs(p.r - x.r))) + rng() * 0.5;
+            if (d > bestD) { bestD = d; best = j; }
+          });
+        }
+        const cl = pool.splice(best, 1)[0];
+        used.add(`${cl.c},${cl.r}`);
+        picked.push(cl);
+        this._key(band, b, i, cl, own);
       }
     }
     const handmade = b < HANDMADE;
@@ -582,10 +604,12 @@ export class Maze extends Level {
       });
     } else if (kind === 'slider') {
       g.add(P.box(1.0, 1.2, 0.08, P.MATS.brass(), 0, 0.9, 0.04));
+      // the actual poster, cut into 9 pieces and shuffled (with one missing)
       const [pc, px] = makeCanvas(256, 300);
       px.fillStyle = '#222'; px.fillRect(0, 0, 256, 300);
-      for (let i = 0; i < 9; i++) { px.fillStyle = `hsl(${(i * 40 + k * 23) % 360},50%,50%)`; px.fillRect((i % 3) * 85 + 2, Math.floor(i / 3) * 100 + 2, 81, 96); }
-      px.fillStyle = '#fff'; px.font = 'bold 30px Arial'; px.textAlign = 'center'; px.fillText('???', 128, 160);
+      const src = posterCanvas(this.posterFor(k)), sw = src.width / 3;
+      const order = shuffle([0, 1, 2, 3, 4, 5, 6, 7], mulberry32(this.seed + k * 31));
+      order.forEach((piece, i) => px.drawImage(src, (piece % 3) * sw, Math.floor(piece / 3) * sw, sw, sw, (i % 3) * 85 + 2, Math.floor(i / 3) * 100 + 2, 81, 96));
       const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.1), owned(new THREE.MeshStandardMaterial({ map: canvasTexture(pc) })));
       poster.position.set(0, 1.5, 0.09);
       g.add(poster);
