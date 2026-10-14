@@ -13,7 +13,7 @@ every line with that emotion uses it. You don't need all of them: anything missi
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
 | 🙂 **Normal** | Your regular face. Just chilling. | `guard-normal.jpg` | `guard-normal.mp4` | 1 |
-| 😄 **Happy** | Big smile! | `guard-happy.jpg` | `guard-happy.mp4` | 7 |
+| 😄 **Happy** | Big smile! | `guard-happy.jpg` | `guard-happy.mp4` | 8 |
 | 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `guard-hungry.jpg` | `guard-hungry.mp4` | 1 |
 | 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `guard-cool.jpg` | `guard-cool.mp4` | 6 |
 | 🤔 **Confused** | Squint and tilt your head. "Huh?" | `guard-confused.jpg` | `guard-confused.mp4` | 10 |
@@ -150,7 +150,8 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `guard57.mp4` | 😄 Happy | Another key! Somebody down here is REALLY bad at keeping track of keys. |
 | `guard58.mp4` | 😴 Sleepy | My eyes... are closing... all by themselves... |
 | `guard59.mp4` | 😴 Sleepy | Look at that. The whole city's asleep. Lucky city. |
-| `guard60.mp4` | 😲 Shocked | A PARADE?! Is that a giant DONUT?! Nobody tells me ANYTHING around here. |
+| `guard60.mp4` | 😲 Shocked | Wait. Is that a marching band? A PARADE?! Nobody tells me ANYTHING around here. |
+| `guard61.mp4` | 😄 Happy | Is that... a GIANT DONUT?! Best. Parade. EVER. |
 | `guard28.mp4` | 🤔 Confused | Mmh... huh? It's MORNING?! |
 | `guard29.mp4` | 🤔 Confused | The T-Rex is back. Like nothing happened. ...Is that MY HAT? |
 | `guard30.mp4` | 😲 Shocked | Aaron! The T-Rex was ALIVE! It chased me! There was a MUMMY! And the archives NEVER END! |

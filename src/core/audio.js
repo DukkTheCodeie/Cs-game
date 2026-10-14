@@ -514,7 +514,7 @@ export class AudioEngine {
       g.cancelScheduledValues(now);
       g.setValueAtTime(g.value, now);
       g.linearRampToValueAtTime(0, now + out);
-      setTimeout(() => old.gain.disconnect(), out * 1000 + 400);
+      setTimeout(() => { old.gain.disconnect(); old.level.disconnect(); }, out * 1000 + 400);
     }
     this.trackName = name;
     const def = TRACKS[name];
@@ -525,12 +525,26 @@ export class AudioEngine {
     const g = this.ctx.createGain();
     g.gain.setValueAtTime(0.0001, start);
     g.gain.linearRampToValueAtTime(def.vol ?? 0.8, start + Math.max(0.05, fade * 0.5));
-    g.connect(this.musicDuck);
-    this.track = { def, gain: g, step: 0, next: start, dead: false };
+    // each song also has its own level (see setMusicLevel()), so the next one always starts at full volume
+    const level = this.ctx.createGain();
+    g.connect(level);
+    level.connect(this.musicDuck);
+    this.track = { def, gain: g, level, k: 1, step: 0, next: start, dead: false };
   }
 
   stopMusic(fade = 1) {
     this.playMusic(null, fade);
+  }
+
+  // How loud the song that's playing is, 0..1, on top of the volume setting (a marching band coming
+  // closer and going away again). Changes glide; tiny changes are ignored.
+  setMusicLevel(k, glide = 0.5) {
+    const tr = this.track;
+    if (!tr || tr.dead || Math.abs(k - tr.k) < 0.02) return;
+    tr.k = k;
+    const g = tr.level.gain;
+    g.cancelScheduledValues(this.now);
+    g.setTargetAtTime(k, this.now, glide);
   }
 
   // Lower the music while someone is talking...

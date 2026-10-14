@@ -80,7 +80,7 @@ export class Museum extends Level {
     this.time = time;
     this.night = time === 'night';
     this.refs = {};
-    this.surfaceAt = (x, z) => (x < -12 ? 'wood' : x > 15.2 && z < -9.3 ? 'stone' : x > 12 ? 'marble' : z < -10 ? 'stone' : 'marble');
+    this.surfaceAt = (x, z) => (z > 10 ? 'stone' : x < -12 ? 'wood' : x > 15.2 && z < -9.3 ? 'stone' : x > 12 ? 'marble' : z < -10 ? 'stone' : 'marble');
     const s = this.scene;
     s.background = new THREE.Color(this.night ? 0x020308 : 0xbfd2e6);
     s.fog = this.night ? new THREE.FogExp2(0x03050b, 0.028) : new THREE.Fog(0xcfdbe8, 40, 140);

@@ -130,7 +130,8 @@ export const LINES = {
   museos32: { who: 'museos', mood: 'normal', text: 'Warning: sugar level critical. I recommend a donut. Or twelve.' },
   // the city outside
   guard59: { who: 'guard', mood: 'sleepy', text: "Look at that. The whole city's asleep. Lucky city." },
-  guard60: { who: 'guard', mood: 'shocked', text: 'A PARADE?! Is that a giant DONUT?! Nobody tells me ANYTHING around here.' },
+  guard60: { who: 'guard', mood: 'shocked', text: 'Wait. Is that a marching band? A PARADE?! Nobody tells me ANYTHING around here.' },
+  guard61: { who: 'guard', mood: 'happy', text: 'Is that... a GIANT DONUT?! Best. Parade. EVER.' },
 
   // ---------------- Chapter 6: morning
   guard28: { who: 'guard', mood: 'confused', text: "Mmh... huh? It's MORNING?!" },
