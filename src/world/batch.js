@@ -10,15 +10,59 @@ function signature(g) {
   return names.map((n) => n + g.attributes[n].itemSize).join(',') + (g.index ? '|i' : '|n');
 }
 
-export function batchStatic(root, isDynamic = () => false) {
+// Plain-colored materials → a few shared vertex-color materials (the color goes into the mesh), so
+// meshes that only differ by color merge into one draw call. Anything textured, glowing, see-through,
+// flat-shaded or marked `userData.keep` is left alone, and so is anything `skip(obj)` says to skip.
+const VC = new Map();
+function vcMaterial(rough, metal, side) {
+  const k = `${rough}|${metal}|${side}`;
+  if (!VC.has(k)) {
+    const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: rough, metalness: metal, side });
+    m.userData.shared = true;
+    VC.set(k, m);
+  }
+  return VC.get(k);
+}
+export function bakeColors(root, skip = () => false, { single = false } = {}) {
+  const walk = (o) => {
+    if (o !== root && skip(o)) return;
+    const m = o.material;
+    if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && m && !Array.isArray(m) && m.isMeshStandardMaterial && !m.isMeshPhysicalMaterial &&
+        !m.map && !m.bumpMap && !m.normalMap && !m.transparent && !m.vertexColors && !m.flatShading && !m.userData.keep &&
+        (m.emissive.r + m.emissive.g + m.emissive.b) * m.emissiveIntensity < 0.01 && o.geometry?.attributes?.position && !o.geometry.attributes.color) {
+      // (`single`: everything gets the same material — for a person, where a little shine doesn't matter)
+      const rough = single ? 0.75 : m.roughness < 0.45 ? 0.35 : m.roughness < 0.75 ? 0.6 : 0.85;
+      const metal = single ? 0 : m.metalness > 0.5 ? 0.8 : m.metalness > 0.15 ? 0.3 : 0;
+      const g = o.geometry.clone();
+      const n = g.attributes.position.count, col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { col[i * 3] = m.color.r; col[i * 3 + 1] = m.color.g; col[i * 3 + 2] = m.color.b; }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      o.geometry = g;
+      o.material = vcMaterial(rough, metal, m.side);
+    }
+    for (const c of o.children) walk(c);
+  };
+  walk(root);
+}
+
+// `cell` (meters): merge per area of the world instead of all at once, so what's behind you is
+// culled. 0 = no areas (one merged mesh per material).
+export function batchStatic(root, isDynamic = () => false, cell = 0) {
   root.updateMatrixWorld(true);
   const rootInv = new THREE.Matrix4().copy(root.matrixWorld).invert();
   const buckets = new Map();
+  const c = new THREE.Vector3();
   const walk = (o) => {
     if (o !== root && isDynamic(o)) return;
     if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && o !== root && o.visible && o.children.length === 0 &&
-        !Array.isArray(o.material) && !o.material.transparent && !o.userData.noBatch && o.geometry?.attributes?.position) {
-      const key = `${o.material.uuid}|${o.castShadow}|${o.receiveShadow}|${o.renderOrder}|${signature(o.geometry)}`;
+        !Array.isArray(o.material) && (!o.material.transparent || o.material.userData.batch) && !o.userData.noBatch && o.geometry?.attributes?.position) {
+      let area = '';
+      if (cell) {
+        if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere();
+        c.copy(o.geometry.boundingSphere.center).applyMatrix4(o.matrixWorld);
+        area = `${Math.floor(c.x / cell)},${Math.floor(c.z / cell)}`;
+      }
+      const key = `${o.material.uuid}|${o.castShadow}|${o.renderOrder}|${signature(o.geometry)}|${area}`;
       if (!buckets.has(key)) buckets.set(key, []);
       buckets.get(key).push(o);
     }
@@ -46,7 +90,7 @@ export function batchStatic(root, isDynamic = () => false) {
     const src = list[0];
     const out = new THREE.Mesh(geo, src.material);
     out.castShadow = src.castShadow;
-    out.receiveShadow = src.receiveShadow;
+    out.receiveShadow = list.some((x) => x.receiveShadow);
     out.renderOrder = src.renderOrder;
     out.name = 'batched';
     root.add(out);

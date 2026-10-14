@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { damp } from '../core/util.js';
-import { batchJoints } from './batch.js';
+import { batchJoints, bakeColors } from './batch.js';
 
 // Low-poly people: the guard (you!), Aaron, and museum visitors.
 
@@ -23,7 +23,7 @@ export class Person {
   constructor(opts = {}) {
     const o = (this.opts = {
       shirt: 0x7fa6d9, pants: 0x1d2a44, skin: 0xe0b18f, hair: 0x2b1d14, shoes: 0x151515,
-      cap: false, badge: false, hairStyle: 'short', scale: 1, nameTag: null, ...opts,
+      cap: false, badge: false, hairStyle: 'short', scale: 1, nameTag: null, eyeMat: null, ...opts,
     });
     this.group = new THREE.Group();
     const root = (this.root = new THREE.Group());
@@ -72,7 +72,7 @@ export class Person {
     head.add(skull);
     const eyeG = geo('eye', () => new THREE.SphereGeometry(0.018, 8, 6));
     for (const s of [-1, 1]) {
-      const e = m(eyeG, mat(0x111111, 0.3));
+      const e = m(eyeG, o.eyeMat || mat(0x111111, 0.3));
       e.position.set(s * 0.048, 0.14, 0.122);
       head.add(e);
     }
@@ -157,7 +157,11 @@ export class Person {
     });
 
     this.anim = { mode: 'idle', phase: 0, speed: 0, time: 0, talk: 0, sit: 0, blend: {} };
-    batchJoints([hips, torso, head, ...this.arms.flatMap((a) => [a.sh, a.el, a.hand]), ...this.legs.flatMap((l) => [l.hip, l.knee])], [this.mouth]);
+    // every plain-colored part shares one material (the color goes into the mesh), so each joint is one
+    // draw call; only the talking mouth stays separate (and glowing eyes, which aren't plain). The hands
+    // never bend on their own, so they're merged into the forearms.
+    bakeColors(root, (x) => x === this.mouth, { single: true });
+    batchJoints([hips, torso, head, ...this.arms.flatMap((a) => [a.sh, a.el]), ...this.legs.flatMap((l) => [l.hip, l.knee])], [this.mouth]);
     this.update(0);
   }
 
@@ -344,13 +348,12 @@ function bandageTexture() {
 }
 
 export function makeMummy() {
-  const p = new Person({ shirt: 0xe3d8bc, pants: 0xd8ccae, skin: 0xe6dcc2, hair: 0xd8ccae, shoes: 0xd2c6a8, hairStyle: 'bald' });
-  const wrap = new THREE.MeshStandardMaterial({ map: bandageTexture(), color: 0xc9bea6, roughness: 1 });
   const eyeMat = new THREE.MeshStandardMaterial({ color: 0xfff6b0, emissive: 0xffe066, emissiveIntensity: 3 });
-  const eyes = mat(0x111111, 0.3);
+  const p = new Person({ shirt: 0xe3d8bc, pants: 0xd8ccae, skin: 0xe6dcc2, hair: 0xd8ccae, shoes: 0xd2c6a8, hairStyle: 'bald', eyeMat });
+  const wrap = new THREE.MeshStandardMaterial({ map: bandageTexture(), color: 0xc9bea6, roughness: 1 });
   p.group.traverse((o) => {
-    if (!o.isMesh || o === p.mouth) return;
-    o.material = o.material === eyes ? eyeMat : wrap;
+    if (!o.isMesh || o === p.mouth || o.material === eyeMat) return;
+    o.material = wrap;
   });
   p.mouth.visible = false;
   // a dark gap in the wraps around the eyes, and a loose bandage end

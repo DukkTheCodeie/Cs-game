@@ -23,7 +23,7 @@ export const MATS = {
   black: () => mat('black', { color: 0x151515, roughness: 0.6 }),
   brass: () => mat('brass', { color: 0xc9a24a, roughness: 0.35, metalness: 0.9 }),
   velvet: () => mat('velvet', { color: 0x8a1022, roughness: 0.9 }),
-  glass: () => mat('glass', { color: 0xaaccdd, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.18, depthWrite: false }),
+  glass: () => { const m = mat('glass', { color: 0xaaccdd, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.18, depthWrite: false }); m.userData.batch = true; return m; },
   plant: () => mat('plant', { color: 0x2f6b34, roughness: 0.8, side: THREE.DoubleSide }),
   terracotta: () => mat('terracotta', { color: 0xb5582f, roughness: 0.75 }),
   bronze: () => mat('bronze', { color: 0x8a6a3a, roughness: 0.4, metalness: 0.7 }),
@@ -512,13 +512,19 @@ export function makeFlashlightModel() {
   return g;
 }
 
+let exitFace = null;
 export function makeExitSign() {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.25, 0.08), [
-    MATS.black(), MATS.black(), MATS.black(), MATS.black(),
-    new THREE.MeshBasicMaterial({ map: signTexture('EXIT', { w: 256, h: 96, bg: '#0a3d1c', fg: '#6dff9e', font: 'bold 64px Arial Black, Arial' }), toneMapped: false }),
-    MATS.black(),
-  ]);
-  return m;
+  const g = new THREE.Group();
+  g.add(box(0.7, 0.25, 0.08, MATS.black(), 0, -0.125, 0));
+  if (!exitFace) {
+    exitFace = new THREE.MeshBasicMaterial({ map: signTexture('EXIT', { w: 256, h: 96, bg: '#0a3d1c', fg: '#6dff9e', font: 'bold 64px Arial Black, Arial' }), toneMapped: false });
+    exitFace.map.userData.keep = true;
+    exitFace.userData.keep = true;
+  }
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.22), exitFace);
+  face.position.z = 0.041;
+  g.add(face);
+  return g;
 }
 
 export function makeSignPost(text, arrow = '') {

@@ -19,10 +19,10 @@ every line with that emotion uses it. You don't need all of them: anything missi
 | 🤔 **Confused** | Squint and tilt your head. "Huh?" | `guard-confused.jpg` | `guard-confused.mp4` | 10 |
 | 😒 **Annoyed** | Roll your eyes. Ugh. | `guard-annoyed.jpg` | `guard-annoyed.mp4` | 8 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `guard-angry.jpg` | `guard-angry.mp4` | 1 |
-| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `guard-shocked.jpg` | `guard-shocked.mp4` | 5 |
+| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `guard-shocked.jpg` | `guard-shocked.mp4` | 6 |
 | 😱 **Scared** | Hands on your cheeks. Silent scream. | `guard-scared.jpg` | `guard-scared.mp4` | 12 |
 | 😢 **Sad** | Big pout. Fake cry. | `guard-sad.jpg` | `guard-sad.mp4` | 1 |
-| 😴 **Sleepy** | Huge yawn, eyes half closed. | `guard-sleepy.jpg` | `guard-sleepy.mp4` | 4 |
+| 😴 **Sleepy** | Huge yawn, eyes half closed. | `guard-sleepy.jpg` | `guard-sleepy.mp4` | 5 |
 
 One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 
@@ -30,9 +30,9 @@ One photo for everything: `guard.jpg` (used for any emotion you didn't make).
 
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
-| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 7 |
+| 😄 **Happy** | Big smile! | `dev-happy.jpg` | `dev-happy.mp4` | 8 |
 | 🤤 **Hungry** | Stare at an imaginary donut. Lick your lips. | `dev-hungry.jpg` | `dev-hungry.mp4` | 1 |
-| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 3 |
+| 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `dev-cool.jpg` | `dev-cool.mp4` | 1 |
 | 🤔 **Confused** | Squint and tilt your head. "Huh?" | `dev-confused.jpg` | `dev-confused.mp4` | 2 |
 | 😒 **Annoyed** | Roll your eyes. Ugh. | `dev-annoyed.jpg` | `dev-annoyed.mp4` | 5 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `dev-angry.jpg` | `dev-angry.mp4` | 2 |
@@ -48,6 +48,7 @@ One photo for everything: `dev.jpg` (used for any emotion you didn't make).
 | Emotion | Act it out | Photo | or video | Lines |
 |---|---|---|---|---|
 | 🙂 **Normal** | Your regular face. Just chilling. | `aaron-normal.jpg` | `aaron-normal.mp4` | 1 |
+| 😄 **Happy** | Big smile! | `aaron-happy.jpg` | `aaron-happy.mp4` | 1 |
 | 😎 **Cool** | Smug grin, one eyebrow up. You are the best. | `aaron-cool.jpg` | `aaron-cool.mp4` | 1 |
 | 😒 **Annoyed** | Roll your eyes. Ugh. | `aaron-annoyed.jpg` | `aaron-annoyed.mp4` | 1 |
 
@@ -148,6 +149,8 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `guard56.mp4` | 😒 Annoyed | Who designs a basement like this?! ...Oh. Right. A computer. |
 | `guard57.mp4` | 😄 Happy | Another key! Somebody down here is REALLY bad at keeping track of keys. |
 | `guard58.mp4` | 😴 Sleepy | My eyes... are closing... all by themselves... |
+| `guard59.mp4` | 😴 Sleepy | Look at that. The whole city's asleep. Lucky city. |
+| `guard60.mp4` | 😲 Shocked | A PARADE?! Is that a giant DONUT?! Nobody tells me ANYTHING around here. |
 | `guard28.mp4` | 🤔 Confused | Mmh... huh? It's MORNING?! |
 | `guard29.mp4` | 🤔 Confused | The T-Rex is back. Like nothing happened. ...Is that MY HAT? |
 | `guard30.mp4` | 😲 Shocked | Aaron! The T-Rex was ALIVE! It chased me! There was a MUMMY! And the archives NEVER END! |
@@ -169,7 +172,6 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `dev07.mp4` | 😄 Happy | Psst. There's a MUMMY in this game now. I made it at three in the morning. |
 | `dev08.mp4` | 🤔 Confused | Why do you keep clicking me? I'm a TV. ...Kind of. |
 | `dev09.mp4` | 😄 Happy | Fun fact: I made every sound in this game with code. Even the munching. |
-| `dev10.mp4` | 😎 Cool | The archives never end. I wrote an algorithm for that. I'm not sorry. |
 | `dev11.mp4` | 🤤 Hungry | Got any donuts? Asking for a friend. The friend is me. |
 | `dev12.mp4` | 😒 Annoyed | Okay, that's a LOT of pokes. I'm counting, you know. |
 | `dev13.mp4` | 😱 Scared | Please don't tell the T-Rex where I live. |
@@ -181,7 +183,6 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `dev19.mp4` | 😴 Sleepy | ...So are you gonna press play, or are we just staring at each other? |
 | `dev20.mp4` | 😄 Happy | Did you turn the music up? Turn it up. I worked really hard on that music. |
 | `dev21.mp4` | 😄 Happy | Hey, you found one of my secret rooms! Take the donut. I insist. |
-| `dev22.mp4` | 😎 Cool | Yeah, it never ends. The computer makes up new puzzles forever. Pretty cool, right? |
 | `dev23.mp4` | 😢 Sad | Aww. Sweet dreams, little guard. Don't worry, it's almost morning. |
 | `dev24.mp4` | 😎 Cool | Pro tip: you can sprint. It burns donuts, though. Just like real life. |
 | `dev25.mp4` | 😄 Happy | Did you see my name in the credits? I put it there myself. Very proud of it. |
@@ -189,7 +190,8 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `dev27.mp4` | 😒 Annoyed | You turned the voices off? ...Fine. I will just type REALLY loudly. |
 | `dev28.mp4` | 😢 Sad | Fast graphics? My beautiful cylinders... they look so blurry now. |
 | `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap. Wake me up when you press play. |
-| `dev30.mp4` | 😄 Happy | New in this version: the visitors can talk now! Go bump into one. Actually, please don't. |
+| `dev30.mp4` | 😄 Happy | New in this version: there's a whole CITY outside! Look out the front windows. And in the morning... well. You'll see. |
+| `dev33.mp4` | 😄 Happy | Oh, you found my parade! I built every float myself. The donut one is my favorite. Obviously. |
 | `dev32.mp4` | 😲 Shocked | You got EATEN? By MY T-Rex? ...Okay, that's actually pretty cool. Try again. |
 | `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game? And you came BACK? You must really like donuts. |
 
@@ -200,6 +202,7 @@ for example `guard05.mp4`. It plays **with sound** instead of the robot voice, f
 | `aaron01.mp4` | 🙂 Normal | Yo, it's Aaron. Heads up — IT is changing all the computer passwords tonight. So, uh... don't let your session time out. Okay byeee. |
 | `aaron02.mp4` | 😒 Annoyed | Dude. Did you sleep in the dinosaur exhibit? Again? |
 | `aaron03.mp4` | 😎 Cool | Sure, buddy. Also, your computer's been beeping all morning. You should probably log in. |
+| `aaron04.mp4` | 😄 Happy | Oh, and there's a parade outside today. Floats, a marching band, the works. Front doors are open if you want a look. |
 
 ## 🧟 The Mummy
 

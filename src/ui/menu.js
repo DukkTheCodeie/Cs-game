@@ -34,7 +34,7 @@ export class Menu {
     const idle = () => { if (this.speaker && !this.game.dialogue.current) st.showFace(this.game.clips.face('dev', st.mood)); };
     idle();
     this._offClips = this.game.clips.onChange(idle);
-    const POKES = ['dev06', 'dev07', 'dev08', 'dev09', 'dev10', 'dev11', 'dev13', 'dev14', 'dev15', 'dev16', 'dev12'];
+    const POKES = ['dev06', 'dev07', 'dev08', 'dev09', 'dev11', 'dev13', 'dev14', 'dev15', 'dev16', 'dev12'];
     sp.addEventListener('click', () => {
       if (this.busy || this.game.dialogue.current) return;
       this.game.audio.play('static', { dur: 0.15 });

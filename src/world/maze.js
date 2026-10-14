@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Level, boxUV, planeUV } from './level.js';
 import { tex, signTexture, makeCanvas, canvasTexture } from './textures.js';
+import { surface } from './surfaces.js';
 import * as P from './props.js';
 import { mulberry32 } from '../core/util.js';
 import { personOutline } from './runner.js';
@@ -68,9 +69,9 @@ export class Maze extends Level {
 
     this.shelfMats = shelfMaterials();
     this.mats = {
-      floor: new THREE.MeshStandardMaterial({ map: tex('concrete'), roughness: 0.9 }),
+      floor: (() => { const t = surface('slab'); return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bump, bumpScale: 1.6, roughness: 0.75 }); })(),
       ceil: new THREE.MeshStandardMaterial({ map: tex('concrete'), color: 0x555555, roughness: 1 }),
-      plaster: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x8a7f72, roughness: 0.9 }),
+      plaster: (() => { const t = surface('cmu'); return new THREE.MeshStandardMaterial({ map: t.map, bumpMap: t.bump, bumpScale: 1.2, color: 0xa89c88, roughness: 0.9 }); })(),
       alcove: new THREE.MeshStandardMaterial({ map: tex('plaster'), color: 0x5a4a66, roughness: 0.9 }),
       pipe: new THREE.MeshStandardMaterial({ color: 0x5a6068, roughness: 0.5, metalness: 0.6 }),
       water: new THREE.MeshStandardMaterial({ color: 0x3a6a8a, roughness: 0.05, metalness: 0.4, transparent: true, opacity: 0.55, depthWrite: false }),

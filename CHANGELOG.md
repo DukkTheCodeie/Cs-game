@@ -4,6 +4,29 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.3.0 — 2026-10-13
+
+**The museum**
+- Every wall, floor and ceiling has a real surface now, with depth you can see under the flashlight:
+  painted blocks in the security office, cut limestone and a coffered ceiling in the lobby, big stone
+  blocks (with fossils in them) and flagstones in the Dinosaur Hall, a Pompeii-style painted wall and a
+  mosaic in the Roman Hall, carved sandstone and a starry tomb ceiling in the Egyptian Wing. Plus
+  baseboards and door frames, concrete slabs in the archives and stone walls in the chase.
+- Lots more to look at, so no room feels empty: flying reptiles hanging from the ceilings, steel
+  trusses, fossil slabs, a dinosaur timeline, a "how tall are you?" chart, a dig site, egg and tooth
+  cases, a gift shop, a queue and a rug at the info desk, portraits, statues, a Roman legionary, a tiny
+  Colosseum, coins, a sphinx, cat statues, a model boat, papyrus, and a much messier security office.
+- Morning visitors walk up to the exhibits, look at them and point things out.
+
+**Fixes**
+- The dev no longer brags that the archives never end.
+- Sad faces: when someone talks sadly, they get one sad mouth instead of a frown drawn over an open mouth.
+- The flashlight knows how tall things are again (columns counted as 35 cm tall).
+
+**Performance**
+- Things that only differ by color are drawn together: about 20% fewer draw calls in the busiest
+  view, and each visitor takes 12 instead of 18.
+
 ## v0.2.0 — 2026-10-13
 
 **Sound**
