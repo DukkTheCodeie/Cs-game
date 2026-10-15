@@ -17,26 +17,25 @@ export const CHAPTERS = [
   { id: 'egypt', name: 'Chapter 2 — Curse of the Pharaoh', blurb: 'The Egyptian Wing' },
   { id: 'roman', name: 'Chapter 3 — All Roads', blurb: 'The Roman Empire' },
   { id: 'chase', name: 'Chapter 4 — RUN', blurb: 'It is right behind you' },
-  { id: 'maze', name: 'Chapter 5 — Behind the Walls', blurb: 'The Archives (they never end)' },
+  { id: 'maze', name: 'Chapter 5 — Behind the Walls', blurb: 'The Archives' },
   { id: 'morning', name: 'Chapter 6 — Morning Shift', blurb: '7 hours later…' },
 ];
 
 export const TIPS = {
-  intro: 'Headphones on. It\'s a quiet night... for now.',
-  dino: 'Read the plaques — museums <b>love</b> fun facts.',
+  intro: 'Best with headphones.',
+  dino: 'Read the plaques. One of them helps with the puzzle.',
   egypt: 'Ancient Egyptians wrote 10 as ∩ and 1 as |. So ∩∩||| is 23.',
   roman: 'Roman numerals: M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1.',
   chase: '← → switch lanes · ↑ jump · ↓ slide. Hitting things lets the T-Rex catch up.',
-  maze: 'The archives go on... and on. Grab every donut you can, and look for strange boxes on the shelves.',
+  maze: 'Grab every donut you can, and look for strange boxes on the shelves.',
   morning: 'Good morning! Your shift ended two hours ago.',
 };
 const GENERAL_TIPS = [
   `There are <b>${TOTAL_DONUTS} hidden donuts</b>. They glow pink.`,
   'Sprinting burns your donut meter about twice as fast.',
   'Stuck on a puzzle? A hint costs a little donut.',
-  'The mummy has a <b>serious</b> sweet tooth.',
-  'Some walls hide <b>secret rooms</b>. Look for things that seem a little... off.',
-  'Aaron has been Employee of the Month 11 months in a row.',
+  'Press <b>F</b> to turn your flashlight on and off.',
+  'Some walls hide <b>secret rooms</b>. Look for something out of place.',
 ];
 export function tipFor(id) {
   return Math.random() < 0.6 ? TIPS[id] : GENERAL_TIPS[Math.floor(Math.random() * GENERAL_TIPS.length)];
@@ -199,7 +198,7 @@ async function intro(g) {
     g.computer.setMsg('');
     await g.computer.type('donut123', { speed: 0.2 });
     await g.computer.press('login');
-    g.computer.setMsg('INCORRECT PASSWORD (attempt 2 of ∞)');
+    g.computer.setMsg('INCORRECT PASSWORD');
     g.shake(0.08, 0.3);
     await g.say('guard05');
     await g.wait(0.4);
@@ -774,7 +773,7 @@ async function maze(g) {
   g.meter.drain = drainFor(lvl.curBand);
   let sleeping = false;
   g.meter.onEmpty = () => {
-    if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives. The T-Rex is very disappointed in you.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
+    if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
     if (!sleeping) { sleeping = true; sleepEnding(g); }
   };
   // lines wait their turn, so they never cut off someone else
@@ -1134,6 +1133,6 @@ async function morning(g) {
   g.save.flags.ending = 'pending';
   logEvent('finished');
   g.persist();
-  await g._guard(showGameOver(g, { title: 'GAME OVER', sub: 'You did not solve the puzzles.<br><span style="color:var(--dim)">(5 of 6 password fragments. So close. So, so close.)</span>', buttons: [{ label: 'BACK TO MENU', value: 'menu', cls: 'pink' }] }));
+  await g._guard(showGameOver(g, { title: 'GAME OVER', sub: 'You did not solve the puzzles.<br><span style="color:var(--dim)">(5 of 6 password fragments.)</span>', buttons: [{ label: 'BACK TO MENU', value: 'menu', cls: 'pink' }] }));
   g.toMenu();
 }

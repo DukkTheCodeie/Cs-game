@@ -102,59 +102,59 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 
 | File name | Emotion | Line |
 |---|---|---|
-| `guard01.mp4` | 🤤 Hungry | Mmm. Number three is the T-Rex. Obviously. Nothing beats the King. |
-| `guard02.mp4` | 😎 Cool | Yeah, yeah. Like that's gonna happen. |
-| `guard03.mp4` | 😒 Annoyed | Ugh. Whatever. I'll just log back in. |
-| `guard04.mp4` | 🤔 Confused | Huh? Donut-one-two-three. That's literally always my password. |
+| `guard01.mp4` | 🤤 Hungry | Number three is the T-Rex? Nah. The T-Rex is number one, easy. |
+| `guard02.mp4` | 😎 Cool | Yeah, yeah. Whatever. |
+| `guard03.mp4` | 😒 Annoyed | Bruh. Okay, I'll just log back in. |
+| `guard04.mp4` | 🤔 Confused | Huh? It's donut one two three. It's ALWAYS donut one two three. |
 | `guard05.mp4` | 😲 Shocked | WHAT?! Who changed my password?! |
-| `guard06.mp4` | 😄 Happy | Where giants once walked... the Dino exhibit! Oh yeah, I like the Dino exhibit. |
-| `guard07.mp4` | 😎 Cool | Flashlight: check. Donuts: check. Let's go. |
-| `guard08.mp4` | 😄 Happy | Whoa. Never gets old. Hey, big guy. |
-| `guard09.mp4` | 😎 Cool | Egyptian Wing. Got it. Easy. |
+| `guard06.mp4` | 😄 Happy | Where giants once walked... that's gotta be the Dinosaur Hall. |
+| `guard07.mp4` | 😎 Cool | Okay. I got my flashlight, I got my donuts. Let's do this. |
+| `guard08.mp4` | 😄 Happy | Hey, big guy. |
+| `guard09.mp4` | 😎 Cool | Egyptian Wing. Easy. |
 | `guard10.mp4` | 🤔 Confused | ...What was that? |
 | `guard11.mp4` | 😲 Shocked | Wait. Where's the T-Rex? |
 | `guard12.mp4` | 😱 Scared | Oh crap. Oh crap oh crap. This is like Night at the Museum. |
-| `guard13.mp4` | 😱 Scared | Okay. Totally normal. Big dinosaur's just... on a walk. I'm gonna go to the Egyptian Wing. Quickly. |
-| `guard35.mp4` | 😱 Scared | The Egyptian Wing. Why is it ALWAYS so creepy in here? |
-| `guard47.mp4` | 🤔 Confused | Upside-down U's and little sticks? ...Oh! Each U must be a TEN. And the sticks are ones. |
+| `guard13.mp4` | 😱 Scared | Nope. I didn't see that. I'm going to the Egyptian Wing. |
+| `guard35.mp4` | 😱 Scared | Why is it always so creepy in here? |
+| `guard47.mp4` | 🤔 Confused | Upside-down U's and little sticks... oh, the U's are tens and the sticks are ones. |
 | `guard42.mp4` | 😱 Scared | That footprint is the size of a bathtub. The T-Rex came through here. |
 | `guard36.mp4` | 😄 Happy | All four pillars. Now, to the Pharaoh's Lock. |
 | `guard37.mp4` | 😱 Scared | Uh... why is the coffin making noises? |
-| `guard38.mp4` | 😱 Scared | AAAH! A MUMMY! Stay back! I have a flashlight and I'm not afraid to... shine it! |
-| `guard39.mp4` | 🤔 Confused | ...You want a donut? You've been in there for three thousand years and you want a DONUT? |
+| `guard38.mp4` | 😱 Scared | AAAH! MUMMY! Get back in your box! |
+| `guard39.mp4` | 🤔 Confused | You want my DONUT? Bro, you've been dead for three thousand years. |
 | `guard40.mp4` | 😒 Annoyed | Ugh. FINE. One donut. But you owe me. |
-| `guard41.mp4` | 😎 Cool | Yeah, they're pretty good. Okay. Back to bed, little buddy. |
+| `guard41.mp4` | 😎 Cool | Yeah, they're good. Now go back to bed. |
 | `guard14.mp4` | 😱 Scared | Nope. Nope nope nope nope. |
-| `guard15.mp4` | 🙂 Normal | Okay. Romans. Romans are chill. Romans never chased anybody. |
+| `guard15.mp4` | 🙂 Normal | Roman Hall. Please just be statues in here. |
 | `guard16.mp4` | 🤔 Confused | Beyond the walls? What does that even mea— |
 | `guard17.mp4` | 😲 Shocked | OH MY GOSH. |
 | `guard18.mp4` | 😱 Scared | AAAAAAAAAAH! |
 | `guard19.mp4` | 😱 Scared | Why is this hallway so LONG?! |
-| `guard20.mp4` | 😄 Happy | There! A hole shaped exactly like me! That is SO convenient! |
-| `guard21.mp4` | 😎 Cool | HA! You can't fit, big guy! Shoulda done more cardio! ...Wait, you don't have lungs. |
+| `guard20.mp4` | 😄 Happy | There! A hole in the wall! GO GO GO! |
+| `guard21.mp4` | 😎 Cool | HA! You can't fit! Skill issue! |
 | `guard22.mp4` | 😒 Annoyed | My sugar levels are FINE. |
 | `guard23.mp4` | 😱 Scared | Is that... an EYE?! Go away! Shoo! |
-| `guard24.mp4` | 😒 Annoyed | Three keys for ONE gate. Who designs these places? |
+| `guard24.mp4` | 😒 Annoyed | Three keys for one gate? Are you serious? |
 | `guard43.mp4` | 😒 Annoyed | ANOTHER gate? How big IS this place?! |
 | `guard45.mp4` | 🤔 Confused | Wait. These shelves look familiar. Am I going in circles? |
 | `guard44.mp4` | 😴 Sleepy | Need... donut... so... tired... |
 | `guard46.mp4` | 😄 Happy | A secret room! With a DONUT in it! |
 | `guard27.mp4` | 😴 Sleepy | So... sleepy... just gonna... rest my eyes... five minutes... |
-| `guard48.mp4` | 😄 Happy | Spare bones! Do you think anyone would notice if I built my own dinosaur? |
-| `guard49.mp4` | 😱 Scared | More mummies. Great. Just great. Nobody look at me. |
-| `guard50.mp4` | 😎 Cool | Broken statues. Hey, this one kind of looks like me. Handsome. |
-| `guard51.mp4` | 🤔 Confused | Why is there a Christmas tree down here? It's not even December! |
-| `guard52.mp4` | 😒 Annoyed | My socks are wet. My socks are WET. |
-| `guard53.mp4` | 😱 Scared | Okay. It's just dark. Dark is fine. Dark is totally, completely fine. |
-| `guard54.mp4` | 😢 Sad | Donut storage... and it is EMPTY? This is the worst night of my life. |
+| `guard48.mp4` | 😄 Happy | Bro, there's like a whole extra dinosaur in here. |
+| `guard49.mp4` | 😱 Scared | More mummies. If any of you wake up, I'm out. |
+| `guard50.mp4` | 😎 Cool | Who keeps breaking all these statues? |
+| `guard51.mp4` | 🤔 Confused | Why is there a Christmas tree down here? |
+| `guard52.mp4` | 😒 Annoyed | Ew. My socks are soaked. |
+| `guard53.mp4` | 😱 Scared | Why is it so dark down here? I can't see anything. |
+| `guard54.mp4` | 😢 Sad | Donut storage... and it's EMPTY? Who did this?! |
 | `guard55.mp4` | 😴 Sleepy | How deep does this go? I can't feel my feet anymore. |
-| `guard56.mp4` | 😒 Annoyed | Who designs a basement like this?! ...Oh. Right. A computer. |
-| `guard57.mp4` | 😄 Happy | Another key! Somebody down here is REALLY bad at keeping track of keys. |
+| `guard56.mp4` | 😒 Annoyed | Who builds a basement like this?! |
+| `guard57.mp4` | 😄 Happy | Another key. Who keeps losing these? |
 | `guard58.mp4` | 😴 Sleepy | My eyes... are closing... all by themselves... |
-| `guard59.mp4` | 😴 Sleepy | Look at that. The whole city's asleep. Lucky city. |
-| `guard60.mp4` | 😲 Shocked | Wait. Is that a marching band? A PARADE?! Nobody tells me ANYTHING around here. |
-| `guard61.mp4` | 😄 Happy | Is that... a GIANT DONUT?! Best. Parade. EVER. |
-| `guard62.mp4` | 😄 Happy | Fresh air! Sunshine! A whole city out here! ...I should probably go log in, though. |
+| `guard59.mp4` | 😴 Sleepy | The whole city's asleep. Must be nice. |
+| `guard60.mp4` | 😲 Shocked | Wait, is that a marching band? There's a PARADE today? |
+| `guard61.mp4` | 😄 Happy | A GIANT DONUT?! Okay, this parade is goated. |
+| `guard62.mp4` | 😄 Happy | Ahh, sunlight. Okay, I really need to go log in. |
 | `guard28.mp4` | 🤔 Confused | Mmh... huh? It's MORNING?! |
 | `guard29.mp4` | 🤔 Confused | The T-Rex is back. Like nothing happened. |
 | `guard63.mp4` | 😲 Shocked | ...Is that MY HAT? |
@@ -216,7 +216,7 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 
 | File name | Emotion | Line |
 |---|---|---|
-| `aaron01.mp4` | 🙂 Normal | Yo, it's Aaron. Heads up — IT is changing all the computer passwords tonight. So, uh... don't let your session time out. Okay byeee. |
+| `aaron01.mp4` | 🙂 Normal | Yo, it's Aaron. Heads up, IT is changing all the computer passwords tonight, so don't let your session time out. Alright, peace. |
 | `aaron02.mp4` | 😒 Annoyed | Dude. Did you sleep in the dinosaur exhibit? Again? |
 | `aaron03.mp4` | 😎 Cool | Sure, buddy. Also, your computer's been beeping all morning. You should probably log in. |
 | `aaron04.mp4` | 😄 Happy | Oh, and there's a parade outside today. Floats, a marching band, the works. Front doors are open if you want a look. |
@@ -227,7 +227,7 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 |---|---|---|
 | `mummy01.mp4` | 🤤 Hungry | Mmmph... mmh mmph? *(Is that... a DONUT?)* |
 | `mummy02.mp4` | 😢 Sad | Mmmph. *(Please.)* |
-| `mummy03.mp4` | 😄 Happy | MMMMMMH! *(Best. Snack. In. Three. Thousand. Years.)* |
+| `mummy03.mp4` | 😄 Happy | MMMMMMH! *(Oh, that is SO good.)* |
 
 ## 🖥️ MUSE-OS (the museum computer — no faces to act, but you can record its voice)
 
@@ -240,28 +240,28 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 | `museos13.mp4` | 🙂 Normal | Puzzle number two: the Pharaoh's Lock. Its secret is on four pillars, in Egyptian numbers. The Pharaoh wants them smallest first. |
 | `museos14.mp4` | 🙂 Normal | Fragment two: MUMMY. Next puzzle: the Roman Empire hall. |
 | `museos05.mp4` | 🙂 Normal | Fragment three: 1974. The remaining puzzles lie... beyond the walls. |
-| `museos06.mp4` | 🙂 Normal | Welcome to the archives, guard. The last password fragments are behind these gates. Also, your sugar levels are... concerning. |
+| `museos06.mp4` | 🙂 Normal | Archives. The last password fragments are behind these gates. Warning: sugar level low. |
 | `museos07.mp4` | 🙂 Normal | Fragment four: ZAP. |
-| `museos08.mp4` | 🙂 Normal | The next gate needs three keys: red, blue and yellow. They were lost somewhere in this section. Classic. |
+| `museos08.mp4` | 🙂 Normal | The next gate needs three keys: red, blue and yellow. They are somewhere in this section. |
 | `museos09.mp4` | 🙂 Normal | Fragment five: DONUT. Only one fragment left. It is behind the next gate. |
-| `museos15.mp4` | 🙂 Normal | Fragment six was not here. Have you tried the next gate? |
-| `museos16.mp4` | 🙂 Normal | Still no fragment six. It is definitely behind the next gate. Probably. |
-| `museos17.mp4` | 🙂 Normal | Fun fact: nobody has ever reached the end of the archives. |
-| `museos18.mp4` | 🙂 Normal | Your sugar levels are now... alarming. Please keep solving puzzles. |
-| `museos19.mp4` | 🙂 Normal | Guard? ...Guard? Sugar level: zero. The guard is asleep. Logging out. |
-| `museos20.mp4` | 🙂 Normal | Section two: Lost and Found. Everything anyone ever lost in this museum ends up here. Including, apparently, three keys. |
-| `museos21.mp4` | 🙂 Normal | Section three: Posters and Prints. Please do not tear the posters. Someone already did. |
-| `museos22.mp4` | 🙂 Normal | Now entering: Spare Dinosaur Bones. If you find a skull, please do not wear it. |
-| `museos23.mp4` | 🙂 Normal | Now entering: Egyptian Overflow. These mummies are on vacation. Do not wake them. |
-| `museos24.mp4` | 🙂 Normal | Now entering: Roman Statues, Broken. Somebody keeps dropping them. It was not me. I have no hands. |
-| `museos25.mp4` | 🙂 Normal | Now entering: Holiday Decorations. It is not the holidays. It has never been the holidays down here. |
-| `museos26.mp4` | 🙂 Normal | Now entering: the Flooded Bit. Mind the puddles. And the drips. And the other drips. |
-| `museos27.mp4` | 🙂 Normal | Now entering: the Power Outage section. The lights here stopped working in nineteen seventy-four. |
-| `museos28.mp4` | 🙂 Normal | Now entering: Donut Storage. Status: empty. Someone ate everything. I have a guess who. |
-| `museos29.mp4` | 🙂 Normal | Gate open. Your puzzle-solving speed is... adequate. |
-| `museos30.mp4` | 🙂 Normal | Another gate. Fun fact: there are infinity gates. I counted. |
-| `museos31.mp4` | 🙂 Normal | Reminder: the museum opens in a few hours. You are still in the basement. |
-| `museos32.mp4` | 🙂 Normal | Warning: sugar level critical. I recommend a donut. Or twelve. |
+| `museos15.mp4` | 🙂 Normal | Fragment six: not found. Proceed to the next gate. |
+| `museos16.mp4` | 🙂 Normal | Fragment six: not found. Searching the next section. |
+| `museos17.mp4` | 🙂 Normal | Archive size: unknown. |
+| `museos18.mp4` | 🙂 Normal | Warning: sugar level very low. |
+| `museos19.mp4` | 🙂 Normal | Sugar level: zero. Guard unresponsive. Logging out. |
+| `museos20.mp4` | 🙂 Normal | Section two: Lost and Found. |
+| `museos21.mp4` | 🙂 Normal | Section three: Posters and Prints. |
+| `museos22.mp4` | 🙂 Normal | Now entering: Spare Dinosaur Bones. |
+| `museos23.mp4` | 🙂 Normal | Now entering: Egyptian Overflow. |
+| `museos24.mp4` | 🙂 Normal | Now entering: Broken Statues. |
+| `museos25.mp4` | 🙂 Normal | Now entering: Holiday Decorations. |
+| `museos26.mp4` | 🙂 Normal | Now entering: the Flooded Bit. Caution: wet floor. |
+| `museos27.mp4` | 🙂 Normal | Now entering: Power Outage. Lights: offline. |
+| `museos28.mp4` | 🙂 Normal | Now entering: Donut Storage. Inventory: zero. |
+| `museos29.mp4` | 🙂 Normal | Gate open. |
+| `museos30.mp4` | 🙂 Normal | Next gate detected. |
+| `museos31.mp4` | 🙂 Normal | Reminder: the museum opens at 9 AM. |
+| `museos32.mp4` | 🙂 Normal | Warning: sugar level critical. |
 | `museos11.mp4` | 🙂 Normal | Fragments entered: five of six. You did not solve the puzzles. |
-| `museos12.mp4` | 🙂 Normal | Five is not six. Goodbye. |
+| `museos12.mp4` | 🙂 Normal | Access denied. Logging out. |
 

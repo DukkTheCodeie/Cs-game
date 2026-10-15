@@ -148,7 +148,7 @@ const PUZZLES = {
         onKey(e) { if (e.code === 'ArrowLeft' || e.code === 'KeyA') turn(-1); if (e.code === 'ArrowRight' || e.code === 'KeyD') turn(1); },
         hints: () => (params.text
           ? ['Click ▶ again and again and watch the small green letters under each big one.', `The first word is "${plain.split(' ')[0]}".`, `Turn the wheel until the hub says ${SHIFT}.`]
-          : ['The plaque next to the T-Rex has a fun fact about its hands.', 'T. rex had TWO fingers on each hand. Two hands... 2 + 2 = ?', 'Turn the wheel until the hub says 4.']),
+          : ['Read the plaque next to the T-Rex. It says something about its hands.', 'T. rex had TWO fingers on each hand. Two hands... 2 + 2 = ?', 'Turn the wheel until the hub says 4.']),
         dispose() { clearTimeout(solvedT); },
       };
     },
