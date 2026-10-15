@@ -993,7 +993,7 @@ async function morning(g) {
   const screen = { mode: 'locked' };
   setupMonitor(g, lvl, screen);
   const trex = lvl.refs.trex;
-  // your hat... on the T-Rex
+  // your hat... in the T-Rex's mouth, hanging off its front teeth
   const hat = new THREE.Group();
   const capMat = new THREE.MeshStandardMaterial({ color: 0x1b2440, roughness: 0.7 });
   const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.15, 16), capMat);
@@ -1002,8 +1002,8 @@ async function morning(g) {
   hat.add(brim);
   const badge = box(0.07, 0.06, 0.01, MATS.brass(), 0, 0.0, 0.21);
   hat.add(badge);
-  hat.position.set(0, 0.53, 0.35);
-  hat.rotation.z = 0.2;
+  hat.position.set(0, -0.38, 1.16);
+  hat.rotation.set(1.6, 0, 0.25);
   trex.headPivot.children[0].add(hat);
   // a donut stuck on a tooth
   const crumb = makeDonut({ frosting: 0, scale: 0.6 });
@@ -1072,7 +1072,17 @@ async function morning(g) {
     const y0 = g.player.yaw, y1 = Math.atan2(-(SPOTS.trex.x + 1.5 - g.player.pos.x), -(SPOTS.trex.z + 4 - g.player.pos.z));
     await g.tween(1.2, (k) => { g.player.yaw = lerp(y0, y1, k); g.player.pitch = lerp(0.25, 0.32, k); g.player.applyCamera(0); });
     await g.say('guard29');
-    // Aaron walks over
+    // zoom in on its mouth...
+    const mouth = trex.headPivot.children[0].localToWorld(new THREE.Vector3(0, -0.35, 1.0));
+    const eye = g.camera.position, fov0 = g.camera.fov;
+    const zy0 = g.player.yaw, zy1 = Math.atan2(-(mouth.x - eye.x), -(mouth.z - eye.z));
+    const zp0 = g.player.pitch, zp1 = Math.atan2(mouth.y - eye.y, Math.hypot(mouth.x - eye.x, mouth.z - eye.z));
+    const zoom = (fov) => { g.camera.fov = fov; g.camera.updateProjectionMatrix(); };
+    g.audio.play('whoosh');
+    await g.tween(1.1, (k) => { g.player.yaw = lerp(zy0, zy1, k); g.player.pitch = lerp(zp0, zp1, k); zoom(lerp(fov0, 22, k)); g.player.applyCamera(0); });
+    await g.wait(0.7);
+    await g.say('guard63');
+    // Aaron walks over (and the view widens back out)
     const a0 = aaron.group.position.clone(), a1 = new THREE.Vector3(3.4, 0, -18.7);
     aaron.setMode('walk', 1.3);
     aaron.group.rotation.y = Math.atan2(a1.x - a0.x, a1.z - a0.z);
@@ -1080,9 +1090,11 @@ async function morning(g) {
     await g.tween(2.4, (k) => {
       aaron.group.position.lerpVectors(a0, a1, k);
       g.player.yaw = lerp(yy0, yy1, k);
-      g.player.pitch = lerp(0.32, 0.05, k);
+      g.player.pitch = lerp(zp1, 0.05, k);
+      zoom(lerp(22, fov0, Math.min(1, k * 1.6)));
       g.player.applyCamera(0);
     }, Ease.linear);
+    zoom(fov0);
     aaron.setMode('idle');
     aaron.group.rotation.y = Math.atan2(g.player.pos.x - a1.x, g.player.pos.z - a1.z);
     aaron.anim.talk = 3;

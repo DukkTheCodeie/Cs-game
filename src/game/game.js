@@ -22,9 +22,18 @@ import { VERSION } from '../version.js';
 import { openAdmin, devOn } from '../ui/admin.js';
 import { logEvent } from '../core/analytics.js';
 import { setCastStyle } from '../world/cast.js';
+import { CONFIG } from '../config.js';
 
 const SAVE_KEY = 'locked-out.save.v1';
 export { TOTAL_DONUTS };
+
+// Where the game can open in a tab of its own: game-config.js's playUrl, or this page's own address
+// (unless it's one of the sandbox pages embeds live on, which only work inside their frame).
+function ownTabUrl() {
+  if (CONFIG.playUrl) return CONFIG.playUrl;
+  if (/^https?:$/.test(location.protocol) && !/(^|\.)googleusercontent\.com$/.test(location.hostname)) return location.href;
+  return '';
+}
 
 function defaultSave() {
   return {
@@ -131,6 +140,8 @@ export class Game {
     this.clockMin = 0;
     this.clockOn = false;
     this.unlockT = 0;
+    this.lookHint = null; // seconds left on the "look around" hint (null: not shown yet; it shows once)
+    this.lockBlocked = false;
     this.menuAngle = 0;
     this.timeScale = 1;
     this.clock = new THREE.Clock();
@@ -154,8 +165,9 @@ export class Game {
     this.input.onLockChange = (locked) => {
       if (!locked && this.mode === 'explore' && !this.paused) this.pause();
     };
+    this.input.onLockRefused = () => this._lockRefused();
     this.canvas.addEventListener('click', () => {
-      if (this.mode === 'explore' && !this.paused) this.input.requestLock();
+      if (this.mode === 'explore' && !this.paused) this.input.requestLock(true);
     });
     $('#skip-btn').addEventListener('click', () => this.skipCutscene());
     document.addEventListener('visibilitychange', () => {
@@ -231,10 +243,15 @@ export class Game {
       if (this.mode === 'explore') {
         this.player.update(dt, this.devNoclip ? null : this.level?.colliders);
         this._interact();
-        if (!inp.isTouch && !inp.locked) {
-          this.unlockT += rawDt;
-          if (this.unlockT > 0.6) this.hud.setPrompt(inp.dragging ? null : 'Click (or drag) to look around');
-        } else this.unlockT = 0;
+        if (!inp.isTouch && !inp.locked) this.unlockT += rawDt;
+        else this.unlockT = 0;
+        // "Click (or drag) to look around" shows once, the first time you're let loose without the mouse
+        // locked, and goes as soon as you look around
+        if (this.lookHint === null && this.unlockT > 0.6) this.lookHint = 5;
+        if (this.lookHint > 0) {
+          this.lookHint = inp.locked || inp.dragging ? 0 : this.lookHint - rawDt;
+          this.hud.setPrompt(this.lookHint > 0 ? 'Click (or drag) to look around' : null, { key: false });
+        }
       } else if (this.mode === 'menu') this._menuCam(dt);
       this.level?.update(dt);
       this.player.updateDust(dt);
@@ -296,7 +313,7 @@ export class Game {
       const dot = d.normalize().dot(fwd) + (dist < 1.2 ? 0.15 : 0);
       if (dot > bestDot) { best = it; bestDot = dot; }
     }
-    if (this.unlockT <= 0.6) this.hud.setPrompt(best ? best.prompt : null);
+    if (!(this.lookHint > 0)) this.hud.setPrompt(best ? best.prompt : null);
     if (best && this.input.wasPressed('KeyE', 'Enter') || (best && this.input.locked && this.input.wasPressed('Mouse0'))) {
       this.audio.play('click');
       best.onUse?.();
@@ -355,6 +372,17 @@ export class Game {
     this.dialogue.allowClickSkip = mode === 'cutscene';
     if (explore) this.input.requestLock();
     else this.input.exitLock();
+  }
+
+  // A click didn't get the mouse locked. In a page that won't allow it (Google Sites' embeds, for one),
+  // drag-to-look is all there is, so say so once and offer the game in its own tab, where it can lock.
+  _lockRefused() {
+    if (this.lockBlocked) return;
+    this.lockBlocked = true;
+    let framed = true;
+    try { framed = window.top !== window.self; } catch (_) { /* (cross-origin: framed) */ }
+    if (!framed) return;
+    this.hud.noMouseLock(ownTabUrl());
   }
 
   togglePause() {

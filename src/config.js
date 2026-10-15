@@ -14,5 +14,7 @@ export const CONFIG = {
   devCode: 'IAMTHEDEV',
   // Show "a new version is out" on the menu (asks GitHub for the latest release; false = never ask)
   checkUpdates: true,
+  // Where the game is online, for "Play in its own tab" when a page it's embedded in blocks mouse lock
+  playUrl: '',
   ...user,
 };

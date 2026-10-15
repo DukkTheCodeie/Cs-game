@@ -124,6 +124,8 @@ body.talking #controls-hint { opacity: 0; } /* never fight the subtitles for the
 #toasts { position: fixed; left: 50%; top: 120px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 12; pointer-events: none; }
 .toast { padding: 10px 20px; border-radius: 14px; background: var(--panel-2); border: 2px solid var(--pink); font: 800 17px var(--body); box-shadow: 0 8px 26px rgba(0, 0, 0, 0.6); animation: toastIn 3s forwards; }
 .toast.mint { border-color: var(--mint); }
+#popout { position: fixed; left: 50%; top: max(118px, calc(50% - 150px)); transform: translateX(-50%); z-index: 13; display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; justify-content: center; text-align: center; width: max-content; max-width: min(88vw, 520px); padding: 10px 14px 10px 18px; border-radius: 14px; background: var(--panel-2); border: 2px solid var(--gold); font: 800 15px var(--body); box-shadow: 0 8px 26px rgba(0, 0, 0, 0.6); animation: promptIn 0.3s; }
+#popout .btn { padding: 6px 14px; font-size: 14px; text-decoration: none; white-space: nowrap; }
 .toast.gold { border-color: var(--gold); }
 @keyframes toastIn { 0% { opacity: 0; transform: translateY(-20px) scale(0.8); } 10% { opacity: 1; transform: translateY(0) scale(1.05); } 15% { transform: scale(1); } 85% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
 
