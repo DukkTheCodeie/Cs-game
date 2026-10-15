@@ -572,7 +572,7 @@ export function makeBeanbag() {
 export function makeVendingMachine() {
   const g = new THREE.Group();
   g.add(box(1, 2, 0.8, mat('vend', { color: 0xb3202a, roughness: 0.5 })));
-  const front = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 1.3), new THREE.MeshBasicMaterial({ map: signTexture('OUT OF\nORDER\n(sorry)', { w: 256, h: 512, bg: '#1a2a3a', fg: '#ff6b6b', font: 'bold 54px Arial Black, Arial' }), toneMapped: false }));
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 1.3), new THREE.MeshBasicMaterial({ map: signTexture('OUT OF\nORDER', { w: 256, h: 512, bg: '#1a2a3a', fg: '#ff6b6b', font: 'bold 54px Arial Black, Arial' }), toneMapped: false }));
   front.position.set(-0.12, 1.15, 0.401);
   g.add(front);
   return shadowAll(g);

@@ -26,8 +26,8 @@ const ENTRY_C = 2; // the hole you come in through is in the middle column
 const LIGHT_POOL = 6; // real lights shared by every lamp in the archives (see the constructor)
 export const KEY_COLORS = [['red', 0xff4545], ['blue', 0x4aa8ff], ['yellow', 0xffd23f], ['green', 0x55e07a]];
 const GEN_KINDS = ['lightsout', 'caesar', 'roman', 'slider', 'simon', 'keys'];
-const CIPHER_LINES = ['KEEP GOING', 'NEXT GATE PLEASE', 'ALMOST THERE', 'THE TREX IS WATCHING', 'DONUTS ARE LIFE', 'DO NOT FALL ASLEEP',
-  'FRAGMENT SIX IS AHEAD', 'NICE TRY GUARD', 'THE ARCHIVES NEVER END', 'WHO PUT THIS HERE', 'SHELVES ALL THE WAY DOWN', 'STAY AWAKE'];
+const CIPHER_LINES = ['KEEP GOING', 'GATE OPEN', 'ALMOST THERE', 'FRAGMENT SIX IS AHEAD', 'DO NOT FALL ASLEEP', 'STAY AWAKE',
+  'NEXT SECTION', 'SUGAR LEVEL LOW', 'ARCHIVE SIZE UNKNOWN', 'TURN BACK', 'STILL GOING', 'NOT MUCH FURTHER'];
 const PROMPTS = { lightsout: 'Fix the fuse box', keys: 'Unlock the gate', slider: 'Restore the poster', caesar: 'Use the cipher terminal', roman: 'Try the number lock', simon: 'Play the memory lock' };
 const LIGHT = { lightsout: 0x66ff99, keys: 0xffd23f, slider: 0xff77cc, caesar: 0x6dff9e, roman: 0xe9c46a, simon: 0x9a7dff };
 // Every section of the archives has a theme: a name (on a sign over the gate into it, and MUSE-OS
@@ -39,11 +39,11 @@ export const THEMES = [
   { id: 'posters', name: 'POSTERS & PRINTS', bulb: 0xfff0d0, props: ['rolls', 'frames'] },
   { id: 'bones', name: 'SPARE DINOSAUR BONES', bulb: 0xfff2c8, props: ['bones', 'skull'] },
   { id: 'egypt', name: 'EGYPTIAN OVERFLOW', bulb: 0xffb060, props: ['sarcophagus', 'jars'] },
-  { id: 'rome', name: 'ROMAN STATUES (BROKEN)', bulb: 0xffd8a0, props: ['column', 'statue'] },
+  { id: 'rome', name: 'BROKEN STATUES', bulb: 0xffd8a0, props: ['column', 'statue'] },
   { id: 'holiday', name: 'HOLIDAY DECORATIONS', bulb: 0xff6a6a, props: ['tree', 'gifts'] },
   { id: 'flooded', name: 'THE FLOODED BIT', bulb: 0x9fd8ff, water: true, props: ['buckets', 'crate'] },
   { id: 'outage', name: 'POWER OUTAGE', bulb: 0xff2020, dark: true, props: ['crate', 'statue'] },
-  { id: 'donuts', name: 'DONUT STORAGE (EMPTY)', bulb: 0xff8fc8, props: ['donutboxes', 'crate'] },
+  { id: 'donuts', name: 'DONUT STORAGE', bulb: 0xff8fc8, props: ['donutboxes', 'crate'] },
 ];
 export function themeOf(b) {
   if (b < HANDMADE) return THEMES[b];

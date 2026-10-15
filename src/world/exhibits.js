@@ -294,7 +294,7 @@ export function makeHeightChart() {
   x.fillStyle = '#2a1a12'; x.textAlign = 'left'; x.font = 'bold 18px Arial';
   for (let cm = 10; cm <= 330; cm += 10) { const y = px(cm / 100); x.fillRect(0, y - 1, cm % 50 ? 26 : 50, cm % 50 ? 2 : 4); if (cm % 50 === 0) x.fillText(`${cm / 100} m`, 56, y + 6); }
   const mark = (m, text, col) => { const y = px(m); x.fillStyle = col; x.fillRect(120, y - 3, 136, 6); x.font = 'bold 20px Arial'; x.fillText(text, 124, y - 10); };
-  mark(0.6, 'Velociraptor', '#7a2a1a'); mark(1.3, 'Average kid', '#2f6b4a'); mark(1.8, 'Night guard', '#1b2440'); mark(2.9, 'T. rex hip (!)', '#7a2a1a');
+  mark(0.6, 'Velociraptor', '#7a2a1a'); mark(1.3, 'Average kid', '#2f6b4a'); mark(1.8, 'Night guard', '#1b2440'); mark(2.9, 'T. rex hip', '#7a2a1a');
   const g = new THREE.Group();
   g.add(box(0.86, 3.66, 0.05, MATS.darkWood(), 0, -1.83, -0.03));
   const p = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 3.6), new THREE.MeshStandardMaterial({ map: canvasTexture(c), roughness: 0.7 }));
@@ -457,7 +457,7 @@ export function makeDonationBox() {
   const glass = box(0.42, 0.42, 0.42, MATS.glass(), 0, 0.95, 0);
   g.add(glass);
   for (let i = 0; i < 14; i++) g.add(box(0.07, 0.01, 0.035, mat('bill', { color: 0x7fb37a, roughness: 0.8 }), (i % 4) * 0.08 - 0.12, 0.96 + Math.floor(i / 4) * 0.012, ((i * 7) % 5) * 0.06 - 0.12));
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.2), new THREE.MeshStandardMaterial({ map: signTexture('DONATIONS\n(the T-Rex is hungry)', { w: 256, h: 122, bg: '#2a241c', fg: '#e9d7a8', font: 'bold 26px Georgia, serif' }) }));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.2), new THREE.MeshStandardMaterial({ map: signTexture('DONATIONS\nThank you!', { w: 256, h: 122, bg: '#2a241c', fg: '#e9d7a8', font: 'bold 26px Georgia, serif' }) }));
   sign.position.set(0, 0.7, 0.228);
   g.add(sign);
   return shadowAll(g, true, true);
@@ -812,7 +812,7 @@ function boardTexture(lines, { w = 512, h = 352, bg = '#fafafa', fg = '#1a2a6a',
 export function makeBulletinBoard() {
   const g = new THREE.Group();
   g.add(box(1.7, 1.08, 0.04, MATS.darkWood(), 0, -0.54, -0.02));
-  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshStandardMaterial({ map: boardTexture(['DON\'T\nFEED THE\nT-REX', 'PIZZA\nFRIDAY?\n(no)', 'WHO ATE\nMY DONUT', 'AARON:\nEMPLOYEE\nOF THE YEAR', 'CALL MOM', 'PASSWORD\nHINT:\n???'], { w: 544, h: 340, bg: '#b48a5a', notes: true }), roughness: 0.9 }));
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshStandardMaterial({ map: boardTexture(['SHIFT\nSWAP?\n- Aaron', 'PIZZA\nFRIDAY', 'WHO ATE\nMY DONUT', 'EMPLOYEE\nOF THE\nMONTH:\nAARON', 'CALL MOM', 'IT: NEW\nPASSWORDS\nTONIGHT'], { w: 544, h: 340, bg: '#b48a5a', notes: true }), roughness: 0.9 }));
   p.position.z = 0.002;
   g.add(p);
   return g;
@@ -821,7 +821,7 @@ export function makeBulletinBoard() {
 export function makeWhiteboard() {
   const g = new THREE.Group();
   g.add(box(1.06, 0.78, 0.03, MATS.metal(), 0, -0.39, -0.015));
-  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.72), new THREE.MeshStandardMaterial({ map: boardTexture(['1. Stay awake', '2. Do NOT eat the donuts', '3. Check the T-Rex (still dead?)', '4. ???'], { title: 'NIGHT SHIFT CHECKLIST' }), roughness: 0.3 }));
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.72), new THREE.MeshStandardMaterial({ map: boardTexture(['1. Lock the front doors', '2. Rounds every hour', '3. Check every hall', '4. STAY AWAKE!!'], { title: 'NIGHT SHIFT CHECKLIST' }), roughness: 0.3 }));
   p.position.z = 0.002;
   g.add(p);
   return g;
@@ -829,7 +829,7 @@ export function makeWhiteboard() {
 
 export function makeIncidentSign() {
   const g = new THREE.Group();
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshStandardMaterial({ map: signTexture('DAYS WITHOUT A\nDINOSAUR\nINCIDENT:\n0', { w: 330, h: 210, bg: '#f2f2f2', fg: '#1a6b2a', font: 'bold 30px Arial Black, Arial', border: '#1a6b2a' }), roughness: 0.6 }));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshStandardMaterial({ map: signTexture('DAYS WITHOUT\nAN ACCIDENT:\n12', { w: 330, h: 210, bg: '#f2f2f2', fg: '#1a6b2a', font: 'bold 30px Arial Black, Arial', border: '#1a6b2a' }), roughness: 0.6 }));
   g.add(m);
   return g;
 }

@@ -106,8 +106,8 @@ export function drawMeTube(x, t, secondsLeft) {
   // sidebar
   const recs = [
     ['I SURVIVED 24 HRS IN A MUSEUM', '#3a6'],
-    ['Donut tier list (honest)', '#d58'],
-    ['Is the T-Rex REAL?? (not clickbait)', '#a63'],
+    ['Ranking every donut at Dozen Deluxe', '#d58'],
+    ['T-Rex vs Spinosaurus: who wins?', '#a63'],
     ['Night guard falls asleep on cam', '#36a'],
     ['How to remember passwords', '#777'],
   ];

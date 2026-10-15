@@ -1128,7 +1128,7 @@ export class City {
         x.fillStyle = '#1a1a2e'; x.fillRect(0, 0, W, 12); x.fillRect(0, H - 12, W, 12);
         for (let i = 0; i < 26; i++) { x.fillStyle = n ? '#4a4020' : '#ffd34d'; x.beginPath(); x.arc(12 + i * 24.4, 6, 3.5, 0, TAU); x.arc(12 + i * 24.4, H - 6, 3.5, 0, TAU); x.fill(); }
         txt(x, 'NOW SHOWING', W / 2, 30, W * 0.6, FONT.black(18), n ? '#222' : '#c81e3c');
-        txt(x, 'DINO-MITE!  ·  THE MUMMY’S DONUT', W / 2, 62, W * 0.92, FONT.black(30), n ? '#1a1a1a' : '#111');
+        txt(x, 'RAPTOR RUN  ·  NIGHT OF THE MUMMY', W / 2, 62, W * 0.92, FONT.black(30), n ? '#1a1a1a' : '#111');
         txt(x, 'MUSEUM NIGHT  SAT 7PM', W / 2, 92, W * 0.7, FONT.black(18), n ? '#222' : '#1f3d8a');
       });
       S.diner_sign = A.add('diner_sign', 512, 128, (x, W, H) => {
@@ -1164,8 +1164,8 @@ export class City {
       });
       S.newspaper = A.add('newspaper', 160, 48, (x, W, H) => {
         x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
-        txt(x, 'THE DAILY BONE', W / 2, H * 0.35, W * 0.9, FONT.serif(18), '#111');
-        txt(x, 'T-REX SPOTTED DOWNTOWN?', W / 2, H * 0.75, W * 0.95, FONT.sans(11), '#c81e1e');
+        txt(x, 'THE CITY HERALD', W / 2, H * 0.35, W * 0.9, FONT.serif(18), '#111');
+        txt(x, 'MUSEUM TURNS 50', W / 2, H * 0.75, W * 0.95, FONT.sans(11), '#c81e1e');
       });
       if (!n) {
         S.viewing = A.add('viewing', 256, 96, (x, W, H) => {
@@ -3566,11 +3566,24 @@ if (slot > 0.5) {
     const cam = this.game.camera;
     const p = cam.position;
     if (p.z > Z_WALL - 0.05) return true;
-    if (p.z < -10.5 || p.x < -20.5 || p.x > 40.5) return false;
+    if (p.x < -20.5 || p.x > 40.5) return false;
+    // from the Dinosaur Hall you see out through its doorway, across the lobby and out the front windows
+    if (p.z < -10.5 && (p.z < -46.5 || !this._throughDinoDoor(p))) return false;
     cam.updateMatrixWorld();
     this._pv.multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse);
     this._frustum.setFromProjectionMatrix(this._pv);
     for (const b of this._openings) if (this._frustum.intersectsBox(b)) return true;
+    return false;
+  }
+  // Does a line from p to one of the lobby's front openings pass through the Dinosaur Hall's doorway
+  // (x -3..3, up to 6.2 m high, at z = -10)? Each opening, seen from p, lands on the doorway's wall as a rectangle.
+  _throughDinoDoor(p) {
+    for (const b of this._openings) {
+      const k = (-10 - p.z) / (b.min.z - p.z);
+      const x0 = p.x + (b.min.x - p.x) * k, x1 = p.x + (b.max.x - p.x) * k;
+      const y0 = p.y + (b.min.y - p.y) * k, y1 = p.y + (b.max.y - p.y) * k;
+      if (x1 > -3 && x0 < 3 && y1 > 0 && y0 < 6.2) return true;
+    }
     return false;
   }
 

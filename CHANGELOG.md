@@ -4,6 +4,18 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.6 — 2026-10-15
+
+- **New writing:** the guard, Aaron, the mummy and the museum's visitors talk more naturally, MUSE-OS talks
+  like a computer, and the plaques read like real museum labels. The signs, posters, tips and credits got
+  the same treatment. The dev's recorded lines are exactly as recorded.
+- **The city stays put:** looking back from the Dinosaur Hall, you see the city through the lobby's front
+  windows, instead of it popping in when you walk into the lobby.
+- **The museum's website, redone** (`website/index.html`): it looks like a real museum's site now, with
+  photos taken inside the game, pages for each hall, visiting, events, the collection, lost and found and
+  the staff portal, and quieter secrets. The staff area is part of the one file.
+- Behind the scenes: the Guard & Aaron Booth has the new lines.
+
 ## v0.7.5 — 2026-10-15
 
 - **The City Museum's website** (`website/index.html`): one page to paste into Google Sites as a full-page
