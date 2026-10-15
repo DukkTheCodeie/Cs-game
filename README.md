@@ -18,6 +18,10 @@ Then anyone can play at `https://<your-username>.github.io/<repo-name>/`.
 Classroom or Drive, or drop it on any website host (rename it `index.html` first). It needs the internet
 only for its fonts. To make it yourself: `npm run build && npm run single`.
 
+**Embedding it in another page** (like Google Sites) works too, but some pages don't let a game lock the
+mouse, so you drag to look instead. The game then offers to open in its own tab, where the mouse locks, at
+the address in `playUrl` in `game-config.js` (the game on Cloudflare).
+
 | Action | Keys |
 |---|---|
 | Move / look | `W A S D` + mouse |

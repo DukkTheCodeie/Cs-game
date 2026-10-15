@@ -4,6 +4,17 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.3 — 2026-10-15
+
+- **Morning:** your hat is hanging out of the T-Rex's mouth now, and the camera zooms in on it right before
+  "...Is that MY HAT?"
+- The dev cleaned up his mouth: no more "fatty" or "goddamn", and the bit about trash cleaning at the parade
+  is gone. The recordings were trimmed to match.
+- **Playing inside another page** (like a Google Sites embed): the start button works there now. If that
+  page won't let the game lock your mouse, you drag to look, and the game offers to open in its own tab,
+  where the mouse locks: the game on Cloudflare (`playUrl` in `game-config.js`).
+- "Click (or drag) to look around" shows once, when you first get to walk around, without the E key.
+
 ## v0.7.2 — 2026-10-14
 
 - **The recorded voice lines are off by default.** Turn them on in *Settings → Recorded voices*; until

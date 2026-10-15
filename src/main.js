@@ -20,7 +20,7 @@ function fatal(err) {
   b.querySelector('.boot-inner button').onclick = () => location.reload();
 }
 
-addEventListener('DOMContentLoaded', async () => {
+function init() {
   const boot = $('#boot');
   const ver = document.createElement('div');
   ver.className = 'boot-version';
@@ -54,4 +54,10 @@ addEventListener('DOMContentLoaded', async () => {
     setTimeout(() => boot.classList.add('off'), 800);
     game.start();
   });
-});
+}
+
+// The game's script is the last thing on the page, so the page is already there when it runs. Don't wait
+// for DOMContentLoaded: a page that writes the game into a frame (like Google Sites' embed code) may
+// never fire it, and then the start button would do nothing.
+if (document.getElementById('boot-start')) init();
+else addEventListener('DOMContentLoaded', init);

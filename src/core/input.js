@@ -12,6 +12,8 @@ export class Input {
     this.isTouch = isTouchDevice();
     this.stick = { x: 0, y: 0 };
     this.onLockChange = null;
+    this.onLockRefused = null;
+    this.lockClickT = 0;
     this.onKey = null;
 
     addEventListener('keydown', (e) => {
@@ -27,6 +29,8 @@ export class Input {
       this.locked = document.pointerLockElement === canvas;
       this.onLockChange?.(this.locked);
     });
+    // (older browsers report a refused lock only with this event)
+    document.addEventListener('pointerlockerror', () => this._refused());
     addEventListener('mousemove', (e) => {
       // Pointer lock, or (fallback for browsers that refuse it) click-and-drag on the game view.
       if (this.locked || (this.dragging && (e.buttons & 1))) {
@@ -54,12 +58,20 @@ export class Input {
     if (this.isTouch) this._setupTouch();
   }
 
-  requestLock() {
+  // fromClick: the player clicked to lock the mouse, so if the browser says no, the page we're in won't
+  // allow it (like Google Sites' embeds), not just "no click yet".
+  requestLock(fromClick = false) {
     if (this.isTouch || this.locked) return;
+    this.lockClickT = fromClick ? performance.now() : 0;
     try {
       const p = this.canvas.requestPointerLock?.();
-      if (p && p.catch) p.catch(() => {});
-    } catch (_) { /* ignore */ }
+      if (p && p.catch) p.catch(() => this._refused());
+    } catch (_) { this._refused(); }
+  }
+
+  _refused() {
+    if (this.lockClickT && performance.now() - this.lockClickT < 1500) this.onLockRefused?.();
+    this.lockClickT = 0;
   }
 
   exitLock() {

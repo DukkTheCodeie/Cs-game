@@ -19,7 +19,7 @@ every line with that emotion uses it. You don't need all of them: anything missi
 | 🤔 **Confused** | Squint and tilt your head. "Huh?" | `guard-confused.jpg` | `guard-confused.mp4` | 10 |
 | 😒 **Annoyed** | Roll your eyes. Ugh. | `guard-annoyed.jpg` | `guard-annoyed.mp4` | 8 |
 | 😠 **Angry** | Frown as hard as you can. Grrr. | `guard-angry.jpg` | `guard-angry.mp4` | 1 |
-| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `guard-shocked.jpg` | `guard-shocked.mp4` | 6 |
+| 😲 **Shocked** | Eyes huge, mouth wide open. WHAT?! | `guard-shocked.jpg` | `guard-shocked.mp4` | 7 |
 | 😱 **Scared** | Hands on your cheeks. Silent scream. | `guard-scared.jpg` | `guard-scared.mp4` | 12 |
 | 😢 **Sad** | Big pout. Fake cry. | `guard-sad.jpg` | `guard-sad.mp4` | 1 |
 | 😴 **Sleepy** | Huge yawn, eyes half closed. | `guard-sleepy.jpg` | `guard-sleepy.mp4` | 5 |
@@ -156,7 +156,8 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 | `guard61.mp4` | 😄 Happy | Is that... a GIANT DONUT?! Best. Parade. EVER. |
 | `guard62.mp4` | 😄 Happy | Fresh air! Sunshine! A whole city out here! ...I should probably go log in, though. |
 | `guard28.mp4` | 🤔 Confused | Mmh... huh? It's MORNING?! |
-| `guard29.mp4` | 🤔 Confused | The T-Rex is back. Like nothing happened. ...Is that MY HAT? |
+| `guard29.mp4` | 🤔 Confused | The T-Rex is back. Like nothing happened. |
+| `guard63.mp4` | 😲 Shocked | ...Is that MY HAT? |
 | `guard30.mp4` | 😲 Shocked | Aaron! The T-Rex was ALIVE! It chased me! There was a MUMMY! And the archives NEVER END! |
 | `guard31.mp4` | 😠 Angry | WHAT? I solved like FIVE puzzles! |
 | `guard32.mp4` | 🤔 Confused | Wait... that's it? That game was WAY too short. |
@@ -174,7 +175,7 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 | `dev05.mp4` | 😒 Annoyed | Oh. You're back. Okay, fine. You can play again. Just don't complain this time, you little dingle chud. |
 | `dev06.mp4` | 😒 Annoyed | Stop poking the TV. |
 | `dev08.mp4` | 🤔 Confused | Why do you keep clicking on my monitor? Stop! It's annoying. |
-| `dev09.mp4` | 😄 Happy | Fun fact: I made every line in this game with code. Like, I wrote it all. So, like, even the munching of you, you fatty, eating the dang donuts. Fatty. |
+| `dev09.mp4` | 😄 Happy | Fun fact: I made every line in this game with code. Like, I wrote it all. So, like, even the munching of you, eating the dang donuts. |
 | `dev11.mp4` | 🤤 Hungry | Got any donuts? I'm asking for a friend. That friend is me. |
 | `dev12.mp4` | 😒 Annoyed | That is a LOT of pokes. I'm counting, you know. That's like, at least two. |
 | `dev13.mp4` | 😱 Scared | Please don't tell the T-Rex where I live. |
@@ -182,11 +183,11 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 | `dev16.mp4` | 😢 Sad | Nobody ever reads the plaques. I wrote SO many plaques. |
 | `dev17.mp4` | 😒 Annoyed | You fell asleep? In MY game? How rude. |
 | `dev18.mp4` | 😲 Shocked | What? You found ALL the donuts? I can't even do that, and I ate th- hid them. HID them. |
-| `dev19.mp4` | 😴 Sleepy | So are you gonna press the big goddamn play button? Or are you just gonna be stuck here looking at my hunter eyes? Look me in my hunter eyes! |
+| `dev19.mp4` | 😴 Sleepy | So are you gonna press the big play button? Or are you just gonna be stuck here looking at my hunter eyes? Look me in my hunter eyes! |
 | `dev20.mp4` | 😄 Happy | Did you turn the music up? I worked really hard making that music. I'm quite literally Khantrast. All right? And if you don't turn that gosh dang music up, you're gonna be bu-bu-bugging. |
-| `dev21.mp4` | 😄 Happy | Oh hey! You found one of my secret rooms! Take the donut, fatty. I insist! |
+| `dev21.mp4` | 😄 Happy | Oh hey! You found one of my secret rooms! Take the donut. I insist! |
 | `dev23.mp4` | 😢 Sad | Sweet dreams, little guard. It's almost morning. |
-| `dev24.mp4` | 😎 Cool | Pro tip: you can sprint, but it burns donuts, though. Just like in real life. Maybe you should be sprinting more, fatty. |
+| `dev24.mp4` | 😎 Cool | Pro tip: you can sprint, but it burns donuts, though. Just like in real life. Maybe you should be sprinting more. |
 | `dev25.mp4` | 😄 Happy | Did you see my name in the credits? Uh, Hudson Saunders? Yeah, put it there myself. And I'm very proud of it. Okay, so you better look at it. Right? You'll be like, "Oh my gosh, is that really the big H? Hudson S-A-U-N-D-E-R-S Saunders?" Oh my gosh. I feel like I'm in his otherworldly presence right now. It's amazing. I can almost feel his six-foot-tall dread-head aura washing over me. |
 | `dev26.mp4` | 🤔 Confused | Back already? Then you're really bad at this game. |
 | `dev27.mp4` | 😒 Annoyed | You turned the voices off? Fine. I'll just type REALLY loudly. |
@@ -194,12 +195,12 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 | `dev29.mp4` | 😴 Sleepy | Okay, I'm taking a nap, so wake me up when you press play. |
 | `dev34.mp4` | 😎 Cool | Oh hey, it's me, playing my game. While dev mode's on. Don't tell the players. |
 | `dev35.mp4` | 😠 Angry | Yeah, bud, nice try. I know that's not the code. You wanna know how? 'Cause I made it. |
-| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. Fatty. |
+| `dev36.mp4` | 😄 Happy | Fun fact: the T-Rex is made of over 50 million triangles. And I counted each one of them individually, like you should be counting your calories. |
 | `dev38.mp4` | 🤔 Confused | Have you tried turning the T-Rex off and on again? |
 | `dev39.mp4` | 😄 Happy | This whole game runs in your browser. No download needed. I'm basically a wizard. |
-| `dev41.mp4` | 😒 Annoyed | If you find a bug, it's a feature. If you find a REAL bug, maybe you should clean your room, with all that food in it, fatty. |
+| `dev41.mp4` | 😒 Annoyed | If you find a bug, it's a feature. If you find a REAL bug, maybe you should clean your room, with all that food in it. |
 | `dev44.mp4` | 😱 Scared | Every time I close and reopen the game, the T-Rex moves a little. Scary. I think it's coming for your mama. |
-| `dev45.mp4` | 😎 Cool | The mummy is on a strict diet. Ancient grains only. I think you should join him, fatty. |
+| `dev45.mp4` | 😎 Cool | The mummy is on a strict diet. Ancient grains only. I think you should join him. |
 | `dev46.mp4` | 😲 Shocked | Wait, the archives are different every single time now? Oh wait, I just remembered. I did that. 'Cause I'm Megamind. |
 | `dev47.mp4` | 😄 Happy | In the game there's a talking speed setting, so now I can talk really, really fast, like this. I'm talking so fast. Supersonic speed. Uh... I'm superhuman. |
 | `dev48.mp4` | 🤔 Confused | Is it weird that I'm in my own game? Oh wait, I made it, and I'm the best. So, uh, no, it's not weird. And I'm the GOAT. I'm the aura farmer. |
@@ -207,9 +208,9 @@ The dev's, the guard's and Aaron's lines are easiest to record on your phone in 
 | `dev50.mp4` | 😄 Happy | Pick a chapter, any chapter. My favorite chapter is chapter four. Don't tell the other chapters. |
 | `dev52.mp4` | 😴 Sleepy | Mmm... no, no... five more minutes... the T-Rex can wait, Mom... wait... |
 | `dev54.mp4` | 😎 Cool | Oh, you're back! The museum's been real quiet since you left. I've been talking to the dino, but... I'm scared he's gonna start talking back. |
-| `dev33.mp4` | 😄 Happy | Oh, you found the parade! Yeah, I made it myself. Not to brag, but I'm lowkey the GOAT. And look at the end, 'cause I think you're gonna get something you like, all right? Trash cleaning. 'Cause you need to clean up the trash, fatty. |
+| `dev33.mp4` | 😄 Happy | Oh, you found the parade! Yeah, I made it myself. Not to brag, but I'm lowkey the GOAT. And look at the end, 'cause I think you're gonna get something you like, all right? |
 | `dev32.mp4` | 😲 Shocked | You got EATEN by my T-Rex? Looking at you, I'm surprised you didn't eat HIM! |
-| `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game, and you came BACK? You must really like donuts, fatty. |
+| `dev31.mp4` | 😲 Shocked | Wait, you finished the whole game, and you came BACK? You must really like donuts. |
 
 ## 🧢 Aaron
 
