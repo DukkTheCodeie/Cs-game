@@ -4,6 +4,12 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.4 — 2026-10-15
+
+- "Play in its own tab" (when a page like Google Sites won't let the game lock your mouse) now opens the
+  game on GitHub Pages, https://hudsoonvid.github.io/Cs-game, which opens on networks where the
+  Cloudflare address can't be reached.
+
 ## v0.7.3 — 2026-10-15
 
 - **Morning:** your hat is hanging out of the T-Rex's mouth now, and the camera zooms in on it right before

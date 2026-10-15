@@ -20,7 +20,7 @@ only for its fonts. To make it yourself: `npm run build && npm run single`.
 
 **Embedding it in another page** (like Google Sites) works too, but some pages don't let a game lock the
 mouse, so you drag to look instead. The game then offers to open in its own tab, where the mouse locks, at
-the address in `playUrl` in `game-config.js` (the game on Cloudflare).
+the address in `playUrl` in `game-config.js` (the game on GitHub Pages).
 
 | Action | Keys |
 |---|---|
