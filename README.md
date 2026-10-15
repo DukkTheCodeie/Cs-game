@@ -22,6 +22,12 @@ only for its fonts. To make it yourself: `npm run build && npm run single`.
 mouse, so you drag to look instead. The game then offers to open in its own tab, where the mouse locks, at
 the address in `playUrl` in `game-config.js` (the game on GitHub Pages).
 
+**The museum's website:** [`website/index.html`](website/index.html) is the City Museum of Natural History's
+own website, with the game in its lobby. Paste the whole file into Google Sites (*Insert → Embed → Embed
+code*, then make it fill the page). It always shows the newest release, loaded from jsDelivr (or GitHub),
+and hides a few secrets and puzzles of its own. Its staff-only area lives in [`website/staff.html`](website/staff.html):
+after changing that, or the puzzle answers in [`tools/website.mjs`](tools/website.mjs), run `npm run website`.
+
 | Action | Keys |
 |---|---|
 | Move / look | `W A S D` + mouse |

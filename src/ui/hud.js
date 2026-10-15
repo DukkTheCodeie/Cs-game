@@ -98,25 +98,28 @@ export class HUD {
     kbd.textContent = this.game.input.isTouch ? 'USE' : 'E';
   }
 
-  // The page the game is in won't let it lock the mouse: say so, with a link to play in its own tab
-  // (where it can) when there's an address to open.
-  noMouseLock(url) {
+  // The page the game is in won't let it lock the mouse: say so, with a button to play in its own tab
+  // (where it can): an address to open, or the embedding page's own way to open one (open()).
+  noMouseLock(url, open) {
     const box = $('#popout');
     if (!box) return;
     box.innerHTML = '';
     box.append(el('span', '', "This page won't let the game lock your mouse, so drag to look around."));
-    if (url) {
+    if (url || open) {
       const a = el('a', 'btn', 'Play in its own tab ↗');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      // (pause here, so the music doesn't play in both tabs)
-      a.onclick = () => { box.classList.add('off'); if (['explore', 'runner'].includes(this.game.mode)) this.game.pause(); };
+      if (open) a.href = '#';
+      else { a.href = url; a.target = '_blank'; a.rel = 'noopener'; }
+      a.onclick = (e) => {
+        if (open) { e.preventDefault(); open(); }
+        box.classList.add('off');
+        // (pause here, so the music doesn't play in both tabs)
+        if (['explore', 'runner'].includes(this.game.mode)) this.game.pause();
+      };
       box.append(a);
     }
     box.classList.remove('off');
     clearTimeout(this.popoutT);
-    this.popoutT = setTimeout(() => box.classList.add('off'), url ? 12000 : 6000);
+    this.popoutT = setTimeout(() => box.classList.add('off'), url || open ? 12000 : 6000);
   }
 
   crosshair(on) { this.cross.classList.toggle('hidden', !on); }
