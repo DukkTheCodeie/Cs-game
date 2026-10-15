@@ -19,8 +19,8 @@ Classroom or Drive, or drop it on any website host (rename it `index.html` first
 only for its fonts. To make it yourself: `npm run build && npm run single`.
 
 **Embedding it in another page** (like Google Sites) works too, but some pages don't let a game lock the
-mouse, so you drag to look instead. The game then offers to open in its own tab, where the mouse locks: put
-your game's address in `playUrl` in `game-config.js` so that button knows where to go.
+mouse, so you drag to look instead. The game then offers to open in its own tab, where the mouse locks, at
+the address in `playUrl` in `game-config.js` (the game on Cloudflare).
 
 | Action | Keys |
 |---|---|

@@ -12,7 +12,7 @@ add a section for it below, run `npm run build`, and merge to `main`. The releas
   is gone. The recordings were trimmed to match.
 - **Playing inside another page** (like a Google Sites embed): the start button works there now. If that
   page won't let the game lock your mouse, you drag to look, and the game offers to open in its own tab,
-  where the mouse locks. Set `playUrl` in `game-config.js` to your game's address for that button.
+  where the mouse locks: the game on Cloudflare (`playUrl` in `game-config.js`).
 - "Click (or drag) to look around" shows once, when you first get to walk around, without the E key.
 
 ## v0.7.2 — 2026-10-14

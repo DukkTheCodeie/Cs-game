@@ -23,8 +23,8 @@ window.LOCKED_OUT_CONFIG = {
   // locked-out.html, which can't update itself). It asks GitHub once per visit. false = never ask.
   checkUpdates: true,
 
-  // Where the game is online (your Cloudflare address, say). Some pages that embed the game, like
+  // Where the game is online (here, its Cloudflare address). Some pages that embed the game, like
   // Google Sites, don't let it lock the mouse; then it offers a "Play in its own tab" button that opens
-  // this. Leave it '' to use the page's own address when that works.
-  playUrl: '',
+  // this. Set it to '' to use the page's own address instead.
+  playUrl: 'https://cs-game.hudsbids.workers.dev/',
 };
