@@ -4,6 +4,17 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.5 — 2026-10-15
+
+- **The City Museum's website** (`website/index.html`): one page to paste into Google Sites as a full-page
+  embed. It shows the newest release of the game in a gilded frame in the lobby (loaded from jsDelivr, or
+  GitHub if that's blocked, never GitHub Pages), with *Play in its own tab*, *Full screen* and a one-file
+  download. Around it: the museum's front, every hall from the game, a map, events, the parade, the gift
+  shop, lost and found, a staff login, and a comment card linking to the feedback form. Plus 16 secrets to
+  stamp in a museum passport, and two puzzles that find the password fragment the game is missing.
+- A page that builds the game itself (like the website) can hand the game its own way to open in a new tab
+  (`popout` in the config), so the game's *Play in its own tab* button works inside the website too.
+
 ## v0.7.4 — 2026-10-15
 
 - "Play in its own tab" (when a page like Google Sites won't let the game lock your mouse) now opens the

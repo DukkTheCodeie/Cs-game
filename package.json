@@ -1,6 +1,6 @@
 {
   "name": "locked-out",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "private": true,
   "description": "LOCKED OUT — a 3D night-guard museum game. Puzzles, a walking T-Rex, and way too many donuts.",
   "scripts": {
@@ -11,6 +11,7 @@
     "recorder": "node --no-warnings tools/booth.mjs dev",
     "recorder:cast": "node --no-warnings tools/booth.mjs cast",
     "clips-todo": "node --no-warnings tools/booth.mjs --todo",
+    "website": "node tools/website.mjs",
     "dev": "esbuild src/main.js --bundle --format=iife --target=es2020 --sourcemap --outfile=dist/game.js --serve=8080 --servedir=. --watch"
   },
   "devDependencies": {

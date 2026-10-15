@@ -16,5 +16,8 @@ export const CONFIG = {
   checkUpdates: true,
   // Where the game is online, for "Play in its own tab" when a page it's embedded in blocks mouse lock
   playUrl: '',
+  // Or a page that builds the game itself (like the museum website) can hand over its own way to open
+  // the game in a tab: a function, used instead of playUrl
+  popout: null,
   ...user,
 };

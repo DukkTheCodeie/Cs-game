@@ -1,0 +1,1796 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>City Museum of Natural History</title>
+<meta name="description" content="The City Museum of Natural History: Dinosaur Hall, the Egyptian Wing, the Roman Empire, and tonight's interactive exhibit, LOCKED OUT.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Cinzel:wght@500;700;900&family=Nunito:wght@400;600;800;900&family=VT323&display=swap" rel="stylesheet">
+<!--
+  Hello, source-code reader. You found the back door.
+  The museum's IT department left something for curious people: open the browser console and type
+      museum.secret()
+  (The staff password is not in here. We checked. Twice.)
+
+  How this page works: it's the City Museum's website from the game LOCKED OUT. The game itself runs in the
+  "Now Showing" frame, built from the newest release on GitHub (https://github.com/Hudsoonvid/Cs-game),
+  loaded through jsDelivr (or GitHub's raw file server if jsDelivr is blocked). Paste this whole file into
+  Google Sites (Insert → Embed → Embed code) as a full-page embed.
+-->
+<style>
+/* ======================================================================= tokens */
+:root {
+  --stone: #ddd3bc; --stone-2: #c9bda1; --stone-3: #e3d8c1; --stone-4: #d8cfbb; --trim: #7a6f5e; --carve: #8a7a5e;
+  --relief: #ddd1b8; --relief-d: #a8977a; --base: #b9ad94; --blind: #2a3440;
+  --paper: #f6f1e6; --paper-2: #efe7d6; --card: #fffdf7; --ink: #211d16; --ink-2: #5a5142; --rule: #d8ccb2;
+  --sign: #14100c; --sign-gold: #e9cf8a; --sign-b: #c9a24a; --brass: #b8913a; --brass-l: #e3c27a;
+  --navy: #1f3d8a; --navy-d: #132a66; --yellow: #ffd34d; --gold: #d4a72c;
+  --dino: #2f6b3a; --dino-l: #f4e8c4; --egypt: #c9962e; --egypt-sky: #1b2c66; --star: #e8c35a;
+  --rome: #8a1022; --rome-l: #f2d27a; --pompeii: #9e2a22; --mosaic: #8c3b2a;
+  --pink: #ff6fae; --icing: #ff7eb6; --dough: #d49a5c; --mint: #6dff9e; --night: #0b0f1a;
+  --sky-1: #a9cdf0; --sky-2: #e8f1f8; --lamp: #fff4c8;
+  --serif: 'Cinzel', Georgia, 'Times New Roman', serif;
+  --sans: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'VT323', 'Courier New', monospace;
+  --title: 'Bungee', 'Arial Black', sans-serif;
+  --signfont: Georgia, 'Times New Roman', serif;
+  color-scheme: light;
+}
+body.night {
+  --paper: #0f131d; --paper-2: #141a27; --card: #171d2b; --ink: #ece4d2; --ink-2: #a9a08c; --rule: #2a3245;
+  --sky-1: #070b18; --sky-2: #1a2342; color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.6 var(--sans); overflow-x: hidden; transition: background .6s, color .6s; }
+img, svg { max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+h1, h2, h3 { font-family: var(--serif); letter-spacing: .04em; text-wrap: balance; line-height: 1.15; margin: 0; }
+h2 { font-size: clamp(26px, 4vw, 40px); font-weight: 900; }
+h3 { font-size: 18px; font-weight: 700; }
+p { margin: 0 0 .9em; }
+.lede { font-size: 18px; color: var(--ink-2); max-width: 64ch; }
+.kicker { font: 800 12px var(--sans); letter-spacing: .22em; text-transform: uppercase; color: var(--carve); }
+body.night .kicker { color: var(--sign-gold); }
+.hidden { display: none !important; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* museum wayfinding signs: Georgia, gold on near-black, a brass border (the lobby's own style) */
+.sign { display: inline-flex; align-items: center; gap: .6em; background: var(--sign); color: var(--sign-gold); border: 3px solid var(--sign-b); padding: .45em 1em; font: 700 15px var(--signfont); letter-spacing: .14em; text-transform: uppercase; box-shadow: 0 6px 18px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.06); }
+.sign.big { font-size: clamp(18px, 2.6vw, 26px); padding: .5em 1.2em; }
+.sign.red { background: #a01818; color: #fff; border-color: #fff; }
+
+/* brass plaques: what the game's exhibits have */
+.plaque { position: relative; background: linear-gradient(160deg, #2b2418, #17120c); color: #efe3c4; border: 2px solid var(--brass); border-radius: 4px; padding: 16px 18px 14px; box-shadow: 0 10px 22px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.12); }
+.plaque::before, .plaque::after { content: ''; position: absolute; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff3c4, #9a7424); }
+.plaque::before { left: 8px; } .plaque::after { right: 8px; }
+.plaque h3 { font: 700 15px var(--signfont); letter-spacing: .16em; color: var(--brass-l); margin-bottom: 6px; text-transform: uppercase; }
+.plaque p { margin: 0; font-size: 15px; line-height: 1.5; }
+.plaque .tiny { display: block; margin-top: 6px; font-size: 12px; color: #b9a983; font-style: italic; }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5em; min-height: 44px; padding: .55em 1.15em; border-radius: 999px; border: 2px solid var(--navy); background: var(--navy); color: #fff; font: 800 15px var(--sans); text-decoration: none; letter-spacing: .02em; transition: transform .12s, box-shadow .12s, background .2s; box-shadow: 0 4px 0 var(--navy-d); }
+.btn:hover { transform: translateY(-1px); box-shadow: 0 5px 0 var(--navy-d); }
+.btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--navy-d); }
+.btn.gold { background: var(--yellow); color: #1b1404; border-color: #b9902a; box-shadow: 0 4px 0 #9a7424; }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--rule); box-shadow: none; }
+.btn.pink { background: var(--pink); border-color: #d84a8a; box-shadow: 0 4px 0 #b83a74; }
+.btn[disabled] { opacity: .5; pointer-events: none; }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ======================================================================= utility bar */
+.util { background: var(--sign); color: #d9cba6; font: 700 13px var(--sans); }
+.util .wrap { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; justify-content: space-between; padding-block: 7px; }
+.util .open { color: #8fe0a6; } .util .closed { color: #ff9a9a; }
+.util .right { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.util button.linky { background: none; border: 0; padding: 0; color: #f0d98f; font-weight: 800; text-decoration: underline dotted; text-underline-offset: 3px; }
+.clock { font: 22px/1 var(--mono); color: #ff6b6b; text-shadow: 0 0 8px rgba(255,80,80,.6); letter-spacing: .06em; }
+
+/* ======================================================================= the facade */
+.facade { position: relative; background: linear-gradient(180deg, var(--sky-1), var(--sky-2) 70%); overflow: hidden; transition: background .8s; }
+.facade #facadeSvg { display: block; width: 100%; height: auto; min-height: 260px; }
+.facade .hot { cursor: pointer; }
+.facade .hot:hover { filter: brightness(1.08); }
+.facade .stars { opacity: 0; transition: opacity 1s; }
+body.night .facade .stars { opacity: 1; }
+.facade .sun { transition: opacity 1s; } body.night .facade .sun { opacity: 0; }
+.facade .moon { opacity: 0; transition: opacity 1s; } body.night .facade .moon { opacity: 1; }
+.facade .glow { opacity: 0; transition: opacity 1s; } body.night .facade .glow { opacity: 1; }
+.facade .dayonly { transition: opacity 1s; } body.night .facade .dayonly { opacity: 0; }
+.facade .metube { opacity: 0; } body.night .facade .metube { opacity: 1; animation: flicker 1.7s steps(6) infinite; }
+@keyframes flicker { 0% { fill: #3a6cff; } 20% { fill: #7ea0ff; } 40% { fill: #2f57d9; } 60% { fill: #9bb5ff; } 80% { fill: #4a78ff; } }
+body.night .facade svg { filter: saturate(.7) brightness(.62); }
+body.night .facade .lit { filter: brightness(1.6); }
+.ptero { position: absolute; top: 14%; left: -120px; width: 90px; height: 45px; animation: fly 26s linear infinite; animation-delay: 6s; cursor: pointer; }
+@keyframes fly { 0% { transform: translateX(0) translateY(0); } 50% { transform: translateX(calc(50vw + 60px)) translateY(18px); } 100% { transform: translateX(calc(100vw + 240px)) translateY(-10px); } }
+.enter-tip { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); background: rgba(20,16,12,.82); color: var(--sign-gold); font: 700 13px var(--signfont); letter-spacing: .12em; padding: 5px 12px; border: 1px solid var(--sign-b); pointer-events: none; white-space: nowrap; }
+
+/* ======================================================================= nav (a row of lobby signs) */
+nav.main { position: sticky; top: 0; z-index: 50; background: linear-gradient(180deg, #1b150e, #0f0b07); border-top: 3px solid var(--sign-b); border-bottom: 3px solid var(--sign-b); box-shadow: 0 6px 20px rgba(0,0,0,.35); }
+nav.main .wrap { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+nav.main .wrap::-webkit-scrollbar { display: none; }
+nav.main button { flex: 0 0 auto; background: none; border: 0; color: var(--sign-gold); font: 700 14px var(--signfont); letter-spacing: .12em; text-transform: uppercase; padding: 13px 12px; position: relative; white-space: nowrap; }
+nav.main button:hover, nav.main button.on { color: #fff; }
+nav.main button.on::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 6px; height: 2px; background: var(--sign-b); }
+nav.main .arrow { color: var(--sign-b); }
+
+section { position: relative; padding-block: clamp(48px, 7vw, 88px); scroll-margin-top: 54px; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px 24px; margin-bottom: 28px; }
+.sec-head > div { min-width: 0; max-width: 760px; }
+
+/* ======================================================================= now showing (the lobby) */
+#showing { background: #ede6d6; padding-top: 0; overflow: hidden; }
+body.night #showing { background: #121722; }
+.coffers { height: 64px; background:
+  radial-gradient(circle at 50% 50%, #e8c35a 0 4px, #a8822a 5px, transparent 6px) 0 0 / 64px 64px,
+  linear-gradient(90deg, rgba(0,0,0,.18) 0 4px, transparent 4px 60px, rgba(255,255,255,.35) 60px 64px) 0 0 / 64px 64px,
+  linear-gradient(180deg, rgba(0,0,0,.18) 0 4px, transparent 4px 60px, rgba(255,255,255,.35) 60px 64px) 0 0 / 64px 64px,
+  #e9e2d2; border-bottom: 10px solid #d6cdb8; box-shadow: inset 0 -16px 22px rgba(0,0,0,.12); }
+body.night .coffers { filter: brightness(.35) saturate(.6); }
+.lamps { position: absolute; top: 64px; left: 0; right: 0; height: 120px; pointer-events: none; display: flex; justify-content: space-around; }
+.lamps i { position: relative; display: block; width: 2px; height: 74px; background: #3b3328; }
+.lamps i::after { content: ''; position: absolute; left: 50%; bottom: -22px; width: 44px; height: 24px; transform: translateX(-50%); border-radius: 50% 50% 8px 8px / 100% 100% 8px 8px; background: radial-gradient(ellipse at 50% 90%, #fff8d8, #e9c46a 60%, #a8822a); box-shadow: 0 18px 50px 18px rgba(255,236,170,.45); }
+body.night .lamps i::after { box-shadow: 0 18px 60px 26px rgba(255,236,170,.25); }
+.lobby { position: relative; display: grid; grid-template-columns: 72px minmax(0, 1fr) 72px; gap: 18px; align-items: stretch; padding-top: 128px; }
+.column { position: relative; border-radius: 6px 6px 0 0; background: linear-gradient(90deg, #cfc8ba, #f7f3ea 35%, #fffdf8 48%, #e2dccf 70%, #b9b1a2); box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+.column::before, .column::after { content: ''; position: absolute; left: -8px; right: -8px; height: 22px; background: linear-gradient(180deg, #f1ece1, #c9c1b1); border-radius: 3px; }
+.column::before { top: -22px; } .column::after { bottom: 0; height: 26px; }
+.column .vein { position: absolute; inset: 20% 30% 30% 20%; background: linear-gradient(115deg, transparent 45%, rgba(130,120,105,.25) 48%, transparent 52%), linear-gradient(70deg, transparent 60%, rgba(130,120,105,.2) 62%, transparent 65%); }
+.stage { min-width: 0; }
+.banner-hang { position: absolute; right: 7%; top: 64px; width: 92px; padding: 14px 8px 26px; background: #7a1022; color: #ffd98a; font: 900 15px/1.25 var(--serif); text-align: center; letter-spacing: .08em; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 88%, 0 100%); box-shadow: 0 10px 20px rgba(0,0,0,.25); z-index: 2; }
+.frame { position: relative; padding: 14px; border-radius: 6px; background: linear-gradient(135deg, #8a6418, #f1d27a 22%, #a8822a 45%, #f5dc94 70%, #7b5814); box-shadow: 0 30px 60px rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,255,255,.25); }
+.frame .inner { position: relative; aspect-ratio: 16 / 9; max-width: 100%; background: #05070d; border: 3px solid #3a2a08; overflow: hidden; }
+.frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; display: block; }
+.frame.theater { position: fixed; inset: 0; z-index: 9999; padding: 0; border-radius: 0; }
+.frame.theater .inner { aspect-ratio: auto; height: 100%; border: 0; }
+.theater-x { position: fixed; top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right)); z-index: 10000; }
+.boot { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; color: #e9dcc0; background: radial-gradient(ellipse at 50% 40%, #1d2440, #05070d 70%); padding: 20px; }
+.boot .logo { font: 400 clamp(34px, 7vw, 76px)/1 var(--title); color: #fff; text-shadow: 0 6px 0 #000, 0 0 30px rgba(255,111,174,.55); }
+.boot .logo b { color: var(--yellow); font-weight: 400; }
+.boot .msg { font: 22px var(--mono); color: var(--mint); margin-top: 12px; min-height: 1.4em; }
+.boot .err { color: #ffb4b4; font: 700 15px var(--sans); max-width: 520px; margin: 10px auto 0; }
+.brass-plaque { margin: 18px auto 0; max-width: 760px; text-align: center; background: linear-gradient(180deg, #e3c27a, #b8913a 55%, #8a6a24); color: #2a1e08; border-radius: 4px; padding: 10px 16px; box-shadow: 0 6px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.5); font: 700 14px var(--signfont); letter-spacing: .06em; position: relative; }
+.brass-plaque b { display: block; font: 900 17px var(--serif); letter-spacing: .14em; }
+.status { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: center; margin-top: 16px; font: 700 14px var(--sans); color: var(--ink-2); }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: var(--card); border: 1px solid var(--rule); }
+.pill .dot { width: 9px; height: 9px; border-radius: 50%; background: #c9bda1; }
+.pill.ok .dot { background: #2fbf63; box-shadow: 0 0 8px #2fbf63; } .pill.bad .dot { background: #e0483e; } .pill.wait .dot { background: var(--yellow); animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: .3; } }
+.play-btns { justify-content: center; margin-top: 16px; }
+.howto { margin: 18px auto 0; max-width: 860px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.howto div { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.howto kbd { display: inline-block; min-width: 1.7em; padding: 0 .4em; border-radius: 5px; background: #f3ecdc; color: #111; font: 800 12px var(--sans); box-shadow: 0 2px 0 #8a8270; text-align: center; }
+.floor { height: 90px; margin-top: 30px; background: conic-gradient(#f5f2ec 25%, #1b1b1d 0 50%, #f5f2ec 0 75%, #1b1b1d 0) 0 0 / 80px 80px; transform: perspective(300px) rotateX(55deg); transform-origin: top; opacity: .9; mask-image: linear-gradient(180deg, #000, transparent); -webkit-mask-image: linear-gradient(180deg, #000, transparent); }
+
+/* ======================================================================= exhibit halls */
+.hall { overflow: hidden; }
+.hall .hall-head { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-bottom: 18px; }
+.grid { display: grid; gap: 16px; }
+.g2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.g3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); }
+.g4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
+.room-art { position: relative; border-radius: 10px; overflow: hidden; border: 1px solid rgba(0,0,0,.15); box-shadow: 0 16px 34px rgba(0,0,0,.2); }
+
+/* dinosaur hall: rough stone blocks, flagstones, skylights */
+#dino { background:
+  repeating-linear-gradient(0deg, rgba(0,0,0,.08) 0 3px, transparent 3px 64px),
+  repeating-linear-gradient(90deg, rgba(0,0,0,.07) 0 3px, transparent 3px 128px),
+  linear-gradient(180deg, #d2c7b5, #c8bca8); color: #241f17; }
+body.night #dino { background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 3px, transparent 3px 64px), repeating-linear-gradient(90deg, rgba(0,0,0,.2) 0 3px, transparent 3px 128px), linear-gradient(180deg, #2a2620, #1d1a16); color: #ece4d2; }
+.skylights { position: absolute; inset: 0; pointer-events: none; background:
+  linear-gradient(105deg, transparent 18%, rgba(255,250,220,.22) 22%, rgba(255,250,220,.05) 30%, transparent 34%),
+  linear-gradient(105deg, transparent 48%, rgba(255,250,220,.2) 52%, rgba(255,250,220,.05) 60%, transparent 64%),
+  linear-gradient(105deg, transparent 76%, rgba(255,250,220,.18) 80%, rgba(255,250,220,.04) 88%, transparent 92%); }
+body.night .skylights { background:
+  linear-gradient(105deg, transparent 18%, rgba(170,200,255,.14) 22%, transparent 34%),
+  linear-gradient(105deg, transparent 48%, rgba(170,200,255,.12) 52%, transparent 64%),
+  linear-gradient(105deg, transparent 76%, rgba(170,200,255,.1) 80%, transparent 92%); }
+.rex-stage { position: relative; background: linear-gradient(180deg, #b9ae9c 0 78%, #8f8576 78% 100%); padding: 16px 16px 0; min-height: 260px; }
+body.night .rex-stage { background: linear-gradient(180deg, #1c1a17 0 78%, #11100e 78%); }
+.rex-stage svg { display: block; width: 100%; height: auto; }
+.rex-stage .gone { position: absolute; inset: 0; display: none; place-items: center; text-align: center; font: 900 clamp(18px, 3vw, 28px) var(--serif); color: #ffd98a; letter-spacing: .12em; text-shadow: 0 2px 0 #000; padding: 20px; }
+body.night .rex-stage .gone { display: grid; }
+body.night .rex-stage .rex { opacity: 0; }
+.rex { transition: opacity 1s; }
+.timeline { display: grid; grid-template-columns: 2.6fr 2.2fr 3fr 1fr; border-radius: 8px; overflow: hidden; border: 2px solid #3a3226; font-weight: 800; font-size: 13px; text-align: center; }
+.timeline div { padding: 10px 6px; position: relative; color: #fff; }
+.timeline .tri { background: #a8553a; } .timeline .jur { background: #4c7a3c; } .timeline .cre { background: #2f6b6b; } .timeline .now { background: #1f3d8a; }
+.timeline small { display: block; font-weight: 700; opacity: .85; }
+.height { background: var(--card); color: var(--ink); border-radius: 10px; padding: 14px; border: 1px solid var(--rule); }
+.height .bars { display: flex; align-items: end; gap: 10px; height: 170px; margin: 12px 0 6px; border-bottom: 2px solid var(--ink-2); padding-left: 4px; }
+.height .bar { flex: 1; background: linear-gradient(180deg, #e9c46a, #b8913a); border-radius: 4px 4px 0 0; position: relative; min-width: 0; transition: height .3s; }
+.height .bar.you { background: linear-gradient(180deg, var(--pink), #c7457f); }
+.height .bar span { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); font-size: 11px; font-weight: 800; white-space: nowrap; color: var(--ink); }
+.height .labels { display: flex; gap: 10px; font-size: 11px; font-weight: 700; color: var(--ink-2); }
+.height .labels span { flex: 1; text-align: center; min-width: 0; overflow-wrap: anywhere; }
+.height input[type=range] { width: 100%; accent-color: var(--pink); }
+.fossils { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+.fossil { background: #cfc3ad; border: 2px solid #a8977a; border-radius: 6px; padding: 10px 6px; text-align: center; font: 800 11px var(--sans); letter-spacing: .08em; color: #3b3326; box-shadow: inset 0 0 18px rgba(0,0,0,.18); }
+.fossil svg { display: block; margin: 0 auto 6px; width: 54px; height: 40px; }
+body.night .fossil { background: #2b2620; color: #d8ccb2; border-color: #4a4132; }
+
+/* consoles for the website's puzzles (like the game's lock consoles) */
+.console { background: #10141d; color: var(--mint); border: 3px solid #444c5c; border-radius: 10px; padding: 16px; font: 20px/1.3 var(--mono); box-shadow: inset 0 0 30px rgba(109,255,158,.08), 0 14px 28px rgba(0,0,0,.3); }
+.console .title { color: #fff; font-size: 24px; letter-spacing: .08em; }
+.console .cipher { font-size: 38px; letter-spacing: .3em; color: var(--yellow); margin: 6px 0; }
+.console .row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.console input { flex: 1; min-width: 0; background: #05080d; color: var(--mint); border: 2px solid #2f6b4a; border-radius: 6px; padding: 6px 10px; font: 24px var(--mono); text-transform: uppercase; }
+.console button { background: #1f6b44; color: #eafff1; border: 0; border-radius: 6px; padding: 6px 14px; font: 22px var(--mono); }
+.console .out { min-height: 1.3em; margin-top: 8px; }
+.console .ok { color: #9dffb9; } .console .no { color: #ff8f8f; }
+
+/* egyptian wing: sandstone, hieroglyph frieze, the starry blue ceiling */
+#egypt { background:
+  repeating-linear-gradient(0deg, rgba(120,80,30,.12) 0 2px, transparent 2px 56px),
+  repeating-linear-gradient(90deg, rgba(120,80,30,.1) 0 2px, transparent 2px 112px),
+  linear-gradient(180deg, #f2e4ca, #e6d2ad); color: #2b2010; padding-top: 0; }
+body.night #egypt { background: repeating-linear-gradient(0deg, rgba(0,0,0,.25) 0 2px, transparent 2px 56px), linear-gradient(180deg, #2b2416, #1d180f); color: #f0e2c4; }
+.starsky { height: 70px; background: radial-gradient(circle, var(--star) 0 1.5px, transparent 2.5px) 0 0 / 34px 26px, radial-gradient(circle, var(--star) 0 1px, transparent 2px) 17px 13px / 34px 26px, var(--egypt-sky); border-bottom: 6px solid var(--egypt); }
+.glyphband { height: 54px; background: #e7d3a8; border-block: 4px solid var(--egypt); display: flex; overflow: hidden; color: #6a4416; }
+body.night .glyphband { background: #3a2f1c; color: #e3c27a; }
+.glyphband svg { flex: 0 0 auto; width: 44px; height: 46px; margin: 4px 6px; }
+.egypt-stage { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; align-items: center; }
+@media (max-width: 760px) { .egypt-stage { grid-template-columns: 1fr; } }
+.sarco { position: relative; max-width: 220px; margin: 0 auto; cursor: help; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.sarco svg { display: block; width: 100%; height: auto; filter: drop-shadow(0 16px 20px rgba(0,0,0,.35)); }
+.sarco .eyes-open { opacity: 0; transition: opacity .4s; }
+.sarco.awake .eyes-open { opacity: 1; }
+.sarco .bubble { position: absolute; top: 4%; right: -6%; background: #fffdf2; color: #2b2010; font: 800 15px var(--sans); padding: 8px 12px; border-radius: 14px; border: 2px solid #2b2010; opacity: 0; transform: translateY(6px); transition: .3s; pointer-events: none; }
+.sarco.awake .bubble { opacity: 1; transform: none; }
+.pillars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.pillar { background: linear-gradient(90deg, #cdb184, #f3e3c0 45%, #c9a978); border-radius: 6px 6px 2px 2px; padding: 12px 4px; text-align: center; color: #4b2f0c; box-shadow: inset 0 0 0 2px rgba(120,80,30,.3); }
+.pillar .num { font: 28px/1 var(--signfont); letter-spacing: -.04em; display: block; margin-top: 4px; }
+.pillar svg { width: 46px; height: 46px; }
+.jars { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.jar { width: 58px; text-align: center; font: 800 10px var(--sans); letter-spacing: .06em; background: none; border: 0; padding: 0; color: inherit; }
+.jar svg { width: 58px; height: 80px; display: block; }
+
+/* the roman empire: pompeii red panels, black bands, a gold meander, a mosaic floor */
+#rome { background: #9e2a22; color: #fbe9c8; padding-top: 0; }
+body.night #rome { background: #3a110d; }
+.meander { height: 34px; background-color: #1a1210; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='34' viewBox='0 0 40 34'%3E%3Cpath d='M0 28 H8 V8 H32 V24 H16 V16 H24' fill='none' stroke='%23d4a72c' stroke-width='3.2'/%3E%3Cpath d='M24 16 V20 M32 24 V28 H40' fill='none' stroke='%23d4a72c' stroke-width='3.2'/%3E%3C/svg%3E"); background-size: 40px 34px; border-block: 4px solid #d4a72c; }
+.pompeii { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 14px; }
+.panel { background: #b3332a; border: 8px solid #1a1210; outline: 2px solid #d4a72c; outline-offset: -14px; padding: 22px 18px; border-radius: 2px; }
+.panel h3 { color: #f2d27a; font-family: var(--signfont); letter-spacing: .14em; margin-bottom: 6px; }
+.panel p { margin: 0; color: #fbe9c8; }
+.colonnade { display: flex; justify-content: space-between; gap: 6px; height: 120px; margin: 10px 0 26px; }
+.colonnade i { flex: 1; max-width: 46px; background: linear-gradient(90deg, #cfc8ba, #fff 45%, #d7d0c2 70%, #a9a191); border-radius: 3px; position: relative; }
+.colonnade i::before, .colonnade i::after { content: ''; position: absolute; left: -6px; right: -6px; height: 12px; background: #eee8dc; }
+.colonnade i::before { top: 0; } .colonnade i::after { bottom: 0; }
+.busts { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; align-items: end; }
+.bust { text-align: center; font: 800 11px var(--sans); letter-spacing: .1em; color: #f2d27a; background: none; border: 0; padding: 0; }
+.bust svg { width: 84px; height: 104px; display: block; margin: 0 auto 4px; filter: drop-shadow(0 6px 8px rgba(0,0,0,.4)); }
+.bust.caligula { transform: translate(10px, 10px) rotate(4deg); opacity: .9; }
+.tablet { background: linear-gradient(180deg, #ece6da, #cfc7b6); color: #3a3226; text-align: center; padding: 18px; border-radius: 4px; font: 700 clamp(18px, 2.6vw, 26px)/1.35 var(--serif); letter-spacing: .3em; box-shadow: inset 0 0 0 6px #bfb7a6, 0 12px 24px rgba(0,0,0,.35); }
+.mosaic { height: 24px; margin-top: 30px; background: repeating-linear-gradient(90deg, #8c3b2a 0 12px, #e9dcc0 12px 24px, #2a2a2a 24px 36px, #e9dcc0 36px 48px); border-block: 6px solid #8c3b2a; }
+
+/* the archives: staff only, shelves forever */
+#archives { background: #2b2a27; color: #e8e0cf; }
+body.night #archives { background: #151513; }
+.shelves { position: relative; border-radius: 10px; overflow: hidden; background: #3a362f; border: 2px solid #1f1d19; max-height: 380px; overflow-y: auto; }
+.shelf { display: flex; gap: 8px; padding: 12px 12px 0; border-bottom: 10px solid #6b5a3e; box-shadow: 0 8px 10px -6px rgba(0,0,0,.6); align-items: end; min-height: 74px; }
+.box { flex: 1; min-width: 0; height: 56px; background: linear-gradient(180deg, #c8a774, #a9874f); border-radius: 2px; color: #3a2a10; font: 800 10px/1.2 var(--sans); padding: 6px; overflow: hidden; display: flex; align-items: end; letter-spacing: .04em; border: 1px solid #7a5f33; }
+.box.tall { height: 64px; } .box.pink { background: linear-gradient(180deg, #ff9cc6, #e2669c); color: #4a0d2a; }
+.archsearch { display: flex; gap: 8px; flex-wrap: wrap; }
+.archsearch input { flex: 1; min-width: 0; padding: 10px 14px; border-radius: 999px; border: 2px solid #6b5a3e; background: #1c1b18; color: #fff; font: 700 16px var(--sans); }
+.results { margin-top: 12px; display: grid; gap: 8px; }
+.result { background: #1c1b18; border: 1px solid #4a4438; border-radius: 8px; padding: 10px 14px; font-size: 15px; }
+.result b { color: #f0d98f; font-family: var(--signfont); letter-spacing: .08em; }
+
+/* ======================================================================= floor plan */
+#map { background: var(--paper-2); }
+.mapwrap { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .mapwrap { grid-template-columns: 1fr; } }
+.mapsvg { background: #f8f3e7; border: 2px solid #c9bda1; border-radius: 10px; padding: 10px; box-shadow: 0 10px 24px rgba(0,0,0,.12); overflow-x: auto; }
+body.night .mapsvg { background: #10141e; border-color: #2a3245; }
+.mapsvg svg { display: block; width: 100%; min-width: 300px; height: auto; }
+.mapsvg .room { cursor: pointer; transition: filter .2s; }
+.mapsvg .room:hover, .mapsvg .room.on { filter: brightness(1.12) drop-shadow(0 0 6px rgba(212,167,44,.9)); }
+.roominfo { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 18px; min-height: 220px; }
+.roominfo h3 { font-size: 22px; margin-bottom: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.legend span::before { content: ''; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); border: 1px solid rgba(0,0,0,.2); }
+
+/* ======================================================================= visit (the information desk) */
+#visit { background: var(--paper); }
+.desk { position: relative; background: linear-gradient(180deg, #5c3f22, #3e2914); color: #f6e9cc; border-radius: 12px 12px 4px 4px; padding: 22px; box-shadow: 0 18px 30px rgba(0,0,0,.25); }
+.desk .front { display: inline-block; background: var(--sign); color: var(--sign-gold); border: 2px solid var(--sign-b); padding: 4px 14px; font: 700 14px var(--signfont); letter-spacing: .2em; margin-bottom: 14px; }
+.desk table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.desk td { padding: 7px 4px; border-bottom: 1px dashed rgba(246,233,204,.25); vertical-align: top; }
+.desk td:last-child { text-align: right; font-weight: 800; color: #ffe39b; }
+.bell { position: absolute; top: 16px; right: 18px; width: 54px; height: 44px; background: none; border: 0; padding: 0; }
+.bell svg { width: 54px; height: 44px; }
+.bell.ring { animation: ring .4s; }
+@keyframes ring { 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }
+.info { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 20px; }
+.info h3 { margin-bottom: 8px; }
+.info ul { margin: 0; padding-left: 20px; }
+.info li { margin-bottom: 6px; }
+.across { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.across span { font: 800 12px var(--sans); letter-spacing: .06em; padding: 5px 10px; border-radius: 6px; background: var(--paper-2); border: 1px solid var(--rule); }
+.donation { display: flex; gap: 14px; align-items: center; background: #3a2a14; color: #ffe8b0; border-radius: 12px; padding: 14px 18px; border: 2px dashed #c9a24a; }
+
+/* ======================================================================= events */
+#events { background: linear-gradient(180deg, var(--navy), var(--navy-d)); color: #fff; }
+#events .kicker { color: var(--yellow); }
+.marquee { background: #1b0f12; border: 6px solid #d4a72c; border-radius: 10px; padding: 16px; text-align: center; position: relative; box-shadow: 0 0 0 4px #1b0f12, 0 18px 30px rgba(0,0,0,.4); }
+.marquee::before, .marquee::after { content: ''; position: absolute; left: 6px; right: 6px; height: 8px; background: radial-gradient(circle, #ffe8a0 0 2.5px, transparent 3.5px) 0 0 / 16px 8px; animation: chase 1s steps(2) infinite; }
+.marquee::before { top: 4px; } .marquee::after { bottom: 4px; }
+@keyframes chase { 50% { background-position: 8px 0; } }
+.marquee .now { font: 400 14px var(--title); color: #ffd34d; letter-spacing: .1em; }
+.marquee .film { font: 400 clamp(18px, 3vw, 28px) var(--title); color: #fff; margin: 6px 0; }
+.marquee .night { font: 800 15px var(--sans); color: #ffb3d1; letter-spacing: .1em; }
+.street { position: relative; height: 150px; margin-top: 18px; background: linear-gradient(180deg, #8fb4d8 0 30%, #b9b3a6 30% 42%, #3b3d42 42% 100%); border-radius: 10px; overflow: hidden; border: 3px solid #0d1530; }
+.street::after { content: ''; position: absolute; left: 0; right: 0; top: 74%; height: 4px; background: repeating-linear-gradient(90deg, #f2e9c8 0 30px, transparent 30px 60px); }
+.street .sign-ave { position: absolute; left: 12px; top: 8px; background: #1e6b3c; color: #fff; font: 800 11px var(--sans); padding: 3px 8px; border: 2px solid #fff; border-radius: 3px; letter-spacing: .08em; }
+.parade { position: absolute; left: 0; bottom: 30px; display: flex; gap: 22px; align-items: end; white-space: nowrap; transform: translateX(100%); }
+.parade.go { animation: march 38s linear forwards; }
+@keyframes march { from { transform: translateX(110vw); } to { transform: translateX(-100%); } }
+.unit { display: flex; flex-direction: column; align-items: center; font: 800 10px var(--sans); color: #fff; text-shadow: 0 1px 2px #000; }
+.unit .em { font-size: 40px; line-height: 1; }
+.unit .lbl { background: rgba(0,0,0,.55); padding: 2px 6px; border-radius: 4px; max-width: 240px; white-space: normal; text-align: center; }
+.unit.float .em { font-size: 54px; }
+.unit button { background: none; border: 0; padding: 0; color: inherit; }
+.confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti i { position: absolute; width: 6px; height: 10px; top: -12px; animation: fall linear forwards; }
+@keyframes fall { to { transform: translateY(170px) rotate(540deg); } }
+.lineup { counter-reset: u; display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lineup li { counter-increment: u; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); border-radius: 10px; padding: 8px 12px 8px 44px; position: relative; font-size: 15px; }
+.lineup li::before { content: counter(u); position: absolute; left: 10px; top: 8px; width: 24px; height: 24px; border-radius: 50%; background: var(--yellow); color: #1b1404; font: 900 13px/24px var(--sans); text-align: center; }
+.posters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.poster { aspect-ratio: 3 / 4; border-radius: 6px; padding: 14px 10px; display: flex; flex-direction: column; justify-content: space-between; text-align: center; box-shadow: 0 10px 20px rgba(0,0,0,.35); font-family: var(--title); line-height: 1.05; overflow: hidden; }
+.poster .big { font-size: clamp(18px, 2.2vw, 24px); } .poster .sm { font: 800 11px var(--sans); letter-spacing: .1em; }
+.daily { display: flex; gap: 14px; align-items: center; background: #f2f0e8; color: #111; border-radius: 8px; padding: 12px 16px; border: 3px solid #1d3f7a; cursor: pointer; text-align: left; width: 100%; }
+.daily b { font: 900 22px var(--serif); letter-spacing: .04em; display: block; }
+
+/* ======================================================================= gift shop + lost & found */
+#shop { background: var(--paper-2); }
+.items { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; }
+.item { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px; position: relative; }
+.item .pic { height: 110px; border-radius: 8px; display: grid; place-items: center; font-size: 56px; background: var(--paper-2); }
+.item h3 { font-size: 16px; }
+.item p { font-size: 14px; color: var(--ink-2); margin: 0; flex: 1; }
+.item .price { font: 900 18px var(--sans); color: var(--navy); }
+body.night .item .price { color: var(--yellow); }
+.cart { display: inline-flex; align-items: center; gap: 8px; }
+#lost { background: var(--paper); }
+.ledger { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; font-size: 15px; }
+.ledger th, .ledger td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.ledger th { background: var(--sign); color: var(--sign-gold); font: 700 13px var(--signfont); letter-spacing: .12em; text-transform: uppercase; }
+.ledger td:first-child { font-weight: 800; }
+.tablewrap { overflow-x: auto; }
+
+/* ======================================================================= staff only: the security office */
+#staff { background: #b8b2a3; background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.12) 0 2px, transparent 2px 40px), repeating-linear-gradient(90deg, rgba(0,0,0,.1) 0 2px, transparent 2px 80px); color: #1d1a14; }
+body.night #staff { background-color: #1b1d22; color: #e8e2d4; }
+.office { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 22px; align-items: start; }
+@media (max-width: 860px) { .office { grid-template-columns: 1fr; } }
+.board { background: #a8784a; border: 10px solid #5c3d1e; border-radius: 6px; padding: 16px; display: flex; flex-wrap: wrap; gap: 12px; box-shadow: 0 14px 26px rgba(0,0,0,.3); }
+.note { background: #fff59a; color: #222; font: 800 15px var(--sans); padding: 12px 10px; width: calc(50% - 6px); min-height: 70px; box-shadow: 0 6px 10px rgba(0,0,0,.25); }
+.note:nth-child(2n) { transform: rotate(2deg); background: #ffd1e6; } .note:nth-child(3n) { transform: rotate(-2.5deg); background: #c6f3ff; }
+.whiteboard { margin-top: 16px; background: #fbfbf8; border: 8px solid #b9bcc2; border-radius: 4px; padding: 14px 16px; font: 700 18px/1.5 'Comic Sans MS', 'Chalkboard SE', var(--sans); color: #1d3f9a; box-shadow: 0 10px 20px rgba(0,0,0,.2); }
+.incident { margin-top: 16px; background: #fff; color: #111; border: 4px solid #c00; padding: 10px 14px; font: 900 15px var(--sans); text-align: center; letter-spacing: .06em; }
+.incident b { display: block; font: 900 46px var(--mono); color: #c00; }
+.monitor { background: #2a2d33; border-radius: 14px; padding: 18px 18px 12px; box-shadow: 0 20px 40px rgba(0,0,0,.4), inset 0 0 0 2px #444a55; }
+.screen { background: #04140c; border-radius: 8px; padding: 16px; min-height: 320px; color: var(--mint); font: 21px/1.35 var(--mono); box-shadow: inset 0 0 40px rgba(109,255,158,.12); position: relative; overflow: hidden; }
+.screen::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+.screen .hd { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; color: #b9ffd0; border-bottom: 1px solid #1f6b44; padding-bottom: 6px; margin-bottom: 10px; }
+.screen label { display: block; margin-top: 8px; }
+.screen input { width: 100%; background: #021008; color: var(--mint); border: 2px solid #1f6b44; border-radius: 6px; padding: 4px 10px; font: 24px var(--mono); }
+.screen .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.screen button { background: #1f6b44; color: #eafff1; border: 0; border-radius: 6px; padding: 4px 16px; font: 22px var(--mono); }
+.screen .msg { margin-top: 10px; white-space: pre-line; min-height: 2.6em; }
+.screen .bad { color: #ff8f8f; } .screen .good { color: #fff59a; }
+.monitor .foot { text-align: center; color: #9aa3b8; font: 700 12px var(--sans); margin-top: 8px; letter-spacing: .1em; }
+.staffzone { margin-top: 24px; }
+.cctv { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.cam { position: relative; aspect-ratio: 4 / 3; background: #111; border-radius: 6px; overflow: hidden; font: 18px var(--mono); color: #e8ffe8; }
+.cam .lbl { position: absolute; left: 8px; top: 6px; z-index: 2; text-shadow: 0 0 4px #000; }
+.cam .rec { position: absolute; right: 8px; top: 6px; color: #ff4b4b; z-index: 2; animation: blink 1s infinite; }
+.cam .scene { position: absolute; inset: 0; display: grid; place-items: center; font-size: 46px; filter: grayscale(.6) contrast(1.2); }
+.cam::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 3px); animation: noise .2s steps(2) infinite; }
+@keyframes noise { 50% { transform: translateY(1px); } }
+.log { background: #fffdf2; color: #222; border-radius: 6px; padding: 18px 22px; font: 16px/1.6 'Courier New', monospace; box-shadow: 0 12px 24px rgba(0,0,0,.25); }
+
+/* ======================================================================= comment card */
+#comment { background: var(--paper-2); }
+.card { max-width: 760px; margin: 0 auto; background: #fffef6; color: #2a2418; border-radius: 6px; padding: 26px clamp(18px, 4vw, 36px); box-shadow: 0 20px 40px rgba(0,0,0,.18); position: relative; background-image: repeating-linear-gradient(180deg, transparent 0 31px, rgba(31,61,138,.12) 31px 32px); }
+.card::before { content: ''; position: absolute; left: calc(clamp(18px, 4vw, 36px) - 10px); top: 0; bottom: 0; width: 2px; background: rgba(200,40,60,.35); }
+.card h2 { color: var(--navy); }
+.stars { font-size: 34px; letter-spacing: 4px; }
+.stars button { background: none; border: 0; padding: 0 2px; color: #c9bda1; font-size: 34px; line-height: 1; }
+.stars button.on { color: #e3a41a; }
+
+/* ======================================================================= footer */
+footer { background: #14100c; color: #cdbf9b; padding-block: 44px 28px; font-size: 14px; }
+footer .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr)); gap: 24px; }
+footer h3 { color: var(--sign-gold); font: 700 14px var(--signfont); letter-spacing: .16em; margin-bottom: 10px; }
+footer a, footer button.linky { color: #f0d98f; }
+footer button.linky { background: none; border: 0; padding: 0; text-decoration: underline; }
+.crest { display: flex; gap: 12px; align-items: center; }
+.crest svg { width: 64px; height: 64px; flex: 0 0 auto; }
+.switch { display: inline-flex; align-items: center; gap: 10px; background: #e9e3d4; color: #222; border: 0; border-radius: 6px; padding: 6px 12px 6px 6px; font: 800 13px var(--sans); }
+.switch i { width: 24px; height: 36px; border-radius: 4px; background: #fff; border: 2px solid #b1a990; position: relative; }
+.switch i::after { content: ''; position: absolute; left: 4px; right: 4px; height: 12px; top: 4px; border-radius: 3px; background: #c9c1ad; transition: top .2s; }
+body.night .switch i::after { top: 16px; }
+.fineprint { margin-top: 26px; padding-top: 16px; border-top: 1px solid #3a3226; color: #8f8466; font-size: 12px; }
+
+/* ======================================================================= donuts, passport, toasts, flashlight */
+.dn { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; border: 0; background: none; vertical-align: middle; transition: transform .2s; }
+.dn svg { width: 22px; height: 22px; display: block; }
+.dn:hover { transform: scale(1.25) rotate(20deg); }
+.dn.eaten { animation: munch .5s forwards; pointer-events: none; }
+@keyframes munch { 40% { transform: scale(1.5); } 100% { transform: scale(0); opacity: 0; } }
+.toasts { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 9998; display: flex; flex-direction: column; gap: 8px; align-items: center; width: min(92vw, 520px); pointer-events: none; }
+.toast { background: #14100c; color: #f6e9cc; border: 2px solid var(--sign-b); border-radius: 12px; padding: 10px 16px; font: 700 15px var(--sans); box-shadow: 0 12px 26px rgba(0,0,0,.4); animation: toast 4.2s forwards; text-align: center; }
+.toast.stamp { border-color: var(--pink); }
+@keyframes toast { 0% { opacity: 0; transform: translateY(14px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+.passport-btn { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: max(12px, env(safe-area-inset-bottom)); z-index: 9000; display: flex; align-items: center; gap: 8px; background: #233b7a; color: #fff; border: 2px solid #ffd34d; border-radius: 999px; padding: 8px 14px 8px 10px; font: 800 14px var(--sans); box-shadow: 0 10px 22px rgba(0,0,0,.35); }
+.passport-btn .n { background: #ffd34d; color: #1b1404; border-radius: 999px; padding: 0 8px; }
+.modal { position: fixed; inset: 0; z-index: 9990; background: rgba(5,7,13,.72); display: grid; place-items: center; padding: 16px; }
+.modal .sheet { position: relative; width: min(760px, 100%); max-height: 88vh; overflow: auto; background: #233b7a; color: #fff; border-radius: 16px; padding: 22px; border: 3px solid #ffd34d; box-shadow: 0 30px 60px rgba(0,0,0,.5); }
+.modal .sheet.paper { background: var(--card); color: var(--ink); border-color: var(--sign-b); }
+.modal .x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; border: 2px solid currentColor; background: none; font: 900 18px var(--sans); }
+.stamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 16px; }
+.stampbox { aspect-ratio: 1; border-radius: 12px; border: 2px dashed rgba(255,255,255,.35); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px; font: 700 12px var(--sans); color: rgba(255,255,255,.6); }
+.stampbox .ic { font-size: 30px; filter: grayscale(1) opacity(.35); }
+.stampbox.got { border: 3px solid #ff6fae; color: #fff; background: rgba(255,111,174,.12); transform: rotate(-3deg); }
+.stampbox.got:nth-child(2n) { transform: rotate(3deg); }
+.stampbox.got .ic { filter: none; }
+.stampbox b { display: block; font: 900 13px var(--sans); color: #ffd34d; margin: 4px 0 2px; }
+.flash { position: fixed; inset: 0; z-index: 8000; pointer-events: none; display: none; background: radial-gradient(circle at var(--fx, 50%) var(--fy, 40%), rgba(255,250,225,.04) 0, rgba(255,250,225,0) 110px, rgba(3,5,10,.88) 210px); }
+body.torch .flash { display: block; }
+.uv { color: #b388ff; text-shadow: 0 0 8px rgba(179,136,255,.9); font: 900 15px var(--mono); letter-spacing: .14em; opacity: 0; transition: opacity .15s; }
+body:not(.torch) .uv { visibility: hidden; }
+.after-hours { background: #3a0f1a; color: #ffd6e2; text-align: center; font: 800 14px var(--sans); padding: 8px 16px; }
+.trex-run { position: fixed; left: 0; right: 0; bottom: 0; height: min(46vh, 340px); z-index: 9500; pointer-events: none; }
+.trex-run svg { position: absolute; bottom: 0; height: 100%; width: auto; animation: stomp 7s linear forwards; }
+@keyframes stomp { from { left: 100vw; } to { left: -110vh; } }
+.trex-run .shout { position: absolute; top: 0; left: 50%; transform: translateX(-50%); font: 400 clamp(26px, 6vw, 60px) var(--title); color: #fff; text-shadow: 0 6px 0 #000, 0 0 30px #ff3b3b; white-space: nowrap; animation: blink .5s 6; }
+body.shake { animation: shake .45s 12; }
+@keyframes shake { 25% { transform: translate(-3px, 2px); } 75% { transform: translate(3px, -2px); } }
+.footprint { position: absolute; width: 34px; height: 40px; opacity: .22; pointer-events: none; color: #3a2a14; }
+.footprint.last { pointer-events: auto; cursor: pointer; opacity: .35; }
+body.night .footprint { color: #e9c46a; opacity: .4; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } html { scroll-behavior: auto; } }
+@media (max-width: 700px) {
+  .lobby { grid-template-columns: minmax(0, 1fr); padding-top: 118px; }
+  .lobby .column, .banner-hang { display: none; }
+  .note { width: 100%; }
+  /* the game wants room: on a phone the screen goes tall, so its menu fits */
+  .frame { padding: 8px; }
+  .frame .inner { aspect-ratio: 3 / 4; max-height: 76vh; }
+  .passport-btn { padding: 6px 8px; }
+  .passport-btn .w { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="after-hours hidden" id="afterHours">🌙 The museum is closed. The night guard is on duty (and definitely awake). <button class="btn ghost" style="min-height:32px;padding:2px 12px;color:#ffd6e2;border-color:#ffd6e2" data-act="lights-on">Turn the lights on</button></div>
+
+<div class="util">
+  <div class="wrap">
+    <div><span id="openNow" class="open">Open today 9 AM – 5 PM</span> · Museum Ave · Bus 12 stops out front</div>
+    <div class="right">
+      <span class="clock" id="clock" title="the security office clock">11:52 PM</span>
+      <button class="linky" data-act="lights" id="utilLights">🔦 Lights off</button>
+      <button class="linky" data-go="staff">Staff login</button>
+      <button class="linky" data-go="comment">Comment card</button>
+    </div>
+  </div>
+</div>
+
+<header class="facade" id="top" aria-label="The City Museum of Natural History, front facade">
+  <svg id="facadeSvg" viewBox="0 0 1600 560" preserveAspectRatio="xMidYMax slice" role="img" aria-label="The museum's front: a pediment with an ammonite and two dinosaurs carved in it, CITY MUSEUM OF NATURAL HISTORY on the frieze, four columns, glass doors, and two long wings with banners"></svg>
+  <svg class="ptero" id="ptero" viewBox="0 0 120 60" aria-hidden="true"><path d="M8 30 Q30 8 56 24 L60 30 L64 24 Q90 8 112 30 Q88 24 70 36 L62 48 L58 48 L50 36 Q32 24 8 30 Z" fill="#7a4fbf"/><path d="M58 26 L46 20 L58 22 Z" fill="#7a4fbf"/></svg>
+  <div class="enter-tip">↓ ENTER THE MUSEUM ↓</div>
+</header>
+
+<nav class="main" aria-label="Museum sections">
+  <div class="wrap" id="nav">
+    <button data-go="showing">Now Showing</button>
+    <button data-go="dino">Dinosaur Hall</button>
+    <button data-go="egypt">Egyptian Wing</button>
+    <button data-go="rome">Roman Empire</button>
+    <button data-go="archives">Archives</button>
+    <button data-go="map">Map</button>
+    <button data-go="visit">Visit</button>
+    <button data-go="events">Events</button>
+    <button data-go="shop">Gift Shop</button>
+    <button data-go="lost">Lost &amp; Found</button>
+    <button data-go="staff">Staff Only</button>
+    <button data-go="comment">Comment Card <span class="arrow">✎</span></button>
+  </div>
+</nav>
+
+<!-- ===================================================================== NOW SHOWING -->
+<section id="showing" aria-labelledby="showing-h">
+  <div class="coffers" aria-hidden="true"></div>
+  <div class="lamps" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+  <div class="banner-hang" aria-hidden="true">HISTORY<br>COMES<br>ALIVE!<br><button class="dn" data-d="d2" aria-label="a donut"></button></div>
+  <div class="wrap">
+    <div class="lobby">
+      <div class="column" aria-hidden="true"><div class="vein"></div></div>
+      <div class="stage">
+        <div class="sec-head" style="margin-bottom:18px">
+          <div>
+            <div class="kicker">The Lobby · Now Showing</div>
+            <h2 id="showing-h">LOCKED OUT: tonight's interactive exhibit</h2>
+          </div>
+        </div>
+        <div class="frame" id="frame">
+          <div class="inner" id="frameInner">
+            <div class="boot" id="boot">
+              <div>
+                <div class="logo">LOCKED <b>OUT</b></div>
+                <div class="msg" id="bootMsg">Unlocking the museum…</div>
+                <div class="err hidden" id="bootErr"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="brass-plaque"><b>LOCKED OUT · A NIGHT GUARD STORY</b>The security office, 11:52 PM. Your session expired, IT changed the password, and the only hint says SOLVE THE PUZZLES. <span style="white-space:nowrap">(Please do not feed the T-Rex.)</span> <button class="dn" data-d="d3" aria-label="a donut"></button></div>
+        <div class="status">
+          <span class="pill wait" id="verPill"><span class="dot"></span><span id="verText">Finding the latest version…</span></span>
+          <span class="pill" id="srcPill"><span class="dot"></span><span id="srcText">Source: —</span></span>
+        </div>
+        <div class="btns play-btns">
+          <button class="btn gold" id="popBtn" disabled>🔒 Play in its own tab (locks the mouse)</button>
+          <button class="btn" id="fullBtn" disabled>⤢ Full screen</button>
+          <button class="btn ghost" id="reloadBtn">↻ Reload the game</button>
+          <a class="btn ghost" href="https://github.com/Hudsoonvid/Cs-game/releases/latest/download/locked-out.html" target="_blank" rel="noopener">⬇ Download (one file)</a>
+        </div>
+        <div class="howto" aria-label="Controls">
+          <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · mouse looks</div>
+          <div><kbd>E</kbd> use / inspect</div>
+          <div><kbd>F</kbd> flashlight</div>
+          <div><kbd>Shift</kbd> sprint (burns donuts)</div>
+          <div><kbd>Esc</kbd> pause · skip</div>
+        </div>
+        <p style="text-align:center;font-size:14px;color:var(--ink-2);margin-top:12px">Inside this page you drag to look around. For real mouse look, use <b>Play in its own tab</b>. Your save carries over.</p>
+      </div>
+      <div class="column" aria-hidden="true"><div class="vein"></div></div>
+    </div>
+  </div>
+  <div class="floor" aria-hidden="true"></div>
+</section>
+
+<!-- ===================================================================== DINOSAUR HALL -->
+<section id="dino" class="hall" aria-labelledby="dino-h">
+  <div class="skylights" aria-hidden="true"></div>
+  <div class="wrap" style="position:relative">
+    <div class="hall-head">
+      <span class="sign big">Dinosaur Hall</span>
+      <span class="sign">The Egyptian Wing →</span>
+    </div>
+    <h2 id="dino-h">The Age of Dinosaurs</h2>
+    <p class="lede" style="color:inherit;opacity:.85">252 – 66 million years ago (and, apparently, tonight). Under three skylights, the King stands on his steel mount, which stays put when the T-Rex… doesn't.</p>
+
+    <div class="room-art rex-stage" style="margin:22px 0">
+      <svg viewBox="0 0 900 360" aria-label="The T-Rex skeleton on its platform behind a rope barrier">
+        <g class="rex" id="rexSkel"></g>
+        <rect x="120" y="318" width="660" height="22" fill="#5e564b"/>
+        <rect x="110" y="312" width="680" height="10" fill="#7a7062"/>
+        <g id="ropes"></g>
+      </svg>
+      <div class="gone">THE PLATFORM IS EMPTY.<br><small style="font:700 15px var(--sans);letter-spacing:.04em">(Come back in the morning. He'll be back. With a hat.)</small></div>
+    </div>
+
+    <div class="grid g3">
+      <div class="plaque"><h3>Tyrannosaurus rex</h3><p>“The Tyrant Lizard King.” 12 m long, 8 tonnes, teeth like bananas. Fun fact: despite its size, T. rex had only TWO fingers on each tiny hand.</p></div>
+      <div class="plaque"><h3>Triceratops</h3><p>Three horns, one frill, zero chill. Ate plants. Probably fine.</p></div>
+      <div class="plaque"><h3>Velociraptor</h3><p>Turkey-sized. Feathery. Smaller than the movies told you. Still bites.</p></div>
+      <div class="plaque"><h3>Real meteorite</h3><p>It fell out of the sky. It is older than the dinosaurs. Please do not lick the meteorite.</p></div>
+      <div class="plaque"><h3>Ammonites</h3><p>Squid in spiral shells. They're on the front of our building, too. Basically sea cinnamon rolls.</p></div>
+      <div class="plaque"><h3>Dig site</h3><p>Real sand! Fake bones. Kids only. (Guards: no digging on the clock.) <button class="dn" data-d="d5" aria-label="a donut in the sand"></button></p></div>
+    </div>
+
+    <h3 style="margin:34px 0 10px">Timeline</h3>
+    <div class="timeline" role="img" aria-label="Geologic timeline">
+      <div class="tri">TRIASSIC<small>252–201</small></div>
+      <div class="jur">JURASSIC<small>201–145</small></div>
+      <div class="cre">CRETACEOUS<small>145–66</small></div>
+      <div class="now">TODAY<small>(you are here) <button class="dn" data-d="d4" aria-label="a donut"></button></small></div>
+    </div>
+    <p style="font-size:13px;opacity:.75;margin-top:6px">Millions of years ago. Not to scale. The little figure in the TODAY box is labelled “(a guard)”.</p>
+
+    <div class="grid g2" style="margin-top:28px">
+      <div class="height" aria-labelledby="htall">
+        <h3 id="htall">How tall are you?</h3>
+        <div class="bars" id="bars"></div>
+        <div class="labels" id="barLabels"></div>
+        <label style="display:block;margin-top:10px;font-weight:800;font-size:14px">You: <span id="youH">1.5</span> m <input type="range" id="youRange" min="0.5" max="3.2" step="0.05" value="1.5"></label>
+        <p id="heightNote" style="font-size:14px;margin:6px 0 0;color:var(--ink-2)"></p>
+      </div>
+      <div>
+        <div class="console" id="dinoLock" aria-labelledby="dlt">
+          <div class="title" id="dlt">DINO-LOCK 3000 · SERVICE PANEL</div>
+          <div>Somebody scratched a message into the panel:</div>
+          <div class="cipher">W L M J X</div>
+          <div>SHIFT EACH LETTER BACK BY THE NUMBER OF FINGERS ON BOTH OF THE KING'S HANDS.</div>
+          <div class="row"><input id="dinoIn" maxlength="12" aria-label="Decoded word" placeholder="?????"><button data-act="dino-try">ENTER</button></div>
+          <div class="out" id="dinoOut"></div>
+        </div>
+        <div class="uv" style="margin-top:10px" data-uv>FRAGMENT SIX IS A WORD AND A NUMBER. THIS IS THE WORD.</div>
+      </div>
+    </div>
+
+    <h3 style="margin:34px 0 10px">The fossil wall</h3>
+    <div class="fossils" id="fossils"></div>
+  </div>
+  <svg class="footprint" style="right:3.5%;bottom:120px" viewBox="0 0 34 40" aria-hidden="true"><use href="#foot"/></svg>
+  <svg class="footprint" style="right:1%;bottom:62px;transform:rotate(14deg)" viewBox="0 0 34 40" aria-hidden="true"><use href="#foot"/></svg>
+  <svg class="footprint" style="right:3%;bottom:6px" viewBox="0 0 34 40" aria-hidden="true"><use href="#foot"/></svg>
+</section>
+
+<!-- ===================================================================== EGYPTIAN WING -->
+<section id="egypt" class="hall" aria-labelledby="egypt-h">
+  <div class="starsky" aria-hidden="true"></div>
+  <div class="glyphband" id="glyphband" aria-hidden="true"></div>
+  <svg class="footprint" style="right:2%;top:150px;transform:rotate(10deg)" viewBox="0 0 34 40" aria-hidden="true"><use href="#foot"/></svg>
+  <svg class="footprint" style="right:4.5%;top:210px" viewBox="0 0 34 40" aria-hidden="true"><use href="#foot"/></svg>
+  <button class="footprint last" id="lastFoot" style="right:2.5%;top:270px;background:none;border:0;padding:0;transform:rotate(-6deg)" aria-label="a giant footprint"><svg viewBox="0 0 34 40" width="34" height="40"><use href="#foot"/></svg></button>
+  <div class="wrap" style="padding-top:40px;position:relative">
+    <div class="hall-head">
+      <span class="sign big" style="background:#2a1c0c;color:#e9c46a;border-color:#c9962e">Egyptian Wing</span>
+      <span class="sign" style="background:#2a1c0c;color:#e9c46a;border-color:#c9962e">New wing · Mummy Mania</span>
+    </div>
+    <h2 id="egypt-h">The Land of the Pharaohs</h2>
+    <p class="lede" style="color:inherit;opacity:.85">Sandstone walls carved with hieroglyphs, a midnight-blue ceiling full of gold stars, three Anubis statues (one of them knocked over, for reasons), a sphinx, an obelisk, and a sarcophagus that is absolutely, definitely closed.</p>
+
+    <div class="egypt-stage" style="margin-top:22px">
+      <div class="sarco" id="sarco" tabindex="0" role="button" aria-label="The sarcophagus. Stare at it for a while.">
+        <svg viewBox="0 0 220 520" aria-hidden="true">
+          <defs><linearGradient id="gold" x1="0" x2="1"><stop offset="0" stop-color="#9a6d14"/><stop offset=".45" stop-color="#ffe08a"/><stop offset="1" stop-color="#a87a1e"/></linearGradient></defs>
+          <path d="M110 6 C46 6 30 70 34 130 C36 170 22 220 26 290 C30 380 46 470 70 510 L150 510 C174 470 190 380 194 290 C198 220 184 170 186 130 C190 70 174 6 110 6 Z" fill="#1f3a8a" stroke="#0e1c4a" stroke-width="4"/>
+          <g fill="url(#gold)">
+            <rect x="34" y="150" width="152" height="12"/><rect x="30" y="190" width="160" height="12"/><rect x="28" y="230" width="164" height="12"/>
+            <rect x="28" y="330" width="164" height="10"/><rect x="34" y="400" width="152" height="10"/><rect x="48" y="460" width="124" height="10"/>
+          </g>
+          <path d="M60 40 Q110 0 160 40 L160 132 Q110 150 60 132 Z" fill="#1f3a8a"/>
+          <path d="M44 60 L60 40 L60 140 L40 150 Z M176 60 L160 40 L160 140 L180 150 Z" fill="url(#gold)"/>
+          <ellipse cx="110" cy="92" rx="38" ry="48" fill="url(#gold)"/>
+          <path d="M84 84 h14 M122 84 h14" stroke="#3a2608" stroke-width="5" stroke-linecap="round"/>
+          <g class="eyes-open"><ellipse cx="91" cy="85" rx="9" ry="6" fill="#fff"/><ellipse cx="129" cy="85" rx="9" ry="6" fill="#fff"/><circle cx="93" cy="86" r="3.6" fill="#111"/><circle cx="131" cy="86" r="3.6" fill="#111"/></g>
+          <path d="M100 116 q10 6 20 0" stroke="#3a2608" stroke-width="3" fill="none"/>
+          <path d="M110 136 v40" stroke="#3a2608" stroke-width="6"/>
+          <g transform="translate(110 280)" fill="url(#gold)"><ellipse cx="0" cy="-26" rx="14" ry="18" fill="none" stroke="url(#gold)" stroke-width="8"/><rect x="-4" y="-10" width="8" height="58"/><rect x="-26" y="-6" width="52" height="8"/></g>
+          <g transform="translate(110 372)" fill="url(#gold)"><ellipse cx="0" cy="0" rx="20" ry="14"/><circle cx="0" cy="-16" r="7"/><path d="M-20 -4 L-44 -16 L-22 6 Z M20 -4 L44 -16 L22 6 Z"/></g>
+        </svg>
+        <div class="bubble">…donut?</div>
+      </div>
+      <div>
+        <div class="grid g2">
+          <div class="plaque"><h3>The mummy</h3><p>Wrapped in about 20 layers of linen, 3,000 years ago. Favorite food: unknown. (Probably not donuts.)</p><span class="tiny">Tip: stare at the sarcophagus for a few seconds.</span></div>
+          <div class="plaque"><h3>The ankh</h3><p>The ancient symbol of life. It is not a key. We checked.</p></div>
+          <div class="plaque"><h3>Scarab beetle</h3><p>Scarabs roll balls of poop across the desert. The Egyptians thought that was beautiful. They were right.</p></div>
+          <div class="plaque"><h3>Egyptian numbers</h3><p>∩ means ten. | means one. So ∩∩||| is twenty-three. You may need this later. (Tonight.)</p></div>
+        </div>
+        <h3 style="margin:22px 0 10px">The four pillars</h3>
+        <div class="pillars" id="pillars"></div>
+      </div>
+    </div>
+
+    <h3 style="margin:30px 0 10px">Canopic jars · tap one</h3>
+    <div class="jars" id="jars"></div>
+    <p style="font-size:14px;opacity:.8;margin-top:8px">Four jars for the four guardians: the jackal, the falcon, the baboon and the human. They hold… things. Please don't open the jars. (Fine. One jar.)</p>
+  </div>
+</section>
+
+<!-- ===================================================================== ROMAN EMPIRE -->
+<section id="rome" class="hall" aria-labelledby="rome-h">
+  <div class="meander" aria-hidden="true"></div>
+  <div class="wrap" style="padding-top:40px">
+    <div class="hall-head">
+      <span class="sign big" style="background:#1a1210;color:#f2d27a;border-color:#d4a72c">Roman Empire</span>
+      <span class="sign" style="background:#1a1210;color:#f2d27a;border-color:#d4a72c">S · P · Q · R</span>
+    </div>
+    <h2 id="rome-h" style="color:#f2d27a">All roads lead to the museum</h2>
+    <p class="lede" style="color:#fbe9c8">A Pompeii-style hall: red painted panels, black bands, a gold meander running round the top, a coffered ceiling with gilded rosettes, and eight white columns. Plus five emperors, and Caligula, who has to stand in the corner.</p>
+    <div class="colonnade" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+    <div class="busts" id="busts"></div>
+
+    <div class="grid g2" style="margin-top:30px;align-items:start">
+      <div>
+        <div class="tablet" aria-label="Inscription: MVSEVM CONDITVM ANNO MCMLXXIV">MVSEVM<br>CONDITVM ANNO<br>MCMLXXIV</div>
+        <p style="font-size:14px;margin-top:8px;color:#fbe9c8">“The museum, founded in the year…” The Romans never did learn to write a U.</p>
+        <div class="pompeii" style="margin-top:16px">
+          <div class="panel"><h3>Chariot</h3><p>Top speed: 40 km/h. Seatbelts: none. Cupholders: also none.</p></div>
+          <div class="panel"><h3>Gladiator shield</h3><p>Property of Maximus. Do not borrow. Won XXIII fights. Lost I (to a goose).</p></div>
+          <div class="panel"><h3>Roman numerals 101</h3><p>I = 1 · V = 5 · X = 10 · L = 50 · C = 100 · D = 500 · M = 1000. A small one before a big one means subtract: IV = 4, XL = 40.</p></div>
+          <div class="panel"><h3>The philosopher</h3><p>(No idea.) Next to him, The Orator, who has been talking since 44 BC.</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="console" style="border-color:#d4a72c;background:#1a1210;color:#f2d27a" aria-labelledby="alt">
+          <div class="title" id="alt" style="color:#fff">AQVILA LOCK II</div>
+          <div>THE NIGHT GVARD'S SHIFT NVMBER IS MAXIMVS'S WINS, PLVS MAXIMVS'S WINS AGAIN, PLVS EVERY GOOSE THAT EVER BEAT HIM.</div>
+          <div style="margin-top:6px">ENTER IT, CITIZEN. (NVMBERS OR NVMERALS.)</div>
+          <div class="row"><input id="romeIn" maxlength="10" aria-label="Shift number" style="border-color:#d4a72c;color:#f2d27a" placeholder="??"><button data-act="rome-try" style="background:#8a1022">ENTER</button></div>
+          <div class="out" id="romeOut"></div>
+        </div>
+        <div class="uv" style="margin-top:10px" data-uv>…AND THIS IS THE NUMBER. WORD FIRST.</div>
+        <h3 style="margin:22px 0 10px;color:#f2d27a">Amphoras · tap one</h3>
+        <div class="jars" id="amphoras"></div>
+      </div>
+    </div>
+  </div>
+  <div class="mosaic" aria-hidden="true"></div>
+</section>
+
+<!-- ===================================================================== ARCHIVES -->
+<section id="archives" class="hall" aria-labelledby="arch-h">
+  <div class="wrap">
+    <div class="hall-head">
+      <span class="sign big red">Archives · Staff Only</span>
+      <span class="sign" style="background:#2b2a27;border-color:#6b5a3e;color:#e8e0cf">Through the guard-shaped hole</span>
+    </div>
+    <h2 id="arch-h">The Archives</h2>
+    <p class="lede" style="color:#cfc5b0">Where the museum keeps everything it isn't showing you: spare dinosaur bones, Egyptian overflow, broken Roman statues, holiday decorations, the flooded bit, and donut storage (empty). They go on for a while. Some say forever.</p>
+    <div class="grid g2" style="margin-top:22px;align-items:start">
+      <div>
+        <div class="shelves" id="shelves" tabindex="0" aria-label="Archive shelves. Scroll for more."></div>
+        <div class="btns" style="margin-top:10px"><button class="btn ghost" style="color:#e8e0cf;border-color:#6b5a3e" data-act="more-shelves">Keep looking ↓</button><span id="boxCount" style="align-self:center;font-weight:800;color:#cfc5b0"></span></div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:10px">Search the archives catalog</h3>
+        <form class="archsearch" id="archForm"><input id="archQ" placeholder="Try: donut, hat, aaron, fragment…" aria-label="Search the archives"><button class="btn gold" type="submit">Search</button></form>
+        <div class="results" id="archResults"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== MAP -->
+<section id="map" aria-labelledby="map-h">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="kicker">Plan your route</div><h2 id="map-h">Museum map</h2></div><p style="margin:0;max-width:420px;color:var(--ink-2)">↑ North: Dinosaur Hall (→ Egyptian Wing) · → East: Roman Empire · ← West: Security Office · ↓ South: Exit (locked at night). Tap a room.</p></div>
+    <div class="mapwrap">
+      <div class="mapsvg"><svg id="mapSvg" viewBox="0 0 760 740" role="img" aria-label="Floor plan of the museum"></svg></div>
+      <div class="roominfo" id="roomInfo" aria-live="polite"><h3>Welcome!</h3><p>You are standing at the south entrance, on the black-and-white marble of the lobby. Tap any room on the map to read about it.</p><div class="uv" data-uv>EIGHT ROOMS HAVE A SECRET ROOM. THE MAP DOESN'T SAY WHERE. THE FLASHLIGHT DOES.</div></div>
+    </div>
+    <div class="legend">
+      <span style="--c:#f2efe9">Lobby (marble)</span><span style="--c:#c9bda5">Dinosaur Hall (flagstones)</span><span style="--c:#ead9b4">Egyptian Wing (sandstone)</span><span style="--c:#b8483a">Roman Empire (mosaic)</span><span style="--c:#b38a5c">Security Office (wood)</span><span style="--c:#4a4438">Archives (???)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== VISIT -->
+<section id="visit" aria-labelledby="visit-h">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="kicker">The information desk</div><h2 id="visit-h">Plan your visit</h2></div></div>
+    <div class="grid g2" style="align-items:start">
+      <div class="desk">
+        <div class="front">INFORMATION · TICKETS</div>
+        <button class="bell" id="bell" aria-label="Ring the desk bell"><svg viewBox="0 0 54 44"><ellipse cx="27" cy="40" rx="24" ry="4" fill="#2a1c0c"/><path d="M6 38 Q6 14 27 12 Q48 14 48 38 Z" fill="url(#bellg)"/><rect x="24" y="5" width="6" height="8" rx="2" fill="#c9a24a"/><defs><linearGradient id="bellg" x1="0" x2="1"><stop offset="0" stop-color="#8a6a24"/><stop offset=".5" stop-color="#f5dc94"/><stop offset="1" stop-color="#8a6a24"/></linearGradient></defs></svg></button>
+        <table>
+          <tr><td>Hours</td><td>Daily · 9 AM – 5 PM</td></tr>
+          <tr><td>At night</td><td>Closed. Security on duty.</td></tr>
+          <tr><td>Adults</td><td>$12</td></tr>
+          <tr><td>Kids (under 12)</td><td>Free</td></tr>
+          <tr><td>Seniors &amp; students</td><td>$8</td></tr>
+          <tr><td>Anyone holding a donut</td><td>Free (the T-Rex is hungry)</td></tr>
+          <tr><td>Night guards on shift</td><td>Free, but you have to stay</td></tr>
+        </table>
+        <p style="margin:14px 0 0;font-size:14px;color:#e9d6ac">Brochures on the desk. Rope barriers for the queue. A “⚠ CAUTION WET FLOOR” sign that has been there since 1974.</p>
+      </div>
+      <div class="grid" style="gap:16px">
+        <div class="info">
+          <h3>Getting here</h3>
+          <p style="margin-bottom:6px">On <b>Museum Ave</b>. Bus 12 stops right out front (“BUS 12 · MUSEUM”). Look for the bronze triceratops in the garden; its nose horn has been rubbed shiny by a million visitors. Across the street:</p>
+          <div class="across"><span>🍩 DOZEN DELUXE DONUTS · opens 6 AM</span><span>⭐ STARLIGHT DINER · never closes</span><span>🎬 ROXY cinema</span><span>📚 PAGE TURNER BOOKS</span><span>🏨 HOTEL MAJESTIC</span><span>🍕 TONY'S PIZZA</span><span>🏦 CITY SAVINGS BANK</span><span>☕ CORNER CAFE</span><span>🥐 SUNRISE BAKERY</span><span>🏢 CITY TOWER</span></div>
+        </div>
+        <div class="info">
+          <h3>Museum rules</h3>
+          <ul>
+            <li>Please don't touch the exhibits. (“My mom said don't touch anything. I touched four things.”)</li>
+            <li>Do not lick the meteorite.</li>
+            <li>Do not feed the T-Rex. Do not tell the T-Rex where the developer lives.</li>
+            <li>The ankh is not a key.</li>
+            <li>No digging on the clock.</li>
+            <li>Mind the wet floor. It is always wet.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px;align-items:start">
+      <div class="info">
+        <h3>Questions we get a lot</h3>
+        <p><b>Is there Wi-Fi?</b> Yes. The password is not donut123.</p>
+        <p><b>Is the T-Rex real?</b> It's a real skeleton. It is not supposed to walk.</p>
+        <p><b>Is there a café?</b> No, but the Corner Cafe is across the street, and so is the best donut shop in the city.</p>
+        <p style="margin:0"><b>Why are there giant footprints going into the Egypt room?</b> We get this one every morning now.</p>
+      </div>
+      <div class="donation">
+        <svg width="56" height="64" viewBox="0 0 56 64" aria-hidden="true"><rect x="4" y="14" width="48" height="46" rx="4" fill="#d9c7a0" stroke="#5c3d1e" stroke-width="3"/><rect x="16" y="20" width="24" height="5" rx="2" fill="#2a1c0c"/><text x="28" y="44" font-size="9" text-anchor="middle" font-family="Georgia" font-weight="700" fill="#5c3d1e">DONATE</text></svg>
+        <div style="flex:1;min-width:0"><b style="font-family:var(--signfont);letter-spacing:.12em">DONATIONS</b><br>(the T-Rex is hungry)<br><button class="btn gold" style="margin-top:8px" data-act="donate">Donate a donut</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== EVENTS -->
+<section id="events" aria-labelledby="events-h">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="kicker">Happy 50th, City Museum! · 1974 – 2024</div><h2 id="events-h" style="color:#fff">Events &amp; exhibitions</h2></div><button class="btn gold" data-act="parade">▶ Watch the parade</button></div>
+    <div class="grid g2" style="align-items:start">
+      <div>
+        <h3 style="color:#ffd34d;margin-bottom:10px">The 50th Birthday Parade · 10 AM · Museum Ave</h3>
+        <p style="color:#dfe6ff">It marches west to east down Museum Ave, about 120 m long, and takes about 80 seconds to pass the front steps. Viewing area on the sidewalk; no parking today.</p>
+        <ol class="lineup">
+          <li>🚓 A police car, lights on, no siren</li>
+          <li>🎌 The banner: CITY MUSEUM OF NATURAL HISTORY · 50TH BIRTHDAY PARADE!</li>
+          <li>🥁 The marching band: a drum major and twelve players in red with tall plumed hats</li>
+          <li>🏛️ Float: HAPPY 50TH, CITY MUSEUM! (a little temple, a big gold 50, a confetti cannon)</li>
+          <li>🦕 A purple pterodactyl balloon</li>
+          <li>🦖 Float: THE KING IS BACK! ★ DINOSAUR HALL (with a volcano and a T-Rex in a party hat)</li>
+          <li>🐫 Float: MUMMY MANIA ★ EGYPTIAN WING (a waving mummy and a Bastet cat)</li>
+          <li>🐋 A blue whale balloon</li>
+          <li>🏛️ Float: ALL ROADS LEAD TO THE MUSEUM (an emperor, a chariot, two white horses)</li>
+          <li>🍩 Float: DOZEN DELUXE DONUTS ♥ CITY MUSEUM (one giant spinning donut)</li>
+          <li>🧹 The street sweeper: CITY CLEAN CREW</li>
+        </ol>
+      </div>
+      <div class="grid" style="gap:16px">
+        <div class="marquee"><div class="now">NOW SHOWING · ROXY</div><div class="film">DINO-MITE! · THE MUMMY'S DONUT</div><div class="night">★ MUSEUM NIGHT · SAT 7PM ★</div></div>
+        <button class="daily" data-act="news"><svg width="48" height="56" viewBox="0 0 48 56" aria-hidden="true"><rect x="2" y="2" width="44" height="52" rx="3" fill="#1d3f7a"/><rect x="8" y="10" width="32" height="20" fill="#f2f0e8"/><rect x="8" y="36" width="32" height="4" fill="#9fb3d8"/></svg><span><b>THE DAILY BONE</b>T-REX SPOTTED DOWNTOWN? <span style="color:#1d3f7a;font-weight:800">Read more →</span></span></button>
+        <div class="posters" id="posters"></div>
+      </div>
+    </div>
+    <div class="street" id="street"><span class="sign-ave">MUSEUM AVE</span><div class="parade" id="parade"></div><div class="confetti" id="confetti"></div></div>
+  </div>
+</section>
+
+<!-- ===================================================================== GIFT SHOP -->
+<section id="shop" aria-labelledby="shop-h">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="kicker">In the lobby, by the exit</div><h2 id="shop-h">The Gift Shop</h2></div><span class="cart sign">🛒 Cart: <span id="cartN">0</span> <button class="btn gold" style="min-height:34px;padding:2px 12px" data-act="checkout">Check out</button></span></div>
+    <div class="items" id="items"></div>
+  </div>
+</section>
+
+<!-- ===================================================================== LOST & FOUND -->
+<section id="lost" aria-labelledby="lost-h">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="kicker">The Archives · Aisle 1 · Lost &amp; Found</div><h2 id="lost-h">Lost &amp; Found</h2></div><p style="margin:0;max-width:420px;color:var(--ink-2)">Lost something during your visit? Or during your shift? Ask at the information desk.</p></div>
+    <div class="tablewrap">
+      <table class="ledger">
+        <thead><tr><th>Item</th><th>Found</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Guard hat (navy, gold badge)</td><td>In the T-Rex's mouth</td><td>Damp. <button class="btn ghost" style="min-height:30px;padding:0 10px;font-size:13px" data-act="claim-hat">Claim it</button></td></tr>
+          <tr><td>Flashlight (still on)</td><td>Dinosaur Hall floor</td><td>Batteries at 3%. Someone was in a hurry.</td></tr>
+          <tr><td>Half a donut</td><td>DONUT STORAGE (EMPTY)</td><td>The other half is unaccounted for. <button class="dn" data-d="d12" aria-label="the other half of the donut"></button></td></tr>
+          <tr><td>11 × “Employee of the Month” certificates</td><td>Aaron's locker</td><td>All of them say AARON. Eleven months in a row.</td></tr>
+          <tr><td>One small sneaker</td><td>The dig site</td><td>Real sand, real shoe.</td></tr>
+          <tr><td>A pink box labelled ???</td><td>Archives, aisle ∞</td><td>Do not shake.</td></tr>
+          <tr><td>Roman chariot</td><td>Roman Empire</td><td>Moved 3 m overnight. Nobody knows how. Cupholders: still none.</td></tr>
+          <tr><td>Password fragment #6</td><td>Not found</td><td>“It must be behind the next gate…” (Or on this website.)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================================================================== STAFF ONLY -->
+<section id="staff" aria-labelledby="staff-h">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="kicker" style="color:#5a1010">Security Office · Staff Only</div><h2 id="staff-h">MUSE-OS staff login</h2></div><p style="margin:0;max-width:440px">The password was changed tonight. Five fragments are in the game. The sixth isn't. (It never was.) Unless…</p></div>
+    <div class="office">
+      <div>
+        <div class="board">
+          <div class="note">DON'T FEED THE T-REX</div>
+          <div class="note">PIZZA FRIDAY? (no)</div>
+          <div class="note">WHO ATE MY DONUT</div>
+          <div class="note">AARON: EMPLOYEE OF THE YEAR</div>
+          <div class="note">CALL MOM</div>
+          <div class="note">PASSWORD HINT: ???</div>
+        </div>
+        <div class="whiteboard">NIGHT SHIFT CHECKLIST<br>1. Stay awake<br>2. Do NOT eat the donuts<br>3. Check the T-Rex (still dead?)<br>4. ???</div>
+        <div class="incident">DAYS WITHOUT A DINOSAUR INCIDENT <b id="incident">0</b></div>
+      </div>
+      <div>
+        <div class="monitor">
+          <div class="screen" id="museos">
+            <div class="hd"><span>MUSE-OS v2.3</span><span id="osClock">11:52 PM</span></div>
+            <div>SESSION EXPIRED<br>Please log in again.</div>
+            <form id="loginForm" autocomplete="off">
+              <label>USER<input value="NIGHT_GUARD" disabled aria-label="User"></label>
+              <label>PASSWORD<input id="pw" type="password" aria-label="Password" spellcheck="false"></label>
+              <div class="row"><button type="submit">LOG IN</button><button type="button" data-act="hint">HINT?</button></div>
+            </form>
+            <div class="msg" id="osMsg"></div>
+          </div>
+          <div class="foot">MUSE-OS v2.3 — City Museum of Natural History</div>
+        </div>
+      </div>
+    </div>
+    <div class="staffzone hidden" id="staffZone"></div>
+  </div>
+</section>
+
+<!-- ===================================================================== COMMENT CARD -->
+<section id="comment" aria-labelledby="comment-h">
+  <div class="wrap">
+    <div class="card">
+      <div class="kicker" style="color:#8a1022">Visitor comment card</div>
+      <h2 id="comment-h" style="margin:4px 0 10px">How was your visit (and your night shift)?</h2>
+      <p>Found a bug? (It's a feature.) Got stuck on a puzzle? Loved the T-Rex? Hated the archives? Tell the developer. He reads every card. Yes, even the mean ones.</p>
+      <div class="stars" id="stars" aria-label="Rate your visit"></div>
+      <p id="starNote" style="min-height:1.6em;font-weight:800;color:#8a1022"></p>
+      <div class="btns"><a class="btn" href="https://forms.gle/cqLYLxBX8qT3fM858" target="_blank" rel="noopener">✎ Fill out the comment card</a><span style="align-self:center;font-size:14px;color:#6b604c">Opens the feedback form in a new tab.</span></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <div class="crest"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#2a2116" stroke="#c9a24a" stroke-width="3"/><path id="crestSpiral" fill="none" stroke="#e9cf8a" stroke-width="2.2"/></svg><div><b style="color:#f6e9cc;font:900 16px var(--serif);letter-spacing:.08em">CITY MUSEUM</b><br>of Natural History<br><span style="font-family:var(--serif);letter-spacing:.2em;font-size:12px">EST. MCMLXXIV</span></div></div>
+        <p style="margin-top:12px">Museum Ave · Bus 12 stops out front<br>Daily 9 AM – 5 PM · Closed at night (mostly)</p>
+      </div>
+      <div>
+        <h3>Explore</h3>
+        <button class="linky" data-go="showing">Now showing: LOCKED OUT</button><br>
+        <button class="linky" data-go="dino">Dinosaur Hall</button> · <button class="linky" data-go="egypt">Egyptian Wing</button> · <button class="linky" data-go="rome">Roman Empire</button><br>
+        <button class="linky" data-go="map">Museum map</button> · <button class="linky" data-go="shop">Gift shop</button>
+      </div>
+      <div>
+        <h3>Tell us</h3>
+        <a href="https://forms.gle/cqLYLxBX8qT3fM858" target="_blank" rel="noopener">Comment card (feedback form)</a><br>
+        <a href="https://github.com/Hudsoonvid/Cs-game" target="_blank" rel="noopener">The game on GitHub</a><br>
+        <button class="linky" data-act="passport">Your museum passport</button>
+      </div>
+      <div>
+        <h3>After hours</h3>
+        <button class="switch" data-act="lights" aria-label="Light switch"><i></i><span id="switchLbl">Lights: ON</span></button>
+        <p style="margin-top:10px">The security office clock says <span id="footClock">11:52</span>. The night guard says everything is fine.</p>
+      </div>
+    </div>
+    <div class="fineprint">A fan website for <b>LOCKED OUT</b>, a game by Hudson Saunders. The City Museum of Natural History is fictional, and so is its T-Rex (we hope). Please don't try to visit at 11:52 PM.</div>
+  </div>
+</footer>
+
+<button class="passport-btn" data-act="passport" aria-label="Museum passport: secrets found"><span>🎫 <span class="w">Passport</span></span><span class="n" id="passN">0/16</span></button>
+<div class="flash" id="flash" aria-hidden="true"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="foot" viewBox="0 0 34 40"><path d="M17 38 C10 38 8 31 11 25 L4 6 C3 3 7 2 8 5 L14 20 L15 3 C15 0 19 0 19 3 L20 20 L26 5 C27 2 31 3 30 6 L23 25 C26 31 24 38 17 38 Z" fill="currentColor"/></symbol>
+    <symbol id="donut" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.2" fill="none" stroke="#c9884a" stroke-width="6.4"/><circle cx="12" cy="12" r="6.2" fill="none" stroke="#ff7eb6" stroke-width="4.6"/><g stroke-width="1.4" stroke-linecap="round"><path d="M7 9 l1 -.6" stroke="#fff59a"/><path d="M15.5 7 l1 .8" stroke="#6dc2ff"/><path d="M17 13 l.4 1.2" stroke="#fff"/><path d="M8.5 15.6 l1.2 .3" stroke="#6dff9e"/><path d="M12 5.4 l1 .1" stroke="#fff"/></g></symbol>
+  </defs>
+</svg>
+
+<script>
+(function () {
+'use strict';
+// ============================================================== little helpers
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('cm.' + k); return v == null ? d : JSON.parse(v); } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem('cm.' + k, JSON.stringify(v)); } catch (_) { /* (private window) */ } },
+};
+function toast(html, cls = '') {
+  const t = document.createElement('div');
+  t.className = 'toast ' + cls;
+  t.innerHTML = html;
+  $('#toasts').append(t);
+  setTimeout(() => t.remove(), 4300);
+}
+function go(id) { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+const norm = (s) => String(s).toUpperCase().replace(/[^A-Z0-9]/g, '');
+// cyrb53: answers are kept as hashes, so reading the page's code doesn't hand them over
+function hash(str, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0, ch; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+let actx = null;
+function beep(freq = 880, dur = 0.25, type = 'sine', vol = 0.15) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+    o.connect(g).connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur);
+  } catch (_) { /* (no sound, no problem) */ }
+}
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+// ============================================================== the museum passport (16 secrets)
+const STAMPS = [
+  ['konami', '🦖', 'The King Returns', 'An old cheat code. Up, up…'],
+  ['night', '🔦', 'After Hours', 'What happens when the lights go out?'],
+  ['donuts', '🍩', 'Dozen Deluxe', 'A dozen donuts are hidden on this site.'],
+  ['mummy', '🧟', 'Wake the Mummy', 'Stare long enough at something closed.'],
+  ['footprints', '🐾', 'Follow the Footprints', 'Where do the giant footprints lead?'],
+  ['triceratops', '✨', 'Lucky Horn', 'A million visitors rubbed it. Be one more.'],
+  ['archives', '📦', 'They Never End', 'Keep looking. Keep looking. Keep looking.'],
+  ['museos', '💻', 'Fragment Six', 'Log in to MUSE-OS.'],
+  ['donut123', '🔑', 'Old Habits', "Try the old password. It won't work."],
+  ['hat', '🧢', 'Claim Your Hat', 'Lost something?'],
+  ['devmode', '🛠️', 'Wrong Building', 'Tap something on the front of the building, a lot.'],
+  ['console', '🖥️', 'Back Door', 'Read the source.'],
+  ['bell', '🛎️', 'Service, Please', 'Ring for help.'],
+  ['sweeper', '🧹', 'Clean Crew', 'Someone has to clean up after the parade.'],
+  ['caligula', '🗿', 'Caligula Was Here', 'The emperor in the corner.'],
+  ['metube', '📺', 'MeTube', 'Someone left a screen on in the security office.'],
+];
+let stamps = new Set(store.get('stamps', []));
+function stamp(id) {
+  if (stamps.has(id)) return false;
+  stamps.add(id);
+  store.set('stamps', [...stamps]);
+  const s = STAMPS.find((x) => x[0] === id);
+  if (s) toast(`${s[1]} <b>Passport stamp:</b> ${s[2]} · ${stamps.size}/16`, 'stamp');
+  beep(660, 0.12); setTimeout(() => beep(990, 0.18), 110);
+  passCount();
+  if (stamps.size === STAMPS.length) setTimeout(() => toast('🏆 Every stamp! Open your passport.', 'stamp'), 1500);
+  return true;
+}
+function passCount() { $('#passN').textContent = `${stamps.size}/16`; }
+function openPassport() {
+  const all = stamps.size === STAMPS.length;
+  const m = modal(`<div class="kicker" style="color:#ffd34d">City Museum of Natural History</div>
+    <h2 style="color:#fff;margin:4px 0">Museum Passport</h2>
+    <p style="color:#dfe6ff;margin:0">${stamps.size} of 16 secrets found. Collect every stamp. (There are 16 donuts in the game, too.)</p>
+    <div class="stamps">${STAMPS.map(([id, ic, name, hint]) => `<div class="stampbox ${stamps.has(id) ? 'got' : ''}"><div class="ic">${ic}</div><b>${stamps.has(id) ? name : '???'}</b>${stamps.has(id) ? 'Found!' : hint}</div>`).join('')}</div>
+    ${all ? `<div class="plaque" style="margin-top:18px"><h3>Employee of the Month: YOU</h3><p>Sixteen for sixteen. Aaron has been Employee of the Month eleven months in a row, and you just beat him. Thanks for exploring every corner of the museum. Now go finish your shift.</p></div>` : ''}`);
+  return m;
+}
+function modal(html, paper = false) {
+  const m = document.createElement('div');
+  m.className = 'modal';
+  m.innerHTML = `<div class="sheet ${paper ? 'paper' : ''}" role="dialog" aria-modal="true">${html}<button class="x" aria-label="Close">✕</button></div>`;
+  m.addEventListener('click', (e) => { if (e.target === m || e.target.closest('.x')) m.remove(); });
+  document.body.append(m);
+  $('.x', m).focus();
+  return m;
+}
+
+// ============================================================== hidden donuts (a dozen)
+let donuts = new Set(store.get('donuts', []));
+function makeDonutBtn(b) { b.innerHTML = '<svg viewBox="0 0 24 24"><use href="#donut"/></svg>'; if (donuts.has(b.dataset.d)) b.classList.add('hidden'); }
+const DONUT_LINES = ['A dozen reasons to get up in the morning.', 'Best. Snack. In. Three. Thousand. Years.', 'Sugar level: rising.', 'Do NOT eat the donuts. (Checklist item 2.)', 'The T-Rex is jealous.', 'WHO ATE MY DONUT', 'Glazed and confused.', 'Sprinkles: confirmed.', 'This one was behind a loose brick.', 'Hole-y moly.', 'Still warm. Suspicious.', 'That is the whole dozen!'];
+function eat(b) {
+  const id = b.dataset.d;
+  if (!id || donuts.has(id)) return;
+  donuts.add(id);
+  store.set('donuts', [...donuts]);
+  b.classList.add('eaten');
+  setTimeout(() => b.classList.add('hidden'), 520);
+  beep(520, 0.08, 'square', 0.08); setTimeout(() => beep(390, 0.1, 'square', 0.08), 90);
+  toast(`🍩 Donut ${donuts.size}/12 · ${DONUT_LINES[Math.min(donuts.size, 12) - 1]}`);
+  if (donuts.size >= 12) stamp('donuts');
+}
+
+// ============================================================== the facade (drawn from the game's own building)
+// meters → pixels: the centre of the building is x = 800, the top step is y = 430, 18 px to the meter
+function buildFacade() {
+  const S = 18, CX = 800, GY = 430;
+  const X = (m) => CX + m * S, Y = (h) => GY - h * S;
+  const P = [];
+  const r = (x0, y0, x1, y1, fill, extra = '') => P.push(`<rect x="${Math.min(X(x0), X(x1)).toFixed(1)}" y="${Math.min(Y(y0), Y(y1)).toFixed(1)}" width="${Math.abs(X(x1) - X(x0)).toFixed(1)}" height="${Math.abs(Y(y1) - Y(y0)).toFixed(1)}" fill="${fill}" ${extra}/>`);
+  // sky: stars, the moon, the sun, clouds
+  let st = '<g class="stars">';
+  for (let i = 0; i < 90; i++) { const sx = (i * 173.3) % 1600, sy = (i * 61.7) % 230; st += `<circle cx="${sx.toFixed(0)}" cy="${sy.toFixed(0)}" r="${(i % 3) * 0.5 + 0.7}" fill="#fff" opacity="${0.4 + (i % 5) * 0.12}"/>`; }
+  P.push(st + '</g>');
+  P.push('<g class="moon"><circle cx="1360" cy="70" r="30" fill="#f4f0dc"/><circle cx="1372" cy="62" r="26" fill="#1a2342" opacity=".9"/></g>');
+  P.push('<g class="sun"><circle cx="1360" cy="74" r="34" fill="#fff6c8" opacity=".9"/><circle cx="1360" cy="74" r="56" fill="#fff6c8" opacity=".25"/></g>');
+  P.push('<g class="dayonly" fill="#fff" opacity=".85"><ellipse cx="260" cy="70" rx="70" ry="16"/><ellipse cx="300" cy="58" rx="40" ry="18"/><ellipse cx="980" cy="44" rx="60" ry="12"/><ellipse cx="1010" cy="36" rx="34" ry="14"/></g>');
+  // city behind: a skyline silhouette (CITY TOWER is the glass one)
+  P.push('<g fill="#9fb0c8" opacity=".55" class="dayonly"><rect x="0" y="210" width="90" height="230"/><rect x="100" y="170" width="70" height="270"/><rect x="1440" y="150" width="70" height="290"/><rect x="1515" y="196" width="85" height="244"/></g>');
+  P.push('<g fill="#121a33" class="glow" opacity="1"><rect x="0" y="210" width="90" height="230"/><rect x="100" y="170" width="70" height="270"/><rect x="1440" y="150" width="70" height="290"/><rect x="1515" y="196" width="85" height="244"/><g fill="#ffd977">' + Array.from({ length: 24 }, (_, i) => `<rect x="${[12, 40, 112, 140, 1452, 1480, 1528, 1560][i % 8]}" y="${220 + (i * 37) % 180}" width="8" height="10"/>`).join('') + '</g></g>');
+  // the wings: rough-cut stone base, cornice, seven tall blind windows each with a little pediment
+  for (const side of [-1, 1]) {
+    const a = side * 12.4, b = side * 44;
+    const lo = Math.min(a, b), hi = Math.max(a, b);
+    r(lo, 0, hi, 9.4, '#d6ccb4');
+    for (let row = 0; row < 4; row++) for (let k = 0; k < 18; k++) { const x0 = lo + k * 1.8 + (row % 2) * 0.9; if (x0 + 1.75 > hi) continue; r(x0, row * 0.55, x0 + 1.72, row * 0.55 + 0.5, '#b9ad94', 'stroke="#a2967c" stroke-width=".6"'); }
+    r(lo, 2.2, hi, 2.45, '#c9bda1');
+    r(lo - 0.2, 9.4, hi + 0.2, 10.0, '#c9bda1'); r(lo - 0.35, 10.0, hi + 0.35, 10.25, '#e3d8c1');
+    r(lo, 10.25, hi, 10.9, '#cfc5ae'); // parapet
+    for (let k = 0; k < Math.floor((hi - lo) / 1.1); k++) r(lo + 0.4 + k * 1.1, 10.25, lo + 0.75 + k * 1.1, 10.9, '#b8ad95');
+    const corner = side < 0 ? lo : hi - 4;
+    r(corner, 0, corner + 4, 11.2, '#d9cfb8'); r(corner - 0.2, 11.2, corner + 4.2, 11.6, '#c9bda1');
+    for (let w = 0; w < 7; w++) {
+      const cx = side * (15.2 + w * 3.6);
+      r(cx - 1.25, 2.9, cx + 1.25, 7.9, '#ece4d1');
+      r(cx - 1.0, 3.1, cx + 1.0, 7.6, '#2a3440', `class="${side < 0 && w === 0 ? 'metube-wrap' : ''}"`);
+      if (side < 0 && w === 0) P.push(`<rect class="metube hot" data-act="metube" x="${X(cx - 1.0)}" y="${Y(7.6)}" width="${2 * S}" height="${4.5 * S}" fill="#3a6cff"><title>A light in the security office</title></rect>`);
+      P.push(`<path d="M${X(cx - 1.45)} ${Y(8.0)} L${X(cx)} ${Y(8.75)} L${X(cx + 1.45)} ${Y(8.0)} Z" fill="#e3d8c1" stroke="#b4a486" stroke-width="1"/>`);
+      P.push(`<rect class="glow" x="${X(cx - 1.0)}" y="${Y(7.6)}" width="${2 * S}" height="${4.5 * S}" fill="#ffd977" opacity="0"/>`);
+    }
+  }
+  // wing banners hang from the cornice
+  const banner = (cx, bg, fg, top, l2) => {
+    const x = X(cx) - 27, y = Y(9.3);
+    const lines = top.map((t, i) => `<text x="${x + 27}" y="${y + 30 + i * 13}" fill="${fg}" font-size="9.5" font-weight="900" text-anchor="middle" font-family="Nunito, sans-serif" letter-spacing=".5">${t}</text>`).join('');
+    P.push(`<g><rect x="${x}" y="${y}" width="54" height="98" fill="${bg}"/><path d="M${x} ${y + 98} L${x + 27} ${y + 110} L${x + 54} ${y + 98} Z" fill="${bg}"/><rect x="${x + 4}" y="${y + 4}" width="46" height="90" fill="none" stroke="${fg}" stroke-width=".8" opacity=".6"/>${lines}<text x="${x + 27}" y="${y + 30 + top.length * 13 + 8}" fill="${fg}" font-size="7" font-weight="800" text-anchor="middle" font-family="Nunito, sans-serif">${l2}</text><rect x="${x - 3}" y="${y - 4}" width="60" height="4" fill="#7a6f5e"/></g>`);
+  };
+  banner(-17, '#2f6b3a', '#f4e8c4', ['DINO-', 'SAURS'], 'NOW OPEN');
+  banner(-31.4, '#1f3d8a', '#ffd34d', ['50', 'YEARS'], '1974 – 2024');
+  banner(17, '#c9962e', '#1f2a55', ['ANCIENT', 'EGYPT'], 'NEW WING');
+  banner(31.4, '#8a1022', '#f2d27a', ['ROMAN', 'EMPIRE'], 'ALL ROADS');
+  // the centre block: three openings between four engaged columns
+  r(-12.8, 0, 12.8, 7.95, '#ddd3bc');
+  for (let k = 0; k < 14; k++) r(-12.8, k * 0.57, 12.8, k * 0.57 + 0.04, '#cdc2a8');
+  // central glass doors (6 m × 4.2 m), brass handles
+  r(-3.3, 0.36, 3.3, 5.0, '#c9bda1');
+  r(-3.0, 0.36, 3.0, 4.56, '#203040', 'class="lit"');
+  for (const dx of [-1.5, 1.5]) r(dx - 1.4, 0.5, dx + 1.4, 4.4, 'url(#glass)', 'class="hot" data-act="doors"');
+  r(-0.06, 0.36, 0.06, 4.56, '#7a6f5e');
+  r(-0.5, 2.0, -0.18, 2.9, '#d4a72c'); r(0.18, 2.0, 0.5, 2.9, '#d4a72c');
+  P.push(`<rect class="glow" x="${X(-3)}" y="${Y(4.56)}" width="${6 * S}" height="${4.2 * S}" fill="#ffe7a8" opacity="0"/>`);
+  // plaque over the doors: EST. MCMLXXIV
+  r(-2.6, 5.15, 2.6, 6.05, '#ddd1b8', 'stroke="#7d6c50" stroke-width="1.2"');
+  P.push(`<text x="${X(0)}" y="${Y(5.42)}" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="11" letter-spacing="3" fill="#7d6c50">EST.  MCMLXXIV</text>`);
+  // the two tall windows (4 m × 6.5 m) with keystones
+  for (const wx of [-7.6, 7.6]) {
+    r(wx - 2.25, 0.7, wx + 2.25, 7.55, '#c9bda1');
+    r(wx - 2.0, 0.86, wx + 2.0, 7.36, '#2a3440');
+    for (let k = 1; k < 4; k++) r(wx - 2 + k, 0.86, wx - 2 + k + 0.06, 7.36, '#7a6f5e');
+    for (let k = 1; k < 5; k++) r(wx - 2, 0.86 + k * 1.3, wx + 2, 0.92 + k * 1.3, '#7a6f5e');
+    P.push(`<path d="M${X(wx - 0.5)} ${Y(7.36)} L${X(wx - 0.65)} ${Y(7.95)} L${X(wx + 0.65)} ${Y(7.95)} L${X(wx + 0.5)} ${Y(7.36)} Z" fill="#e3d8c1" stroke="#a8977a"/>`);
+    P.push(`<rect class="glow" x="${X(wx - 2)}" y="${Y(7.36)}" width="${4 * S}" height="${6.5 * S}" fill="#ffe7a8" opacity="0"/>`);
+  }
+  // four engaged columns (tapered round shafts on square plinths, block capitals)
+  for (const cx of [-10.95, -4.25, 4.25, 10.95]) {
+    r(cx - 0.62, 0.36, cx + 0.62, 0.76, '#c9bda1', 'stroke="#a8977a" stroke-width=".8"');
+    P.push(`<path d="M${X(cx - 0.46)} ${Y(0.76)} L${X(cx - 0.40)} ${Y(7.6)} L${X(cx + 0.40)} ${Y(7.6)} L${X(cx + 0.46)} ${Y(0.76)} Z" fill="url(#shaft)"/>`);
+    for (let f = -2; f <= 2; f++) P.push(`<line x1="${X(cx + f * 0.16)}" y1="${Y(0.8)}" x2="${X(cx + f * 0.14)}" y2="${Y(7.55)}" stroke="#b4a486" stroke-width=".7" opacity=".55"/>`);
+    r(cx - 0.6, 7.6, cx + 0.6, 7.95, '#e3d8c1', 'stroke="#a8977a" stroke-width=".8"');
+  }
+  // entablature: architrave, the frieze with the carved name, a two-tier cornice with dentils
+  r(-13.0, 7.95, 13.0, 8.44, '#d2c7ae'); r(-13.0, 8.15, 13.0, 8.2, '#b4a486');
+  r(-13.0, 8.44, 13.0, 9.46, '#e3d8c1');
+  P.push(`<text id="friezeText" x="${X(0)}" y="${Y(8.68)}" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="15.5" letter-spacing="5.2" fill="#8a7a5e">CITY  MUSEUM  OF  NATURAL  HISTORY</text>`);
+  P.push(`<text class="uv" data-uv x="${X(0)}" y="${Y(8.68) + 12}" text-anchor="middle" font-size="9" fill="#b388ff" style="font-family:var(--mono)">FRAGMENT SIX: A WORD FROM THE KING'S HALL, THEN A NUMBER FROM ROME</text>`);
+  r(-13.2, 9.46, 13.2, 9.7, '#c9bda1');
+  for (let k = 0; k < 64; k++) r(-13.1 + k * 0.41, 9.7, -12.9 + k * 0.41, 9.86, '#e3d8c1');
+  r(-13.4, 9.86, 13.4, 10.1, '#ddd3bc', 'stroke="#b4a486" stroke-width=".6"');
+  // the pediment (25.6 m × 3.7 m) with its carving: an ammonite and two dinosaurs facing it
+  const ped = `M${X(-12.8)} ${Y(10.1)} L${X(0)} ${Y(13.8)} L${X(12.8)} ${Y(10.1)} Z`;
+  P.push(`<path d="${ped}" fill="#ddd1b8"/>`);
+  P.push(`<path d="M${X(-11.6)} ${Y(10.3)} L${X(0)} ${Y(13.35)} L${X(11.6)} ${Y(10.3)} Z" fill="#d3c6aa"/>`);
+  P.push(`<path d="M${X(-13.2)} ${Y(10.1)} L${X(0)} ${Y(14.0)} L${X(13.2)} ${Y(10.1)}" fill="none" stroke="#c9bda1" stroke-width="7" stroke-linejoin="round"/>`);
+  r(-0.6, 13.75, 0.6, 14.4, '#c9bda1'); // the block at the peak
+  P.push(`<g class="hot" data-act="ammonite"><circle cx="${X(0)}" cy="${Y(11.25)}" r="22" fill="#b4a486"/><path d="${spiral(X(0), Y(11.25), 20, 3.2)}" fill="none" stroke="#a8977a" stroke-width="2.4"/><title>The ammonite</title></g>`);
+  P.push(`<g fill="#b4a486" stroke="#a8977a" stroke-width="1">${sauropod(X(-2.2), Y(10.32), -1)}${sauropod(X(2.2), Y(10.32), 1)}</g>`);
+  // the steps (three shallow ones; the entrance stays flat) and the plaza
+  for (let k = 0; k < 3; k++) {
+    const yy = 0.36 - k * 0.12;
+    for (const [a, b] of [[-12.7 - k * 0.3, -3.55], [3.55, 12.7 + k * 0.3]]) r(a, yy - 0.12, b, yy, k % 2 ? '#cfc5ae' : '#d8cfbb', 'stroke="#b8ad95" stroke-width=".5"');
+  }
+  r(-3.55, 0, 3.55, 0.36, '#d8cfbb');
+  P.push(`<rect x="0" y="${GY}" width="1600" height="${560 - GY}" fill="#cbc3b2"/>`);
+  P.push(`<rect x="0" y="${GY + 52}" width="1600" height="8" fill="#9f9788"/><rect x="0" y="${GY + 60}" width="1600" height="70" fill="#4a4c52"/><g fill="#f2e9c8">${Array.from({ length: 20 }, (_, i) => `<rect x="${i * 84 + 10}" y="${GY + 96}" width="44" height="4"/>`).join('')}</g>`);
+  P.push(`<text x="40" y="${GY + 120}" fill="#fff" font-size="12" font-weight="800" font-family="Nunito, sans-serif" letter-spacing="2" opacity=".7">MUSEUM AVE</text>`);
+  // hedges, low walls, planters with small trees at the ends of the steps
+  for (const side of [-1, 1]) {
+    P.push(`<rect x="${side < 0 ? X(-44) : X(14.2)}" y="${GY + 6}" width="${29.8 * S}" height="16" rx="8" fill="#5f8a4a"/><rect x="${side < 0 ? X(-44) : X(14.2)}" y="${GY + 20}" width="${29.8 * S}" height="10" fill="#bdb4a2"/>`);
+    const px = X(side * 13.6);
+    P.push(`<rect x="${px - 16}" y="${GY - 8}" width="32" height="20" fill="#b9ad94" stroke="#8f8576"/><rect x="${px - 2}" y="${GY - 48}" width="4" height="40" fill="#6b4a2a"/><circle cx="${px}" cy="${GY - 56}" r="18" fill="#4f7a3c"/><circle cx="${px - 9}" cy="${GY - 48}" r="11" fill="#5f8a4a"/><circle cx="${px + 10}" cy="${GY - 47}" r="10" fill="#57844a"/>`);
+  }
+  P.push(`<g transform="translate(${X(13.6) - 9} ${GY - 18})"><foreignObject width="22" height="22"><button xmlns="http://www.w3.org/1999/xhtml" class="dn" data-d="d1" aria-label="a donut on the planter" style="width:20px;height:20px"></button></foreignObject></g>`);
+  // four double-globe lamps
+  for (const lx of [-20, -15.5, 15.5, 20]) {
+    const x = X(lx);
+    P.push(`<rect x="${x - 2}" y="${GY - 66}" width="4" height="70" fill="#2b2f36"/><rect x="${x - 14}" y="${GY - 70}" width="28" height="3" fill="#2b2f36"/><circle cx="${x - 13}" cy="${GY - 78}" r="8" fill="#f6f0dc" class="lit"/><circle cx="${x + 13}" cy="${GY - 78}" r="8" fill="#f6f0dc" class="lit"/><circle class="glow" cx="${x - 13}" cy="${GY - 78}" r="22" fill="#fff4c8" opacity="0"/><circle class="glow" cx="${x + 13}" cy="${GY - 78}" r="22" fill="#fff4c8" opacity="0"/>`);
+  }
+  // the bronze triceratops (its nose horn rubbed shiny)
+  const tx = X(-27), ty = GY + 4;
+  P.push(`<g class="hot" data-act="trike" transform="translate(${tx} ${ty})"><title>The bronze triceratops. Rub its nose for luck.</title>
+    <path d="M-50 -2 C-52 -26 -30 -40 0 -38 C24 -37 40 -30 46 -20 L60 -26 L56 -14 C58 -8 56 -2 52 0 Z" fill="#6b4f2a"/>
+    <path d="M30 -30 C36 -52 18 -60 8 -44 Z" fill="#5a4022"/>
+    <rect x="-40" y="-4" width="10" height="12" fill="#5a4022"/><rect x="-18" y="-4" width="10" height="12" fill="#5a4022"/><rect x="18" y="-4" width="10" height="12" fill="#5a4022"/><rect x="36" y="-4" width="10" height="12" fill="#5a4022"/>
+    <path d="M44 -30 L52 -46 L50 -28 Z" fill="#8a6a3a"/><path d="M36 -34 L40 -52 L42 -33 Z" fill="#8a6a3a"/>
+    <path id="trikeHorn" d="M58 -22 L70 -30 L60 -16 Z" fill="#c9a24a"/><circle cx="40" cy="-24" r="2" fill="#2a1c0c"/></g>`);
+  // a bench and a bike rack
+  P.push(`<g transform="translate(${X(24)} ${GY + 2})"><rect x="0" y="-14" width="60" height="5" fill="#6b4a2a"/><rect x="0" y="-24" width="60" height="4" fill="#6b4a2a"/><rect x="4" y="-9" width="4" height="10" fill="#2b2f36"/><rect x="52" y="-9" width="4" height="10" fill="#2b2f36"/></g>`);
+  P.push(`<g transform="translate(${X(28.6)} ${GY + 2})" fill="none" stroke="#5a5f68" stroke-width="3">${[0, 14, 28, 42].map((d) => `<path d="M${d} 0 v-14 a6 6 0 0 1 12 0 v14"/>`).join('')}</g>`);
+  const defs = `<defs><linearGradient id="shaft" x1="0" x2="1"><stop offset="0" stop-color="#b4a486"/><stop offset=".3" stop-color="#efe7d4"/><stop offset=".55" stop-color="#fbf6ea"/><stop offset="1" stop-color="#a8977a"/></linearGradient><linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5c7e9c"/><stop offset=".45" stop-color="#2b4258"/><stop offset=".5" stop-color="#9ab6cf"/><stop offset=".56" stop-color="#2b4258"/><stop offset="1" stop-color="#1c2b3a"/></linearGradient></defs>`;
+  $('#facadeSvg').innerHTML = defs + P.join('');
+}
+function spiral(cx, cy, R, turns) {
+  let d = '';
+  const N = 90;
+  for (let i = 0; i <= N; i++) { const t = i / N, a = t * turns * Math.PI * 2, rr = R * Math.pow(0.15, 1 - t) * t + 0.5; d += (i ? 'L' : 'M') + (cx + Math.cos(a) * rr).toFixed(1) + ' ' + (cy + Math.sin(a) * rr).toFixed(1); }
+  // ribs on the outer whorl
+  for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; d += `M${(cx + Math.cos(a) * R * 0.62).toFixed(1)} ${(cy + Math.sin(a) * R * 0.62).toFixed(1)}L${(cx + Math.cos(a) * R).toFixed(1)} ${(cy + Math.sin(a) * R).toFixed(1)}`; }
+  return d;
+}
+// a long-necked dinosaur silhouette, facing the middle (dir = -1 faces right... toward the ammonite)
+function sauropod(x, y, dir) {
+  const s = (px, py) => `${(x + px * -dir).toFixed(1)} ${(y + py).toFixed(1)}`;
+  return `<path d="M${s(-4, 0)} L${s(-6, -9)} C${s(-8, -20)} ${s(-26, -22)} ${s(-40, -14)} C${s(-60, -16)} ${s(-90, -10)} ${s(-118, -4)} C${s(-90, -6)} ${s(-66, -2)} ${s(-48, -4)} L${s(-46, 0)} L${s(-40, 0)} L${s(-40, -6)} L${s(-22, -6)} L${s(-20, 0)} L${s(-14, 0)} L${s(-14, -8)} C${s(-4, -14)} ${s(4, -30)} ${s(10, -44)} C${s(12, -50)} ${s(20, -52)} ${s(22, -48)} C${s(18, -46)} ${s(14, -44)} ${s(12, -38)} C${s(6, -22)} ${s(0, -12)} ${s(-4, 0)} Z"/>`;
+}
+
+// ============================================================== the T-Rex skeleton (for the hall, and for the stampede)
+function rexSvg(scale = 1) {
+  const bone = '#efe6d2', line = '#8a7a5e';
+  const P = [];
+  // spine from the neck to the tip of the tail, vertebra by vertebra
+  const spine = [];
+  for (let i = 0; i <= 40; i++) {
+    const t = i / 40;
+    const x = 230 + t * 600, y = 150 + Math.sin(t * Math.PI * 0.9 + 0.2) * -18 + t * t * 70;
+    spine.push([x, y, 11 - t * 8.5]);
+  }
+  P.push(`<path d="M${spine.map((p) => p[0].toFixed(0) + ' ' + p[1].toFixed(0)).join(' L')}" stroke="${line}" stroke-width="5" fill="none" stroke-linecap="round"/>`);
+  spine.forEach(([x, y, r], i) => { P.push(`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${bone}" stroke="${line}" stroke-width="2"/>`); if (i < 16) P.push(`<line x1="${x.toFixed(0)}" y1="${(y - r).toFixed(0)}" x2="${(x + 3).toFixed(0)}" y2="${(y - r - 14 + i * 0.5).toFixed(0)}" stroke="${bone}" stroke-width="5" stroke-linecap="round"/>`); });
+  // neck
+  for (let i = 0; i < 6; i++) { const t = i / 5, x = 140 + t * 90, y = 112 + Math.sin(t * Math.PI) * 6 + t * 30; P.push(`<circle cx="${x}" cy="${y.toFixed(0)}" r="${10 - t}" fill="${bone}" stroke="${line}" stroke-width="2"/>`); }
+  // ribs
+  for (let i = 0; i < 9; i++) { const x = 250 + i * 18, y = 146 - i * 1.5; P.push(`<path d="M${x} ${y} C${x - 18} ${y + 40} ${x - 4} ${y + 76} ${x + 14} ${y + 90 - i * 3}" stroke="${bone}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M${x} ${y} C${x - 18} ${y + 40} ${x - 4} ${y + 76} ${x + 14} ${y + 90 - i * 3}" stroke="${line}" stroke-width="1.2" fill="none" opacity=".6"/>`); }
+  // the skull with its jaw and banana teeth
+  P.push(`<path d="M20 112 L36 92 L90 76 L140 74 L168 86 L174 112 L156 128 L110 126 L58 124 L20 120 Z" fill="${bone}" stroke="${line}" stroke-width="3"/>`);
+  P.push(`<ellipse cx="146" cy="96" rx="11" ry="9" fill="#2a2116"/><ellipse cx="110" cy="100" rx="16" ry="10" fill="#4a3d2a" opacity=".55"/><ellipse cx="62" cy="104" rx="10" ry="6" fill="#4a3d2a" opacity=".45"/>`);
+  P.push(`<path d="M26 126 L150 132 L164 144 L118 154 L52 146 Z" fill="${bone}" stroke="${line}" stroke-width="3"/>`);
+  let teeth = '';
+  for (let i = 0; i < 9; i++) teeth += `<path d="M${30 + i * 13} 120 l5 12 l5 -12 Z" fill="#fffaf0" stroke="${line}" stroke-width="1"/>`;
+  for (let i = 0; i < 8; i++) teeth += `<path d="M${36 + i * 13} 130 l5 -10 l5 10 Z" fill="#fffaf0" stroke="${line}" stroke-width="1"/>`;
+  P.push(teeth);
+  // the tiny arm with exactly two fingers
+  P.push(`<path d="M262 200 L276 226 L292 232" stroke="${bone}" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M292 232 l10 -2 M292 232 l9 6" stroke="${bone}" stroke-width="4" stroke-linecap="round"/>`);
+  // pelvis and legs
+  P.push(`<path d="M380 150 C420 140 450 160 452 190 C430 206 396 204 380 186 Z" fill="${bone}" stroke="${line}" stroke-width="3"/>`);
+  const leg = (dx, shade) => `<g opacity="${shade}"><path d="M${420 + dx} 186 L${396 + dx} 252" stroke="${bone}" stroke-width="20" stroke-linecap="round"/><path d="M${396 + dx} 252 L${430 + dx} 310" stroke="${bone}" stroke-width="14" stroke-linecap="round"/><path d="M${430 + dx} 310 L${396 + dx} 330 M${430 + dx} 310 L${408 + dx} 336 M${430 + dx} 310 L${424 + dx} 338" stroke="${bone}" stroke-width="7" stroke-linecap="round"/><path d="M${420 + dx} 186 L${396 + dx} 252 L${430 + dx} 310" stroke="${line}" stroke-width="2" fill="none"/></g>`;
+  P.push(leg(26, 0.75), leg(0, 1));
+  return `<g transform="scale(${scale})">${P.join('')}</g>`;
+}
+
+// ============================================================== now showing: the game, from the newest release
+const REPO = 'Hudsoonvid/Cs-game';
+const params = new URLSearchParams(location.search);
+const TEST_BASE = window.CM_GAME_BASE || params.get('game'); // (for testing against a local copy: ?game=http://localhost:8123/)
+let gameDoc = null, gameSrc = null, gameTag = null;
+async function getText(url, ms = 15000) {
+  const c = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const t = c && setTimeout(() => c.abort(), ms);
+  try {
+    const r = await fetch(url, c ? { signal: c.signal } : {});
+    if (!r.ok) throw new Error(`${r.status} for ${url}`);
+    return await r.text();
+  } finally { if (t) clearTimeout(t); }
+}
+// the newest release's tag (cached for an hour, so a whole class on one connection doesn't use up GitHub's 60-an-hour limit)
+async function latestTag() {
+  const c = store.get('latest', null);
+  if (c && Date.now() - c.t < 3600e3 && c.tag) return c.tag;
+  const tries = [
+    async () => JSON.parse(await getText(`https://api.github.com/repos/${REPO}/releases/latest`, 8000)).tag_name,
+    async () => { const v = JSON.parse(await getText(`https://data.jsdelivr.com/v1/packages/gh/${REPO}/resolved?specifier=latest`, 8000)).version; return v && !/^v/.test(v) ? 'v' + v : v; },
+  ];
+  for (const t of tries) { try { const tag = await t(); if (tag) { store.set('latest', { tag, t: Date.now() }); return tag; } } catch (_) { /* next */ } }
+  return c && c.tag ? c.tag : null;
+}
+function sources(tag) {
+  if (TEST_BASE) return [{ name: 'a local copy', base: TEST_BASE.replace(/\/?$/, '/'), inline: false }];
+  return [
+    // jsDelivr serves the repo with the right file types, so the page's own <script src> tags just work
+    { name: 'jsDelivr', base: `https://cdn.jsdelivr.net/gh/${REPO}@${tag || 'latest'}/`, inline: false },
+    // GitHub's raw file server says every file is plain text, so the scripts and styles get written into the page
+    { name: 'GitHub (raw)', base: `https://raw.githubusercontent.com/${REPO}/${tag || 'main'}/`, inline: true },
+  ];
+}
+const safe = (s, tag) => s.replace(new RegExp(`</${tag}`, 'gi'), `<\\/${tag}`);
+// the site's own settings for the game: no GitHub Pages link, and "Play in its own tab" comes back here
+// (it calls this page directly when it can, and posts a message when a locked-down frame keeps them apart)
+const CONFIG_JS = `window.LOCKED_OUT_CONFIG = Object.assign(window.LOCKED_OUT_CONFIG || {}, { playUrl: '', popout: window.parent !== window ? function () { try { if (window.parent.cmPopout) return window.parent.cmPopout(); } catch (e) { /* another origin */ } window.parent.postMessage({ cmPopout: 1 }, '*'); } : null });`;
+async function buildGameDoc() {
+  gameTag = await latestTag();
+  setPill('ver', 'wait', gameTag ? `Latest version: ${gameTag}` : 'Latest version (couldn\'t ask GitHub, using the newest it has)');
+  let lastErr = null;
+  for (const src of sources(gameTag)) {
+    try {
+      setPill('src', 'wait', `Loading from ${src.name}…`);
+      $('#bootMsg').textContent = `Loading the museum from ${src.name}…`;
+      let html = await getText(src.base + 'index.html');
+      if (!/id="boot-start"/.test(html)) throw new Error('that is not the game');
+      html = html.replace(/<head>/i, `<head><base href="${src.base}">`);
+      if (src.inline) {
+        const [css, cfg, js] = await Promise.all(['style.css', 'game-config.js', 'dist/game.js'].map((f) => getText(src.base + f, 30000)));
+        html = html.replace(/<link rel="stylesheet" href="style\.css">/, () => `<style>${safe(css, 'style')}</style>`)
+          .replace(/<script src="game-config\.js"><\/script>/, () => `<script>${safe(cfg, 'script')}<\/script><script>${CONFIG_JS}<\/script>`)
+          .replace(/<script src="dist\/game\.js"><\/script>/, () => `<script>${safe(js, 'script')}<\/script>`);
+      } else {
+        html = html.replace(/<script src="game-config\.js"><\/script>/, () => `<script src="game-config.js"><\/script><script>${CONFIG_JS}<\/script>`);
+      }
+      gameDoc = html; gameSrc = src.name;
+      setPill('src', 'ok', `Loaded from ${src.name}`);
+      setPill('ver', 'ok', gameTag ? `Now showing ${gameTag} (the latest release)` : 'Now showing the latest version');
+      return html;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('no source answered');
+}
+function setPill(which, state, text) { const p = $(`#${which}Pill`); p.className = 'pill ' + state; $(`#${which}Text`).textContent = text; }
+async function loadGame() {
+  $('#popBtn').disabled = $('#fullBtn').disabled = true;
+  $('#bootErr').classList.add('hidden');
+  const old = $('#frameInner iframe'); if (old) old.remove();
+  $('#boot').classList.remove('hidden');
+  try {
+    const html = gameDoc || await buildGameDoc();
+    const f = document.createElement('iframe');
+    f.title = 'LOCKED OUT, the game';
+    f.setAttribute('allow', 'autoplay; fullscreen');
+    f.setAttribute('allowfullscreen', '');
+    f.srcdoc = html;
+    $('#frameInner').append(f);
+    f.addEventListener('load', () => { $('#boot').classList.add('hidden'); });
+    setTimeout(() => $('#boot').classList.add('hidden'), 6000);
+    $('#popBtn').disabled = $('#fullBtn').disabled = false;
+  } catch (e) {
+    setPill('src', 'bad', 'Could not load the game');
+    $('#bootMsg').textContent = 'The museum is locked.';
+    const err = $('#bootErr');
+    err.innerHTML = `Couldn't reach jsDelivr or GitHub from this network (${String(e.message || e).replace(/</g, '&lt;')}). Try <b>Reload the game</b>, or <a href="https://github.com/Hudsoonvid/Cs-game/releases/latest/download/locked-out.html" target="_blank" rel="noopener" style="color:#ffd34d">download the one-file version</a>.`;
+    err.classList.remove('hidden');
+  }
+}
+// "Play in its own tab": write the same game page into a fresh tab, where nothing stops the mouse locking
+window.cmPopout = function () {
+  if (!gameDoc) return;
+  const g = gameWin();
+  try { if (g && g.game && ['explore', 'runner'].includes(g.game.mode)) g.game.pause(); } catch (_) { /* ignore */ }
+  const w = window.open('', '_blank');
+  if (!w) { toast('Your browser blocked the new tab. Allow pop-ups for this page, then try again.'); return; }
+  try { w.document.open(); w.document.write(gameDoc); w.document.close(); }
+  catch (_) {
+    try { w.location.href = URL.createObjectURL(new Blob([gameDoc], { type: 'text/html' })); }
+    catch (e2) { w.close(); toast('The new tab wouldn\'t open the game here. Try the Download button instead.'); }
+  }
+};
+addEventListener('message', (e) => { if (e.data && e.data.cmPopout && e.source && e.source === gameWin()) window.cmPopout(); });
+function gameWin() { const f = $('#frameInner iframe'); try { return f && f.contentWindow; } catch (_) { return null; } }
+function fullScreen() {
+  const fr = $('#frame');
+  const theater = () => {
+    fr.classList.add('theater');
+    const x = document.createElement('button');
+    x.className = 'btn gold theater-x'; x.textContent = '✕ Exit full screen';
+    x.onclick = () => { fr.classList.remove('theater'); x.remove(); };
+    document.body.append(x);
+  };
+  try { const p = fr.requestFullscreen ? fr.requestFullscreen() : null; if (p && p.catch) p.catch(theater); else if (!p) theater(); } catch (_) { theater(); }
+}
+
+// ============================================================== halls
+function buildHalls() {
+  $('#rexSkel').innerHTML = rexSvg(0.98).replace('<g ', '<g transform="translate(40 0)" ');
+  $('#ropes').innerHTML = [150, 330, 510, 690, 760].map((x) => `<rect x="${x}" y="276" width="8" height="40" fill="#c9a24a"/><circle cx="${x + 4}" cy="274" r="7" fill="#e3c27a"/>`).join('') + '<path d="M154 282 Q242 302 334 282 Q422 302 514 282 Q602 302 694 282 Q728 296 764 282" stroke="#8a1022" stroke-width="6" fill="none"/>';
+  // the height chart
+  const HS = [['Velociraptor', 0.6], ['Average kid', 1.3], ['Night guard', 1.8], ['T. rex hip (!)', 2.9], ['You', 1.5]];
+  const draw = () => {
+    const you = +$('#youRange').value;
+    HS[4][1] = you; $('#youH').textContent = you.toFixed(2);
+    $('#bars').innerHTML = HS.map(([n, h], i) => `<div class="bar ${i === 4 ? 'you' : ''}" style="height:${(h / 3.2) * 100}%"><span>${h.toFixed(1)} m</span></div>`).join('');
+    $('#barLabels').innerHTML = HS.map(([n]) => `<span>${n}</span>`).join('');
+    $('#heightNote').textContent = you >= 2.9 ? 'You could look the T. rex in the hip. Please do not.' : you >= 1.8 ? 'Taller than the night guard. Still shorter than a T. rex hip.' : you <= 0.6 ? 'Velociraptor-sized. Feathery? Bites?' : 'A T. rex hip is 2.9 m off the ground. The rest of it is higher.';
+  };
+  $('#youRange').addEventListener('input', draw); draw();
+  // fossil slabs
+  const F = [['KNIGHTIA', 'M8 20 Q24 6 44 20 Q24 34 8 20 Z M44 20 l8 -6 v12 Z'], ['FERN FROND', 'M27 38 C27 22 27 10 27 2 M27 8 l-10 -4 M27 8 l10 -4 M27 16 l-12 -4 M27 16 l12 -4 M27 24 l-12 -4 M27 24 l12 -4 M27 32 l-10 -3 M27 32 l10 -3'], ['TRILOBITE', 'M27 4 C40 4 44 16 40 30 C36 38 18 38 14 30 C10 16 14 4 27 4 Z M20 8 v26 M34 8 v26 M14 14 h26 M14 22 h26 M15 30 h24'], ['AMMONITE', ''], ['RAPTOR CLAW', 'M14 34 C14 18 26 6 42 6 C32 12 28 22 30 36 Z'], ['DRAGONFLY', 'M27 4 v34 M27 12 C14 6 6 10 6 14 C6 18 16 18 27 14 M27 12 C40 6 48 10 48 14 C48 18 38 18 27 14 M27 20 C16 18 8 22 10 26 C14 28 22 24 27 22 M27 20 C38 18 46 22 44 26 C40 28 32 24 27 22'], ['ARCHAEOPTERYX', 'M10 30 C20 26 26 20 30 12 L36 6 L40 10 L34 14 C38 24 46 28 50 34 C40 34 30 32 24 34 Z'], ['FOOTPRINT', 'M27 38 C20 38 18 31 21 25 L14 6 C13 3 17 2 18 5 L24 20 L25 3 C25 0 29 0 29 3 L30 20 L36 5 C37 2 41 3 40 6 L33 25 C36 31 34 38 27 38 Z']];
+  $('#fossils').innerHTML = F.map(([n, d]) => `<div class="fossil"><svg viewBox="0 0 54 40"><path d="${d || spiral(27, 20, 16, 3.2)}" fill="none" stroke="#5a4a32" stroke-width="2" stroke-linecap="round"/></svg>${n}</div>`).join('');
+  // hieroglyph band: bird, eye, snake, ankh, beetle, sun, feather, water
+  const G = {
+    bird: 'M6 34 C10 22 20 14 30 16 L38 10 L40 14 L34 20 C38 26 36 34 30 36 L22 40 L20 36 L12 38 Z',
+    eye: 'M4 22 C12 12 32 12 40 22 C32 30 12 30 4 22 Z M22 22 m-5 0 a5 5 0 1 0 10 0 a5 5 0 1 0 -10 0 M18 28 L14 40 M24 28 C30 32 32 38 28 42',
+    snake: 'M4 36 C10 24 18 40 24 30 C30 20 36 36 40 26 C42 20 38 14 34 16',
+    ankh: 'M22 4 C14 4 14 18 22 20 C30 18 30 4 22 4 Z M22 20 V42 M12 22 H32',
+    beetle: 'M22 10 C32 10 34 24 30 32 C26 38 18 38 14 32 C10 24 12 10 22 10 Z M22 10 V36 M12 18 L4 12 M32 18 L40 12 M12 28 L4 34 M32 28 L40 34',
+    sun: 'M22 22 m-10 0 a10 10 0 1 0 20 0 a10 10 0 1 0 -20 0 M6 40 H38',
+    feather: 'M24 4 C34 14 32 30 24 40 C18 30 16 14 24 4 Z M24 8 V42',
+    water: 'M4 16 l6 -6 l6 6 l6 -6 l6 6 l6 -6 l6 6 M4 28 l6 -6 l6 6 l6 -6 l6 6 l6 -6 l6 6',
+  };
+  const gs = Object.values(G);
+  $('#glyphband').innerHTML = Array.from({ length: 40 }, (_, i) => `<svg viewBox="0 0 44 46"><path d="${gs[i % gs.length]}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>`).join('');
+  // the four pillars, each with a symbol and an Egyptian number
+  const num = (n) => '∩'.repeat(Math.floor(n / 10)) + '|'.repeat(n % 10);
+  $('#pillars').innerHTML = [['bird', 13], ['eye', 22], ['snake', 24], ['ankh', 31]].map(([g, n]) => `<div class="pillar"><svg viewBox="0 0 44 46"><path d="${G[g]}" fill="none" stroke="currentColor" stroke-width="2.6"/></svg><span class="num">${num(n)}</span></div>`).join('');
+  // canopic jars and amphoras: one of each hides a donut
+  const jar = (head, label, d) => `<button class="jar" data-jar="${d || ''}" aria-label="The ${label} jar"><svg viewBox="0 0 58 80"><path d="M14 30 C8 44 10 66 18 76 L40 76 C48 66 50 44 44 30 Z" fill="#e8d6ae" stroke="#8a6a3a" stroke-width="2"/><rect x="14" y="44" width="30" height="5" fill="#1f3a8a"/><rect x="14" y="54" width="30" height="3" fill="#c9962e"/>${head}</svg>${label}</button>`;
+  const heads = {
+    jackal: '<path d="M18 30 L22 10 L28 22 L34 22 L38 8 L42 30 Z" fill="#2a2116"/>',
+    falcon: '<path d="M16 30 C16 14 40 12 42 26 L48 30 Z" fill="#8a6a3a"/><circle cx="34" cy="22" r="2" fill="#000"/>',
+    baboon: '<ellipse cx="29" cy="22" rx="14" ry="11" fill="#7a6a5a"/><ellipse cx="29" cy="26" rx="7" ry="5" fill="#c9a98a"/>',
+    human: '<ellipse cx="29" cy="20" rx="12" ry="13" fill="#d4a072"/><rect x="17" y="10" width="24" height="8" fill="#1f3a8a"/>',
+  };
+  $('#jars').innerHTML = jar(heads.jackal, 'JACKAL') + jar(heads.falcon, 'FALCON') + jar(heads.baboon, 'BABOON') + jar(heads.human, 'HUMAN', 'd6');
+  const amph = (d, n) => `<button class="jar" data-jar="${d || ''}" aria-label="Amphora ${n}"><svg viewBox="0 0 58 80"><path d="M22 4 h14 v8 C48 18 50 40 42 60 L29 78 L16 60 C8 40 10 18 22 12 Z" fill="#b5653a" stroke="#6b3a1e" stroke-width="2"/><path d="M22 12 C12 12 10 22 16 26 M36 12 C46 12 48 22 42 26" fill="none" stroke="#6b3a1e" stroke-width="3"/><path d="M14 36 h30 M13 44 h32" stroke="#1a1210" stroke-width="2"/></svg>${n}</button>`;
+  $('#amphoras').innerHTML = ['I', 'II', 'III', 'IV', 'V', 'VI'].map((n, i) => amph(i === 3 ? 'd7' : '', n)).join('');
+  // the busts: five emperors, and Caligula, alone in the corner
+  const bust = (n, extra = '') => `<button class="bust ${extra}" data-bust="${n}"><svg viewBox="0 0 84 104"><rect x="22" y="86" width="40" height="16" fill="#cfc7b6"/><path d="M14 86 C14 64 26 58 42 58 C58 58 70 64 70 86 Z" fill="#efe9dd"/><ellipse cx="42" cy="36" rx="18" ry="22" fill="#f4efe4"/><path d="M24 30 C26 12 58 12 60 30 C56 22 28 22 24 30 Z" fill="#ddd5c4"/><path d="M36 38 h4 M46 38 h4 M40 48 q2 2 4 0" stroke="#a89f8c" stroke-width="2" fill="none"/></svg>${n}</button>`;
+  $('#busts').innerHTML = ['JULIUS CAESAR', 'NERO', 'MARCUS AURELIUS', 'AUGUSTUS', 'HADRIAN'].map((n) => bust(n)).join('') + bust('CALIGULA', 'caligula');
+  // the archives
+  moreShelves(6);
+}
+const BOX_LABELS = ['RECEIVING', 'LOST & FOUND', 'POSTERS & PRINTS', 'SPARE DINOSAUR BONES', 'EGYPTIAN OVERFLOW', 'ROMAN STATUES (BROKEN)', 'HOLIDAY DECORATIONS', 'THE FLOODED BIT', 'POWER OUTAGE', 'DONUT STORAGE (EMPTY)', 'MORE BOXES', 'THE TREX IS WATCHING', 'DONUTS ARE LIFE', 'THE ARCHIVES NEVER END', 'SHELVES ALL THE WAY DOWN', 'SPARE ANKHS (NOT KEYS)', 'CALIGULA (SPARE HEAD)', 'FUSES', 'KEYS (RED, BLUE, YELLOW)', 'BOX OF BOXES'];
+let boxes = 0;
+function moreShelves(n = 3) {
+  const sh = $('#shelves');
+  for (let s = 0; s < n; s++) {
+    const row = document.createElement('div');
+    row.className = 'shelf';
+    for (let b = 0; b < 4; b++) {
+      boxes++;
+      const lbl = boxes === 7 ? 'DONUT STORAGE (EMPTY)' : boxes <= 10 ? BOX_LABELS[boxes - 1] : BOX_LABELS[((boxes * 2654435761) >>> 0) % BOX_LABELS.length];
+      const pink = boxes % 23 === 0;
+      row.insertAdjacentHTML('beforeend', `<div class="box ${b % 2 ? 'tall' : ''} ${pink ? 'pink' : ''}">#${String(boxes).padStart(4, '0')} ${pink ? '???' : lbl}${boxes === 7 ? ' <button class="dn" data-d="d8" aria-label="a donut in the donut storage"></button>' : ''}</div>`);
+    }
+    sh.append(row);
+  }
+  $$('#shelves .dn').forEach((b) => { if (!b.innerHTML) makeDonutBtn(b); });
+  $('#boxCount').textContent = `${boxes} boxes so far.${boxes >= 100 ? ' They do not end.' : ''}`;
+  if (boxes >= 100) stamp('archives');
+}
+const ARCHIVE_HITS = [
+  [/donut|doughnut/, 'DONUT STORAGE (EMPTY)', 'One shelf, one box, zero donuts. A note on the lid says “WHO ATE MY DONUT”.'],
+  [/hat|cap/, 'LOST & FOUND · AISLE 1', '1 guard hat, navy, gold badge. Found in the T-Rex\'s mouth. Damp.'],
+  [/aaron/, 'PERSONNEL', '11 × “Employee of the Month” certificates. All of them say AARON.'],
+  [/fragment|password|six|6/, 'IT DEPARTMENT', 'Password fragment six: NOT FOUND… It must be behind the next gate… (Or on this website. Ask the King, then ask Rome.)'],
+  [/rex|dino|bone/, 'SPARE DINOSAUR BONES', 'One box. Do not reassemble. Last time someone reassembled it, it left.'],
+  [/mummy|egypt|ankh/, 'EGYPTIAN OVERFLOW', 'Spare ankhs (they are not keys), one sock-like linen wrap, and a note: “He wants a donut.”'],
+  [/rome|roman|caligula|statue/, 'ROMAN STATUES (BROKEN)', 'Three noses, two arms, and a spare Caligula head. Nobody asked for the spare Caligula head.'],
+  [/end|last|bottom/, 'THE END OF THE ARCHIVES', 'Not found. There is no end. There are only more boxes.'],
+  [/flood|water/, 'THE FLOODED BIT', 'Please bring boots. And maybe a boat.'],
+  [/light|power|fuse|zap/, 'POWER OUTAGE', 'Nine fuses. Switch them ALL on. The answer is the sound it makes.'],
+  [/donut123/, 'IT DEPARTMENT', 'donut123: expired at 11:52 PM. A sticky note says “really? REALLY?”'],
+];
+function searchArchives(q) {
+  const s = q.trim().toLowerCase();
+  const out = $('#archResults');
+  if (!s) { out.innerHTML = ''; return; }
+  const hits = ARCHIVE_HITS.filter(([re]) => re.test(s));
+  const rows = hits.length ? hits.map(([, b, t]) => `<div class="result"><b>${b}</b><br>${t}</div>`) : [`<div class="result"><b>NO RESULTS</b><br>Nothing filed under “${s.replace(/</g, '&lt;')}”. But there are more boxes. There are always more boxes.</div>`];
+  out.innerHTML = rows.join('');
+}
+
+// ============================================================== the floor plan (the game's own layout, meters)
+const ROOMS = {
+  office: { name: 'Security Office', x: [-20, -12], z: [-5, 5], fill: '#b38a5c', sec: 'staff', text: 'Painted concrete block, wood floor, a CCTV wall (CAM 1 LOBBY … CAM 6 PARKING), a MeTube monitor, a box of Dozen Deluxe donuts, and a clock that says 11:58. The prologue starts here at 11:52 PM.' },
+  lobby: { name: 'Lobby', x: [-12, 12], z: [-10, 10], fill: '#f2efe9', sec: 'showing', text: 'Pale cut limestone (with the odd fossil), black-and-white marble in 2 m squares, a coffered ceiling with gilded rosettes 8 m up, four marble columns, the information desk, the gift shop, and a WET FLOOR sign that never leaves.' },
+  dino: { name: 'Dinosaur Hall', x: [-15, 15], z: [-46, -10], fill: '#c9bda5', sec: 'dino', text: 'Big rough stone blocks with fossils pressed into a few, flagstone floors, a 13 m ceiling with three skylights, and the King on a 9 × 15 m platform.' },
+  egypt: { name: 'Egyptian Wing', x: [15, 39], z: [-37, -9], fill: '#ead9b4', sec: 'egypt', text: 'Sandstone blocks carved with hieroglyphs, sandstone slabs underfoot, a deep blue ceiling with gold stars, four numbered pillars and a sarcophagus. Giant footprints lead in from the Dinosaur Hall.' },
+  rome: { name: 'Roman Empire', x: [12, 40], z: [-9, 9], fill: '#b8483a', sec: 'rome', text: 'Pompeii-style red panels, black bands and a gold meander, a mosaic floor with red-brown borders, a coffered ceiling, eight white columns, six emperors (one in the corner) and a chariot.' },
+};
+function buildMap() {
+  const sv = $('#mapSvg');
+  const K = 11.5, OX = 20 * K + 40, OZ = 46 * K + 40; // meters → svg
+  const mx = (x) => OX + x * K, mz = (z) => OZ + z * K;
+  let h = `<defs><pattern id="chk" width="23" height="23" patternUnits="userSpaceOnUse"><rect width="23" height="23" fill="#f5f2ec"/><rect width="11.5" height="11.5" fill="#1b1b1d"/><rect x="11.5" y="11.5" width="11.5" height="11.5" fill="#1b1b1d"/></pattern><pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="#4a4438"/><line x1="0" y1="0" x2="0" y2="10" stroke="#6b604c" stroke-width="4"/></pattern></defs>`;
+  // the archives, somewhere behind the walls (not to scale. no end.)
+  h += `<rect x="${mx(-20)}" y="${mz(-46)}" width="${5 * K}" height="${34 * K}" fill="url(#hatch)" class="room" data-room="arch"/><text x="${mx(-17.5)}" y="${mz(-30)}" fill="#e8e0cf" font-size="11" font-weight="800" text-anchor="middle" transform="rotate(-90 ${mx(-17.5)} ${mz(-30)})" font-family="Nunito">ARCHIVES · STAFF ONLY · ∞</text>`;
+  for (const [id, r] of Object.entries(ROOMS)) {
+    const x = mx(r.x[0]), y = mz(r.z[0]), w = (r.x[1] - r.x[0]) * K, hh = (r.z[1] - r.z[0]) * K;
+    h += `<g class="room" data-room="${id}"><rect x="${x}" y="${y}" width="${w}" height="${hh}" fill="${id === 'lobby' ? 'url(#chk)' : r.fill}" stroke="#3a3226" stroke-width="4"/>`;
+    const ly = id === 'dino' ? y + 34 : id === 'egypt' ? y + 34 : y + hh / 2 + 5;
+    if (id === 'lobby') h += `<rect x="${x + w / 2 - 56}" y="${ly - 19}" width="112" height="28" fill="#14100c" stroke="#c9a24a" stroke-width="2"/>`;
+    const words = id === 'office' ? ['SECURITY', 'OFFICE'] : [r.name.toUpperCase()];
+    h += words.map((t, i) => `<text x="${x + w / 2}" y="${ly + (i - (words.length - 1) / 2) * 14}" text-anchor="middle" font-family="Georgia" font-weight="700" font-size="${id === 'office' ? 10 : 14}" letter-spacing="1.5" fill="${id === 'lobby' ? '#e9cf8a' : id === 'rome' ? '#fbe9c8' : '#2a2116'}">${t}</text>`).join('') + '</g>';
+  }
+  // exhibits: the T-Rex platform, the lobby's four columns, the desk, the gift shop, the sarcophagus, Rome's eight columns
+  h += `<rect x="${mx(-4.5)}" y="${mz(-35)}" width="${9 * K}" height="${15 * K}" fill="none" stroke="#5a4a32" stroke-width="2" stroke-dasharray="6 4" pointer-events="none"/><text x="${mx(0)}" y="${mz(-27.5)}" text-anchor="middle" font-size="22" pointer-events="none">🦖</text>`;
+  for (const [x, z] of [[-6, -5], [6, -5], [-6, 5], [6, 5]]) h += `<circle cx="${mx(x)}" cy="${mz(z)}" r="6" fill="#eeeae2" stroke="#7a6f5e" stroke-width="2" pointer-events="none"/>`;
+  h += `<rect x="${mx(-3)}" y="${mz(2.6)}" width="${6 * K}" height="${1.4 * K}" fill="#5c3f22" stroke="#e9cf8a" pointer-events="none"/><text x="${mx(0)}" y="${mz(2.6) + 12}" text-anchor="middle" font-size="8.5" font-weight="900" fill="#e9cf8a" pointer-events="none" font-family="Nunito">INFORMATION</text>`;
+  h += `<rect x="${mx(6.4)}" y="${mz(-9.2)}" width="${5 * K}" height="${3 * K}" fill="#fffdf7" stroke="#3a3226" pointer-events="none"/><text x="${mx(8.9)}" y="${mz(-7.4)}" text-anchor="middle" font-size="8.5" font-weight="900" fill="#1d1a14" pointer-events="none" font-family="Nunito">GIFT SHOP</text>`;
+  h += `<g transform="translate(${mx(10.4) - 10} ${mz(-6.6) - 6})"><foreignObject width="22" height="22"><button xmlns="http://www.w3.org/1999/xhtml" class="dn" data-d="d9" aria-label="a donut in the gift shop" style="width:20px;height:20px"></button></foreignObject></g>`;
+  h += `<rect x="${mx(30)}" y="${mz(-22)}" width="${1.4 * K}" height="${4 * K}" rx="6" fill="#1f3a8a" stroke="#c9962e" stroke-width="2" pointer-events="none"/>`;
+  for (let i = 0; i < 4; i++) for (const z of [-6, 6]) h += `<circle cx="${mx(17 + i * 6)}" cy="${mz(z)}" r="5" fill="#fff" stroke="#3a3226" stroke-width="1.5" pointer-events="none"/>`;
+  // footprints from the T-Rex's platform into the Egyptian Wing
+  for (let i = 0; i < 6; i++) h += `<use href="#foot" x="${mx(5 + i * 2.2) - 6}" y="${mz(-24 + (i % 2) * 1.4) - 7}" width="12" height="14" style="color:#5a4a32" opacity=".7" pointer-events="none"/>`;
+  // the entrance, and "you are here"
+  h += `<rect x="${mx(-3)}" y="${mz(10) - 3}" width="${6 * K}" height="6" fill="#fff" pointer-events="none"/><text x="${mx(0)}" y="${mz(10) + 40}" text-anchor="middle" font-size="11" font-weight="900" fill="#8a1022" font-family="Nunito">▲ ENTRANCE (locked at night)</text>`;
+  h += `<g class="room" data-room="here"><circle cx="${mx(0)}" cy="${mz(10) + 14}" r="9" fill="#ff6fae" stroke="#fff" stroke-width="3"/><text x="${mx(0) + 14}" y="${mz(10) + 18}" font-size="11" font-weight="900" fill="#8a1022" font-family="Nunito">YOU ARE HERE</text></g>`;
+  // eight secret rooms: only the flashlight shows them
+  for (const [x, z] of [[-20, 2], [-12, -8], [-15, -20], [15, -40], [39, -30], [26, -37], [40, 4], [30, 9]]) h += `<text class="uv" data-uv x="${mx(x)}" y="${mz(z)}" text-anchor="middle" font-size="16" fill="#b388ff" style="font-family:var(--mono)">?</text>`;
+  h += `<text x="${mx(36)}" y="${mz(-44)}" font-size="20" font-weight="900" fill="#3a3226" text-anchor="middle" font-family="Georgia">N ↑</text>`;
+  sv.innerHTML = h;
+  let hereTaps = 0;
+  sv.addEventListener('click', (e) => {
+    const g = e.target.closest('[data-room]');
+    if (!g) return;
+    $$('#mapSvg .room').forEach((x) => x.classList.toggle('on', x === g));
+    const id = g.dataset.room;
+    if (id === 'here') {
+      hereTaps++;
+      $('#roomInfo').innerHTML = hereTaps >= 3 ? '<h3>No, really. You are here.</h3><p>At your desk. In the security office. It is 11:52 PM. Your session just expired.</p>' : '<h3>You are here</h3><p>The south entrance, on the lobby\'s marble. The doors behind you lock at night.</p>';
+      return;
+    }
+    if (id === 'arch') { $('#roomInfo').innerHTML = '<h3>The Archives</h3><p>Staff only. Through the guard-shaped hole in the wall. Receiving, Lost &amp; Found, Spare Dinosaur Bones, Egyptian Overflow, Roman Statues (Broken), the Flooded Bit… and then it keeps going. Not to scale. No end.</p><button class="btn" data-go="archives">Go to the Archives</button>'; return; }
+    const r = ROOMS[id];
+    $('#roomInfo').innerHTML = `<h3>${r.name}</h3><p>${r.text}</p><button class="btn" data-go="${r.sec}">Go to the ${r.name}</button>`;
+  });
+}
+
+// ============================================================== events: posters, the parade
+function buildEvents() {
+  const P = [['DEEP SEA GIANTS', 'COMING SOON', '#0d3b66', '#7fd1ff'], ['MAMMOTH MONTH', 'ALL OF FEBRUARY', '#6b4a2a', '#ffe0b0'], ['VOLCANOES!', 'HOT STUFF', '#b3261e', '#ffd34d'], ['GEMS & MINERALS', 'SHINY THINGS', '#4b2a7a', '#e3c2ff'], ['TO THE STARS', 'PLANETARIUM', '#0b1035', '#ffd34d'], ['OPEN LATE', 'MUSEUM AFTER DARK', '#14100c', '#ff6fae'], ['THANK A SECURITY GUARD', 'THEY HAVE DONUTS', '#1f3d8a', '#fff'], ['BEWARE OF T-REX', 'SERIOUSLY', '#ffd34d', '#14100c']];
+  $('#posters').innerHTML = P.map(([a, b, bg, fg]) => `<div class="poster" style="background:${bg};color:${fg}"><span class="sm">CITY MUSEUM</span><span class="big">${a}</span><span class="sm">${b}</span></div>`).join('');
+  const U = [['🚓', 'POLICE'], ['🎌', 'CITY MUSEUM OF NATURAL HISTORY · 50TH BIRTHDAY PARADE!'], ['🥁🎺🎺🥁', 'MARCHING BAND'], ['🏛️', 'HAPPY 50TH, CITY MUSEUM!', 1], ['🦕', 'PTERODACTYL BALLOON'], ['🦖🌋', 'THE KING IS BACK! ★ DINOSAUR HALL', 1], ['🧟🐈', 'MUMMY MANIA ★ EGYPTIAN WING', 1], ['🐋', 'BLUE WHALE BALLOON'], ['🏛️🐎🐎', 'ALL ROADS LEAD TO THE MUSEUM', 1], ['🍩', 'DOZEN DELUXE DONUTS ♥ CITY MUSEUM', 1, 'd10'], ['🧹', 'CITY CLEAN CREW', 0, 0, 'sweep']];
+  $('#parade').innerHTML = U.map(([em, l, fl, d, act]) => `<div class="unit ${fl ? 'float' : ''}">${act ? `<button data-act="${act}" aria-label="The street sweeper"><span class="em">${em}</span></button>` : `<span class="em">${em}</span>`}${d ? `<button class="dn" data-d="${d}" aria-label="a donut on the float"></button>` : ''}<span class="lbl">${l}</span></div>`).join('');
+}
+function parade() {
+  const p = $('#parade');
+  p.classList.remove('go'); void p.offsetWidth; p.classList.add('go');
+  confetti(60);
+  go('events');
+}
+function confetti(n) {
+  const c = $('#confetti');
+  const cols = ['#ffd34d', '#ff6fae', '#6dc2ff', '#6dff9e', '#fff'];
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('i');
+    s.style.left = Math.random() * 100 + '%';
+    s.style.background = cols[i % cols.length];
+    s.style.animationDuration = 1.5 + Math.random() * 2.5 + 's';
+    s.style.animationDelay = Math.random() * 3 + 's';
+    c.append(s);
+  }
+}
+
+// ============================================================== gift shop
+const ITEMS = [['🦖', 'T-Rex plush', 'Two fingers per hand, just like the real one. Does not walk at night (we think).', 18], ['🍩', 'Donut plush', 'Pink icing, sprinkles, zero calories. The night guard\'s favorite.', 9], ['📦', 'Dozen Deluxe box', '“A dozen reasons to get up in the morning.” From across the street.', 14], ['☕', '“I survived the Archives” mug', 'You didn\'t, technically. The archives never end. But it\'s a nice mug.', 12], ['🧢', 'Guard hat (replica)', 'Navy, gold badge, slightly chewed. Just like the original.', 20], ['🖼️', 'Poster postcards (16)', 'DONUT DAY, OPEN LATE, BEWARE OF T-REX, THANK A SECURITY GUARD, and twelve more.', 6], ['📖', 'Teeth Like Bananas', 'The T. rex handbook. Chapter 4: “What To Do If It Is Behind You.”', 16], ['🔑', 'Ankh keychain', 'It is not a key. It is a keychain. There is a difference.', 5]];
+let cart = 0;
+function buildShop() {
+  $('#items').innerHTML = ITEMS.map(([em, n, d, p], i) => `<div class="item"><div class="pic">${em}${i === 0 ? '<button class="dn" data-d="d11" aria-label="a donut on the shelf" style="position:absolute;top:20px;right:20px"></button>' : ''}</div><h3>${n}</h3><p>${d}</p><div style="display:flex;justify-content:space-between;align-items:center"><span class="price">$${p}</span><button class="btn ghost" style="min-height:36px" data-act="add">Add to cart</button></div></div>`).join('');
+}
+
+// ============================================================== MUSE-OS: the staff login (fragment six lives on this website)
+let hintN = 0, tries = 1;
+function osMsg(t, cls = '') { const m = $('#osMsg'); m.className = 'msg ' + cls; m.textContent = t; }
+const HINTS = [
+  'PUZZLE #1 SLEEPS WHERE GIANTS ONCE WALKED.\n(Fragments 1–5 are in the game. Finish the night shift.)',
+  'FRAGMENT 6 IS NOT IN THE GAME. IT IS ON THIS WEBSITE.\nIT HAS TWO HALVES: A WORD AND A NUMBER.',
+  'THE WORD IS IN THE DINOSAUR HALL. THE NUMBER IS IN THE ROMAN EMPIRE.\nTURN THE LIGHTS OFF AND THE FLASHLIGHT SHOWS MORE.',
+  'TYPE ALL SIX FRAGMENTS IN ORDER, NO SPACES:\nTHE KING · THE MUMMY · THE YEAR · THE SOUND A FUSE BOX MAKES · BREAKFAST · YOUR SHIFT.',
+];
+
+// ============================================================== night mode, the flashlight, UV ink
+// night: the museum after hours (dark colors). torch: the lights are off and you have a flashlight,
+// which also shows the UV ink. Night comes on by itself after 11:52 PM; the torch only with the switch.
+function setNight(on, quiet, torch = on) {
+  document.body.classList.toggle('night', on);
+  document.body.classList.toggle('torch', on && torch);
+  $('#switchLbl').textContent = on && torch ? 'Lights: OFF' : 'Lights: ON';
+  $('#utilLights').textContent = on && torch ? '💡 Lights on' : '🔦 Lights off';
+  $('#afterHours').classList.toggle('hidden', !on);
+  if (on && torch && !quiet) { stamp('night'); toast('🔦 Lights out. Your flashlight shows what the daylight doesn\'t.'); }
+  updateUV();
+}
+let fx = innerWidth / 2, fy = innerHeight * 0.4;
+function updateUV() {
+  const night = document.body.classList.contains('torch');
+  for (const el of $$('[data-uv]')) {
+    if (!night) { el.style.opacity = 0; continue; }
+    const b = el.getBoundingClientRect();
+    const d = Math.hypot(b.left + b.width / 2 - fx, b.top + b.height / 2 - fy);
+    el.style.opacity = Math.max(0, Math.min(1, 1.6 - d / 180));
+  }
+}
+function moveLight(x, y) {
+  fx = x; fy = y;
+  const f = $('#flash');
+  f.style.setProperty('--fx', x + 'px'); f.style.setProperty('--fy', y + 'px');
+  updateUV();
+}
+
+// ============================================================== clocks
+function clocks() {
+  const d = new Date(), h = d.getHours(), m = d.getMinutes();
+  const t = `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+  $('#clock').textContent = t; $('#osClock').textContent = t; $('#footClock').textContent = t.replace(/ (AM|PM)/, '');
+  const open = h >= 9 && h < 17;
+  const on = $('#openNow');
+  on.className = open ? 'open' : 'closed';
+  on.textContent = open ? `Open now · until 5 PM` : (h === 23 && m >= 52) ? 'Closed · session expired at 11:52 PM' : 'Closed now · opens 9 AM';
+}
+
+// ============================================================== the King returns (↑↑↓↓←→←→BA)
+function stampede() {
+  if ($('.trex-run')) return;
+  const d = document.createElement('div');
+  d.className = 'trex-run';
+  d.innerHTML = `<div class="shout">THE KING IS BACK!</div><svg viewBox="0 0 900 360" style="transform:scaleX(1)">${rexSvg(1)}</svg>`;
+  document.body.append(d);
+  document.body.classList.add('shake');
+  for (let i = 0; i < 10; i++) setTimeout(() => beep(70, 0.25, 'sawtooth', 0.12), i * 600);
+  setTimeout(() => { d.remove(); document.body.classList.remove('shake'); }, 7200);
+  stamp('konami');
+}
+
+// ============================================================== wire everything up
+function init() {
+  buildFacade();
+  buildHalls();
+  buildMap();
+  buildEvents();
+  buildShop();
+  $$('.dn').forEach(makeDonutBtn);
+  passCount();
+  // the crest's ammonite
+  $('#crestSpiral').setAttribute('d', spiral(32, 32, 22, 3.2));
+  // stars on the comment card
+  $('#stars').innerHTML = [1, 2, 3, 4, 5].map((n) => `<button data-star="${n}" aria-label="${n} star${n > 1 ? 's' : ''}">★</button>`).join('');
+  clocks(); setInterval(clocks, 15000);
+  $('#incident').textContent = '0';
+  // after 11:52 PM (and before dawn), the museum is closed: the lights start off
+  const hr = new Date().getHours(), mn = new Date().getMinutes();
+  if ((hr === 23 && mn >= 52) || hr < 6) setNight(true, true, false);
+
+  let ammoTaps = 0, ammoT = 0, trikeRubs = 0, bellRings = 0;
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    const goEl = t.closest('[data-go]');
+    if (goEl) { e.preventDefault(); go(goEl.dataset.go); return; }
+    const dn = t.closest('.dn');
+    if (dn) { e.preventDefault(); eat(dn); return; }
+    const jar = t.closest('[data-jar]');
+    if (jar) {
+      if (jar.dataset.jar) { const b = document.createElement('button'); b.className = 'dn'; b.dataset.d = jar.dataset.jar; jar.dataset.jar = ''; makeDonutBtn(b); if (!b.classList.contains('hidden')) { jar.append(b); toast('Something is in here…'); } else toast('Empty. (You already found what was in here.)'); }
+      else toast(jar.closest('#amphoras') ? 'Olive oil. Probably. It smells like 2,000 years.' : 'Please don\'t open the jars.');
+      return;
+    }
+    const bust = t.closest('[data-bust]');
+    if (bust) {
+      if (bust.dataset.bust === 'CALIGULA') { toast('🗿 You push the bust of CALIGULA. Somewhere, a wall slides open. Scratched inside: CALIGULA WAS HERE.'); stamp('caligula'); }
+      else toast(`${bust.dataset.bust}: “…”`);
+      return;
+    }
+    const star = t.closest('[data-star]');
+    if (star) {
+      const n = +star.dataset.star;
+      $$('#stars button').forEach((b, i) => b.classList.toggle('on', i < n));
+      $('#starNote').textContent = ['', 'Ouch. Tell us what went wrong ↓', 'Hmm. Tell us how to make it better ↓', 'Not bad! What would make it a 5? ↓', 'Nice! Tell us your favorite part ↓', 'Thank you!! The T-Rex is blushing. Tell us more ↓'][n];
+      return;
+    }
+    const act = t.closest('[data-act]');
+    if (!act) return;
+    const a = act.dataset.act;
+    if (a === 'passport') openPassport();
+    else if (a === 'lights') setNight(!document.body.classList.contains('torch'));
+    else if (a === 'lights-on') setNight(false);
+    else if (a === 'doors') { toast(document.body.classList.contains('night') ? 'The doors are locked at night. (They open in the morning, onto the steps.)' : 'Come on in! Now showing: LOCKED OUT.'); go('showing'); }
+    else if (a === 'ammonite') {
+      const now = Date.now();
+      ammoTaps = now - ammoT < 1500 ? ammoTaps + 1 : 1; ammoT = now;
+      if (ammoTaps >= 7) { ammoTaps = 0; modal('<div class="kicker" style="color:#ffd34d">Dev mode?</div><h2 style="color:#fff;margin:6px 0">Wrong building, bud.</h2><p style="color:#dfe6ff">This is the museum\'s website. Nice try, though. (There IS a dev mode… in the game. Try the logo on the game\'s menu. Same number of taps. You\'ll still need the code.)</p>'); stamp('devmode'); }
+    }
+    else if (a === 'trike') { trikeRubs++; const h = $('#trikeHorn'); if (h) h.setAttribute('fill', trikeRubs >= 5 ? '#fff3c4' : '#e3c27a'); beep(1200 + trikeRubs * 120, 0.08); if (trikeRubs === 5) { toast('✨ You rub the triceratops\'s nose horn. Shiny! That\'s a million and one visitors.'); stamp('triceratops'); } }
+    else if (a === 'metube') { toast('📺 MeTube: “TOP 10 DINOSAURS THAT COULD BEAT YOU IN A RACE.” …Number three is the T-Rex.'); stamp('metube'); }
+    else if (a === 'dino-try') tryDino();
+    else if (a === 'rome-try') tryRome();
+    else if (a === 'more-shelves') { moreShelves(6); $('#shelves').scrollTop = $('#shelves').scrollHeight; }
+    else if (a === 'donate') {
+      if (donuts.size) toast('🍩 You drop a donut into the box. Somewhere in the Dinosaur Hall, something purrs. (Your donut count stays. It\'s the thought that counts.)');
+      else toast('You don\'t have a donut to donate. There are a dozen hidden on this site…');
+    }
+    else if (a === 'parade') parade();
+    else if (a === 'sweep') { $('#confetti').innerHTML = ''; toast('🧹 CITY CLEAN CREW: all clean! (Someone has to.)'); stamp('sweeper'); }
+    else if (a === 'news') modal('<div class="kicker">The Daily Bone · Morning edition</div><h2 style="margin:6px 0">T-REX SPOTTED DOWNTOWN?</h2><p>Witnesses on Museum Ave report “giant footprints” and “a sound like a very large xylophone” overnight. The City Museum of Natural History says the T-Rex skeleton “has not moved” and is “exactly where we left it, mostly.” A guard hat was later recovered from the scene. Asked for comment, a museum employee named Aaron said: “Did he sleep in the dinosaur exhibit? Again?”</p><p style="margin:0;font-size:14px;color:var(--ink-2)">Also inside: Dozen Deluxe announces a 50th-birthday donut · Roxy hosts Museum Night, Sat 7 PM · Letters: “Why does the parade need a street sweeper?”</p>', true);
+    else if (a === 'add') { cart++; $('#cartN').textContent = cart; toast(['Added to cart!', 'Great choice.', 'The T-Rex approves.', 'Into the cart it goes.'][cart % 4]); }
+    else if (a === 'checkout') toast(cart ? '🔒 REGISTER LOCKED. IT changed the password tonight. (Try MUSE-OS.)' : 'Your cart is empty. Even the donut storage has more in it. (It\'s empty too.)');
+    else if (a === 'claim-hat') { modal('<div class="kicker">Lost &amp; Found</div><h2 style="margin:6px 0">Claim: guard hat</h2><p>Please show ID at the information desk. Also, please know that it has been in a T-Rex. We wiped it. A little.</p><p style="margin:0">Found: in the T-Rex\'s mouth, Dinosaur Hall, the morning after shift #47.</p>', true); stamp('hat'); }
+    else if (a === 'hint') { osMsg(HINTS[Math.min(hintN, HINTS.length - 1)]); hintN++; }
+  });
+  $('#bell').addEventListener('click', () => {
+    bellRings++;
+    const b = $('#bell'); b.classList.remove('ring'); void b.offsetWidth; b.classList.add('ring');
+    beep(1760, 0.6, 'sine', 0.12); setTimeout(() => beep(2640, 0.4, 'sine', 0.05), 20);
+    if (bellRings === 3) { toast('📻 Aaron (over the radio): “Yo. Desk\'s closed. It\'s literally midnight.”'); stamp('bell'); }
+  });
+  $('#lastFoot').addEventListener('click', () => { toast('🐾 The footprints lead into the Egyptian Wing. Of course they do.'); stamp('footprints'); });
+  $('#ptero').addEventListener('click', () => toast('🦕 Not a bird. A pterodactyl balloon from the parade. It got away.'));
+  $('#archForm').addEventListener('submit', (e) => { e.preventDefault(); searchArchives($('#archQ').value); });
+  $('#shelves').addEventListener('scroll', () => { const s = $('#shelves'); if (s.scrollTop + s.clientHeight > s.scrollHeight - 40) moreShelves(3); });
+  // the mummy wakes up if you stare (hover, focus or hold) for three seconds
+  const sar = $('#sarco');
+  let stare = null;
+  const startStare = () => { clearTimeout(stare); stare = setTimeout(() => { sar.classList.add('awake'); beep(110, 0.8, 'triangle', 0.1); stamp('mummy'); setTimeout(() => sar.classList.remove('awake'), 4000); }, 3000); };
+  const stopStare = () => clearTimeout(stare);
+  sar.addEventListener('pointerenter', startStare); sar.addEventListener('pointerleave', stopStare);
+  sar.addEventListener('pointerdown', startStare); sar.addEventListener('pointerup', () => {});
+  sar.addEventListener('focus', startStare); sar.addEventListener('blur', stopStare);
+  // the flashlight follows the pointer (or a finger)
+  addEventListener('pointermove', (e) => moveLight(e.clientX, e.clientY), { passive: true });
+  addEventListener('pointerdown', (e) => moveLight(e.clientX, e.clientY), { passive: true });
+  addEventListener('scroll', updateUV, { passive: true });
+  // the old cheat code
+  const K = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+  let kp = 0;
+  addEventListener('keydown', (e) => {
+    if (e.target.matches && e.target.matches('input, textarea')) return;
+    const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+    kp = k === K[kp] ? kp + 1 : (k === K[0] ? 1 : 0);
+    if (kp === K.length) { kp = 0; stampede(); }
+  });
+  // nav: highlight the section on screen
+  const secs = $$('main section, section[id]');
+  const nav = $$('#nav button');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => { for (const en of es) if (en.isIntersecting) nav.forEach((b) => b.classList.toggle('on', b.dataset.go === en.target.id)); }, { rootMargin: '-45% 0px -50% 0px' });
+    secs.forEach((s) => io.observe(s));
+    const pio = new IntersectionObserver((es) => { if (es.some((en) => en.isIntersecting)) { pio.disconnect(); $('#parade').classList.add('go'); confetti(40); } }, { threshold: 0.6 });
+    pio.observe($('#street'));
+  }
+  // MUSE-OS
+  $('#loginForm').addEventListener('submit', (e) => { e.preventDefault(); login($('#pw').value); });
+  // the game
+  $('#popBtn').addEventListener('click', () => window.cmPopout());
+  $('#fullBtn').addEventListener('click', fullScreen);
+  $('#reloadBtn').addEventListener('click', () => { gameDoc = null; loadGame(); });
+  loadGame();
+  // for the curious
+  window.museum = {
+    secret() { stamp('console'); return 'IT DEPT: Nice. You found the back door. Here is a free hint: fragment six is a WORD from the Dinosaur Hall and a NUMBER from the Roman Empire. Lights off helps.'; },
+    help() { return 'museum.secret()'; },
+  };
+  try { console.log('%cCITY MUSEUM OF NATURAL HISTORY%c\nEST. MCMLXXIV\n\nStaff: the back door is museum.secret()', 'font:900 18px Georgia;color:#8a7a5e', 'font:12px monospace;color:#888'); } catch (_) { /* ignore */ }
+}
+
+// ---------------------------------------------------------------- the two website puzzles, and the login
+function tryDino() {
+  const v = norm($('#dinoIn').value);
+  const out = $('#dinoOut');
+  if (hash(v, 47) === ANSWERS.dino) { out.className = 'out ok'; out.textContent = `✓ “${v}”. FRAGMENT 6, PART 1 OF 2. (The rest is in Rome.)`; store.set('p1', true); beep(880, 0.2); }
+  else { out.className = 'out no'; out.textContent = v ? '✗ THE LOCK BUZZES. Hint: the T. rex plaque says how many fingers.' : ''; beep(160, 0.2, 'square', 0.06); }
+}
+function tryRome() {
+  const raw = $('#romeIn').value.trim().toUpperCase();
+  const roman = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
+  let v = raw;
+  if (/^[IVXLCDM]+$/.test(raw)) { let n = 0; for (let i = 0; i < raw.length; i++) { const a = roman[raw[i]], b = roman[raw[i + 1]] || 0; n += a < b ? -a : a; } v = String(n); }
+  const out = $('#romeOut');
+  if (hash(norm(v), 47) === ANSWERS.rome) { out.className = 'out ok'; out.textContent = `✓ ${v}, CITIZEN. SHIFT #${v}. FRAGMENT 6, PART 2 OF 2.`; store.set('p2', true); beep(880, 0.2); }
+  else { out.className = 'out no'; out.textContent = v ? '✗ THE EAGLE FROWNS. Read Maximus\'s shield again.' : ''; beep(160, 0.2, 'square', 0.06); }
+}
+function login(pw) {
+  const v = norm(pw);
+  tries++;
+  if (!v) return osMsg('');
+  if (v === 'DONUT123') { osMsg(`INCORRECT PASSWORD (attempt ${tries} of ∞)\nIT changed it tonight. Remember?`, 'bad'); stamp('donut123'); return; }
+  if (hash(v, 47) === ANSWERS.five) { osMsg('ACCESS DENIED\nPassword fragments: 5 / 6\nFive is not six. (But you got further than the night guard.)', 'bad'); return; }
+  if (hash(v, 47) === ANSWERS.pw) {
+    osMsg('ACCESS GRANTED\nWelcome back, NIGHT_GUARD.\nIT found fragment six. It was on the website the whole time.', 'good');
+    stamp('museos');
+    const z = $('#staffZone');
+    z.innerHTML = decodeStaff(v);
+    z.classList.remove('hidden');
+    setTimeout(() => z.scrollIntoView({ behavior: 'smooth', block: 'start' }), 600);
+    return;
+  }
+  osMsg(`INCORRECT PASSWORD (attempt ${tries} of ∞)`, 'bad');
+}
+// the staff area is stored scrambled with the password, so it only reads right after logging in
+function decodeStaff(pw) {
+  let seed = hash(pw, 1974) >>> 0;
+  const rnd = () => { seed = (seed + 0x6D2B79F5) >>> 0; let t = seed; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) & 255; };
+  const bin = atob(STAFF);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i) ^ rnd();
+  return new TextDecoder().decode(bytes);
+}
+// answer hashes (cyrb53, seed 47) and the scrambled staff area: written by tools/website.mjs
+const ANSWERS = /*ANSWERS*/{"dino":616797257151256,"rome":4787139539964632,"five":2059075520776498,"pw":24211938036777}/*END*/;
+const STAFF = /*STAFF*/"dRIZ3L2lUpZPiSX9p5GKhLwyifUdU2K5upbMj3a6kZTKr2ZPGdpYQ9V6WM7+aawLUfzom9HmNs6eE8qynbZpXxsJO4FN4rGUPllgkEizbK3xZKY8Ib10rjsVb+1hALzQ0xBgp0/TZfHAi3zX3XlzjbK/xfJ2Jt+Eol2VNE57CPQ686KkdO9pNVdG87utQpSCiCTsz8uc+gEFDJfzpGcCD6n37OvXlvQLkCTN1UfzJaM45HpGaUtYgvlXrapZFCONqfCfooBpTTyznLWxS5dHU0Q5oYN+c18qTNhivcREsl+BqZqYUlfi3O6ld++6muJ1OqqITBHxQWwD98YBvNvUZmO4YFzMK7QZ7BpE1Lnn03A9Tg3t4ah5ICueUn0mZxsPcv//EmCeBicoOlCc/rEztdgl8Fx3EznXq/GFrjHkx5uF3/YaaMndukbfKEeZBqneMkIteVDNWRcq1XoSsgpQSphpwtkWA/CRv5VEP7jAqGGDtIbKEl+/3FchQR9vorksB69hlHPLQRVlnEakb2WbeZ8IZDQyQeWnUvzuSjGy2Z2BbZaGUgBXhJ6drjgvE4BIRUmrk6pRdYSdOGeNgV+JSmTERBMN8S5e7Hc6hOQYr56NPQH4dBPgWOOnXk8O7rVlmoV+fnbBg3B2GX5zxHv8gpRVVUJV3akbqZCcAnpnJymWltP0v/3z1Lxn8JH9eB6tZjk2XTcrihgjNaZr1UcrUgmHCxSjAWljEAvmX/7biMwksuxocJZ0arM4qkdmAuAtavG6ZvdM8vGKCS9jYOcr+MEgzr7SH/cZQJddWdD5qmWrgxAZSxfmn7mF56ZorEavzHKJ41APmhwMJ6gDNrThHO0NvCfmZxdLWi6W7PezhLKA8tu3x++tCvQRJ4CxOdRNN8utfyA041VXGGDNvb3EZJhdm8DHQmXqpv9u1PEqTwRjkgHye+rofuAvr144QEM5nI48kAGn8Sl9dmdzmQarRBZddjRfQhjyUfur52Rd83eTKBx6leQMTe48u/WcOSFh1RKQqA5IjNUAQeUr9gJ3hRLhsIOSyi8AdK//Do3zw6dqkNgCp5Ok2pFbpYb0FS3DWxg3AvvKX9Swsed0LFqgGe5jo1zfkIwtttdgKhj3a5SvlfluBEqVGCt/FBngJE97FDSYPrKkFbC+i3fPtPjQYn5heX0qrx+D3U2V19x2twnzvl4I/wGIvAdPYL1MJicVZX+oETgIY/Q5HAQmbOxUkB2DOqZHBPp9miosvgxC+9VOXLDN6LhCO++DSWvYfGISV9Tcl4TztPD7ZPzCGSCvYPmIXgqn+49JnwHNFe/mfLFcUOBwO2nYy8Bw9Kky5WYoql9/qsrvCkKX+ffruqwHJPP9pXd2y5tI6nrS7zrxMke1PUzLWpGVJxM/3Y1kn5RQ76eaNXgXgOMbqABc993DqfIIvBXn6HycNf9Zn0f4JSzhaojzViSTe6F8m6UvFFVPoJmFud/Y9Afcof5lmytWQgCBCuYtomo4mIye8ykQpkKRwWfRjVWuAGqxZDD40ezOzrtYStIRVP6BAPbpssVs4dVIzjk59Mrv3+gc2jkqCbmU54J8/XdlzzLAaC3p1tXg4euT7GdtuaHmRqjmL2LHm0PRldhC4fu+bkwQS+6xmk6Dpjiw5PMzsqWXGRUBWP1a8wZzY5Zh0wBhQ40YhaHlCeWnpDOV2koUQuHgRBRrW3V555Q+BSOu1Yb6GyNNNY3yQFAJmtzuuBO2BiA4/EPlfB5j6BvvMZLLHYtgl7o8o952QBur+cRQSfclkNUnUwovZlVNZFrgmHLlCXkfdLpJQXkW0rESgrR+2OsoSVdXydlTNOVpssH9IaGNUycFZotC3Z6Mmb7f+uz6Ho7ps94czGKZBwvmpvnQjQ2QJC8xA5Jk57HVs2nHH3lkcVyRVQM5MW1se1w4fhFu9Li3IraH8S4g5kqWco7MCgG8nnq9Su0wmI+YV2qRc6Ws3mayj17b6J1oltIeYk99kgiQxtewrlOQCyHNPjCapMXskzhRR557Voj6lPDIqZxd3DNNQ/NX/j2+FZFDzFryX/CT2RZrm+TIV+uU3ab26WDJShh16PRiH+JHCJWDfUC0DH5UPxJctT7o0NiHHdTcH76hDn13A8Y5vvPQg2nxWe57QLyAEv90NMoifGWmRpiEuJnyN4E8YUKytItrkCmjFO5mytYyzrUzgKOKvYs09cVT9CnqtOMqOUxuTWSM9ZY09NIUSeVDNb6QE6xaVOSC5i9n/kUKnsfWqI9tCK6ZJUSZkzOyK8apgBeen2Trf3kwUq70n5/JOr2mikt0qbIugTGtbRc3AkBYfkt2qAg8AtBRJHENyjdyCoS5M449m5z+DOR24pvFrsOfr0AOgbPwitmj/wEmcPzW+txiaDzgov8W5g00L+qqQs3hb0D0T9FE2cdQj4AItSUyTQQlM9+jajD1ZR0QVRY0fvvLZR8FeQkH9bnQ7NKECNmvAVDa8Sl/A7DpzZNfZm9cJbeeMVzNCEzIocOHuX0aBImvCKwEHFpbh0REZHewLZtaYRT0kcTogcxE2SwFPxRRpSStc/eU0IDXI7VfF/FfkNHezix69kzT57KwnwaWxDbm4DkUzA6sJPthDCGFcs5zExqkWBDSB5PiLJCFU4iNgGfQXCAwzONLICGLMaIxXcKWFcJJGl/Q/9pzytWSgMKhbBmVt+r0VBfquOdD3XMj2bt/nQsT2CQQQJakxD0bcQmdna88vgJP8Qbwil9w0eY3C5sUOyj0C+EL64Mk7HmMIWbKKqgcKR36mUDL6/uP5iD5Z4vkIsTwkYmfOSFesfsw3a1UQ/DztGduLcjW3IpT2JFiQzBIz6DOBMB2g4hPoMDiByy52RKzAyOVhZSkCDh2oIcxQVnTyArpvFZvLLJXbHbYdSb4hEz9pXfiW0WGi6cFTqwBojmcJE9xV6Zs7ZpsVSeZ2UHlTDVnl8ZC6tjG0Rxetv+UVRwdRGJFWjhkXLSglSGOYSWNs1PzlMdDY+TQbOyvJI7ekZVmN+h7aEgkuRml+VbvGo/0+Xx/M2XJ+RCXM/UhqgKnldXXvh6obzmcczEqxS/5fiGRN1IHeDO4jfZxNAKsoxbC3exrMbEgJQjPXj6s2jiq7nuuvKcV9AG8mbNjAApyIgkv0MF1g8P1R1qdP7S+TNfb2TmJXLvvBtblVFYbV1NDn7QYAsG9ckIGMm0B3ucuUaOKBouebAGy8goFCdKFTF/bzDOvCD468XtQAz23q38UyWzAezpK/bHWiFrzJ8n0Nc3J40c2cJek7oGaPVZ8WejeM7ztGWKU0cT2Hg4cLIjfmnvUHp6MOnZoNbpv+m2uS3XB6uvTq1NcscyxOCTjYCPiLiPhu9aWoeI7FCmn9guc90lrFuLde1RaUnII7ZVR7XVCoi8akLA3EJs7q04zd715x2Vxh9EnRu9FUTVRVSpn5eFQoQyhUnocs3z38ah2dc0Bfq4yH2yM4xBwRRYWf0ZDqfIKzQy3bVrSRH2NmhGuWkLk/jw2GYze820n/oDAbXRbHXchcnl22onwRB7hOF3DX+kKtmmT7dxH/5+rlIaEXbUV9O6TKAvf5Mt7uH5w+9EIBEj5n0SmOPuVOdQ1KdoMoI6iRGMKjlGi+jujg5m2lJBeS+1IrTHrPnBMr9GMnXZibFMfIjVt/B2V2Z7xqAybawFVio3Q793PmWRMDpN/+csR91Dj71juuosEGjC8KxlKuwmA+08iYVzqN0I7EGs3Ub0tunyqijFPHYDYyQDUnfvQWZEBSRmd45pTIc6OfHVStCpC2bXu55l7FDpA2ev27tfQWW3M+0wADYRhJ/eo8TX7li5db8/+ILdOFU8AS+xIslsJO0BuBMwqPSO3fzgtEPpyNzrU7DIC2xB3dH0bEfE7ngsB54zVSHgRUKmwP09kypI4theWGRv+E5OW7s/lDn0EwrwY4crmnx9/Zz7EEOAG77zMCv1qR7y+sERc/Hg3d0ki96L3kp2pR8J2LhFUgxg73eeDpTgGvjkf1mMF/Cdc9sy5OSo/nexDcMH3lJRAhpfB5UrH1gjHIeYjd0VBajw3PDhrut1fAnAWRY8fz9W56j9m+lDcDWnsYXTl2T+8Em6gb+ZNsxxcInXs1bNb4jXU+N5pAal2DUQ5/KMQFWiUx17m48XpagmtanoiYl2VTmj+bv/HRAJOFnAOhrch4EAuFFloPPjF1bnahZHkoXueeDrnK0DP2kc/sbKvJNFHgqKif/hh1bT0Ls1dEzq37rCQZ9oFoyfwHPugcbUohxQsvd+F7s+fQyYLwZ4Dh43HGVUDFj2B+ygAPDZeYsGkxqVewd5pG/VM9gY7GfraOOnRlVOeHk+wkPkbqNwYvxaB03oW1R9faBzgZsIdlzgQ0qLIJA7gSXK5lORl4ADfgXN5p+pxkJY4AwKMSPSXpHb2PdHMWwHS8QxPKLuAOBRPdLNR0Kh3mwtIpHAGZU4qTHnVHamJ0waCGV2bBL/+smZ1JboJAqU="/*END*/;
+
+init();
+})();
+</script>
+</body>
+</html>

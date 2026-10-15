@@ -382,7 +382,7 @@ export class Game {
     let framed = true;
     try { framed = window.top !== window.self; } catch (_) { /* (cross-origin: framed) */ }
     if (!framed) return;
-    this.hud.noMouseLock(ownTabUrl());
+    this.hud.noMouseLock(ownTabUrl(), typeof CONFIG.popout === 'function' ? CONFIG.popout : null);
   }
 
   togglePause() {
