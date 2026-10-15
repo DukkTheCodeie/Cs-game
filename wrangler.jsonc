@@ -4,5 +4,7 @@
   "name": "cs-game",
   "compatibility_date": "2026-10-01",
   "build": { "command": "npm run site" },
-  "assets": { "directory": "./public" }
+  "assets": { "directory": "./public" },
+  // Pull requests get a preview with `wrangler preview`, which needs this block (it can stay empty).
+  "previews": {}
 }
