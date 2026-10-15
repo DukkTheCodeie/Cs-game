@@ -313,6 +313,31 @@ export function plaqueTexture({ title, body = '', w = 512, h = 320, bg = '#1c1a1
   return canvasTexture(c, { repeat: [1, 1] });
 }
 
+// A sticky note somebody stuck on a plaque or a sign, in handwriting (the font shrinks until the note fits).
+export function stickyTexture(text, { color = '#ffe66e', ink = '#1d2a6b', font = '"Comic Sans MS", "Chalkboard SE", "Segoe Print", cursive', size = 34 } = {}) {
+  const S = 256;
+  const [c, x] = makeCanvas(S, S);
+  x.fillStyle = color;
+  x.fillRect(0, 0, S, S);
+  const curl = x.createLinearGradient(0, S * 0.7, 0, S);
+  curl.addColorStop(0, 'rgba(0,0,0,0)');
+  curl.addColorStop(1, 'rgba(0,0,0,0.13)');
+  x.fillStyle = curl;
+  x.fillRect(0, 0, S, S);
+  x.fillStyle = ink;
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  let sz = size + 2, lines;
+  do {
+    sz -= 2;
+    x.font = `bold ${sz}px ${font}`;
+    lines = String(text).split('\n').flatMap((p) => wrapText(x, p, S - 34));
+  } while (lines.length * sz * 1.22 > S - 36 && sz > 14);
+  const lh = sz * 1.22;
+  lines.forEach((ln, i) => x.fillText(ln, S / 2, S / 2 + (i - (lines.length - 1) / 2) * lh));
+  return canvasTexture(c);
+}
+
 export function signTexture(text, { w = 512, h = 128, bg = '#111', fg = '#fff', font = 'bold 56px Arial Black, Arial, sans-serif', border = null } = {}) {
   const [c, x] = makeCanvas(w, h);
   x.fillStyle = bg;

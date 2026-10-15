@@ -193,8 +193,8 @@ const POSTERS = [
     poly(x, [[20, -12], [5, -38], [30, -14]], '#5a3f7a');
     circle(x, 22, -4, 3, '#fff');
     x.restore();
-    title(x, 'SKY', 70, 56, '#ffffff', '#2a3a7a');
-    title(x, 'FLYING REPTILES', 340, 30, '#2a3a7a', '#ffffff');
+    title(x, 'FLY', 70, 56, '#ffffff', '#2a3a7a');
+    title(x, 'PTERODACTYL AIR', 340, 30, '#2a3a7a', '#ffffff');
   } },
   { name: 'GEMS & MINERALS', draw(x) {
     bg(x, ['#14082a', '#3a1466']);
@@ -250,7 +250,7 @@ const POSTERS = [
     x.fillStyle = '#333'; x.fillRect(205, 196, 30, 14);
     title(x, 'THANK A', 56, 38, '#ffd36b', '#0b1430');
     title(x, 'SECURITY GUARD', 92, 32, '#ffffff', '#0b1430');
-    title(x, 'THEY KEEP US SAFE', 350, 24, '#cfe0ff', '#0b1430');
+    title(x, 'MOST ARE AWAKE', 350, 24, '#cfe0ff', '#0b1430');
   } },
   { name: 'TO THE STARS', draw(x) {
     bg(x, ['#000814', '#16234f']);

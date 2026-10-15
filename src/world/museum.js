@@ -58,12 +58,12 @@ const POIS = [
 // `from`/`to`: the opening along the wall; `side`: which way the room is from the wall.
 const SECRETS = [
   { id: 'office_poster', wall: 'officeWall', axis: 'z', at: -20, from: -4.3, to: -1.7, side: -1, h: 2.7, clue: 'poster', prompt: 'Straighten the crooked poster', style: 'nap', sign: 'NAP ROOM', frosting: 1 },
-  { id: 'lobby_desk', wall: 'lobbyWall', axis: 'z', at: -12, from: 5.75, to: 7.25, side: -1, h: 2.55, room: [5.45, 8.6], clue: 'door', prompt: 'Jiggle the STAFF ONLY door', style: 'closet', sign: 'JANITOR', frosting: 0 },
-  { id: 'dino_mural', wall: 'dinoWall', axis: 'x', at: -46, from: 11.8, to: 14.2, side: -1, h: 2.7, clue: 'brick', prompt: 'Push the loose brick', style: 'nest', sign: 'EGG STORAGE', frosting: 2 },
+  { id: 'lobby_desk', wall: 'lobbyWall', axis: 'z', at: -12, from: 5.75, to: 7.25, side: -1, h: 2.55, room: [5.45, 8.6], clue: 'door', prompt: 'Jiggle the STAFF ONLY door', style: 'closet', sign: 'KNOCK FIRST', frosting: 0 },
+  { id: 'dino_mural', wall: 'dinoWall', axis: 'x', at: -46, from: 11.8, to: 14.2, side: -1, h: 2.7, clue: 'brick', prompt: 'Push the loose brick', style: 'nest', sign: 'EGGS: DO NOT SIT', frosting: 2 },
   { id: 'dino_tri', wall: 'dinoWall', axis: 'z', at: -15, from: -31.2, to: -28.8, side: -1, h: 2.7, clue: 'fossil', prompt: 'Press the strange fossil', style: 'bones', sign: 'SPARE BONES', frosting: 1 },
-  { id: 'egypt_obelisk', wall: 'sandWall', axis: 'z', at: 39, from: -27.2, to: -24.8, side: 1, h: 2.7, clue: 'eye', prompt: 'Press the Eye of Horus', style: 'treasure', sign: 'STOREROOM', frosting: 4 },
-  { id: 'egypt_jars', wall: 'sandWall', axis: 'x', at: -37, from: 33.4, to: 35.8, side: -1, h: 2.7, clue: 'scarab', prompt: 'Turn the stone scarab', style: 'treasure', sign: 'SIDE CHAMBER', frosting: 2 },
-  { id: 'roman_chariot', wall: 'romanWall', axis: 'z', at: 40, from: -8.4, to: -6.0, side: 1, h: 2.7, clue: 'torch', prompt: 'Pull the torch holder', style: 'armory', sign: 'ARMORY', frosting: 3 },
+  { id: 'egypt_obelisk', wall: 'sandWall', axis: 'z', at: 39, from: -27.2, to: -24.8, side: 1, h: 2.7, clue: 'eye', prompt: 'Press the Eye of Horus', style: 'treasure', sign: "PHARAOH'S STUFF", frosting: 4 },
+  { id: 'egypt_jars', wall: 'sandWall', axis: 'x', at: -37, from: 33.4, to: 35.8, side: -1, h: 2.7, clue: 'scarab', prompt: 'Turn the stone scarab', style: 'treasure', sign: 'TOMB B (OVERFLOW)', frosting: 2 },
+  { id: 'roman_chariot', wall: 'romanWall', axis: 'z', at: 40, from: -8.4, to: -6.0, side: 1, h: 2.7, clue: 'torch', prompt: 'Pull the torch holder', style: 'armory', sign: 'GLADIATOR LOCKER', frosting: 3 },
   { id: 'roman_caligula', wall: 'romanWall', axis: 'z', at: 40, from: 6.0, to: 8.4, side: 1, h: 2.7, clue: 'bust', prompt: 'Push the bust of CALIGULA', style: 'armory', sign: 'CALIGULA WAS HERE', frosting: 0 },
 ];
 // The four pillars: each has a symbol and a number in Egyptian numerals (∩ = 10, | = 1). The Pharaoh's
@@ -548,7 +548,7 @@ export class Museum extends Level {
     // hidden: the "walking" T-Rex used for scares (shares model)
 
     // plaques
-    const plaque = P.makePlaqueStand('TYRANNOSAURUS REX', '"Tyrant lizard king." About 12 m long and 8 tonnes, with teeth the size of bananas.\nIts arms were tiny, with only TWO fingers on each hand.', { bodyFont: '24px Georgia, serif' });
+    const plaque = P.makePlaqueStand('TYRANNOSAURUS REX', '"Tyrant lizard king." About 12 m long and 8 tonnes, with teeth the size of bananas.\nIts arms were tiny, with only TWO fingers on each hand.', { bodyFont: '24px Georgia, serif', note: 'it does NOT come alive at night. stop asking\n- front desk' });
     this.add(plaque, -2.4, 0, -20.6);
     this.addBoxCollider(-2.4, -20.6, 0.5, 0.4);
     // puzzle console #1
@@ -565,7 +565,7 @@ export class Museum extends Level {
     tri.scale.setScalar(1.4);
     this.add(tri, -10, 0.9, -19, 0.5);
     this.addBoxCollider(-10, -19, 2.5, 2.5);
-    this.add(P.makePlaqueStand('TRICERATOPS', 'Three horns and a bony frill. A plant-eater that lived alongside T. rex.'), -10, 0, -16.6);
+    this.add(P.makePlaqueStand('TRICERATOPS', 'Three horns, a bony frill and a beak like a parrot. It ate plants all day and still weighed as much as an elephant.', { note: 'his name is Gerald', noteColor: '#a8dcff' }), -10, 0, -16.6);
     // raptor (mini skeleton)
     this.add(P.makePedestal(2.6, 0.7, new THREE.MeshStandardMaterial({ color: 0x5b5249, roughness: 0.9 })), 10, 0, -20);
     const raptor = new TRex({ eyeLight: false });
@@ -574,18 +574,18 @@ export class Museum extends Level {
     raptor.applyPose(0);
     this.add(raptor.group, 10, 0.7, -20, -0.8);
     this.addBoxCollider(10, -20, 2.9, 2.9);
-    this.add(P.makePlaqueStand('VELOCIRAPTOR', 'About the size of a turkey, and covered in feathers. Much smaller than in the movies.'), 10, 0, -17.6);
+    this.add(P.makePlaqueStand('VELOCIRAPTOR', 'About the size of a turkey, and covered in feathers. The movies made them a lot bigger.', { note: 'clever girl', noteColor: '#ffb3cf' }), 10, 0, -17.6);
     // meteorite
     this.add(P.makePedestal(1.1, 1.0), 10, 0, -40);
     const met = P.makeRock(77, 0.8);
     met.material = new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 0.6, metalness: 0.4, flatShading: true });
     this.add(met, 10, 1.0, -40);
     this.addBoxCollider(10, -40, 1.3, 1.3);
-    this.add(P.makePlaqueStand('IRON METEORITE', 'A piece of an asteroid, made of iron and nickel. About 4.5 billion years old.'), 10, 0, -38.2);
+    this.add(P.makePlaqueStand('IRON METEORITE', 'A piece of an asteroid, made of iron and nickel. About 4.5 billion years old, so it is older than everything else in this building.', { note: 'PLEASE STOP LICKING THE METEORITE' }), 10, 0, -38.2);
     // ammonite case
     this.add(P.makeDisplayCase(1.6, 0.8, 0.9, P.makeAmmonite()), -10, 0, -40);
     this.addBoxCollider(-10, -40, 1.7, 1.0);
-    this.add(P.makePlaqueStand('AMMONITES', 'Sea animals with coiled shells, related to squid. They died out with the dinosaurs.'), -10, 0, -38.3);
+    this.add(P.makePlaqueStand('AMMONITES', 'Sea animals with coiled shells, related to squid. They swam around for 340 million years, then died out with the dinosaurs.', { note: 'they look like cinnamon rolls', noteColor: '#c4f0a0' }), -10, 0, -38.3);
     // mural
     const [mc, mx] = makeCanvas(1024, 400);
     const sky = mx.createLinearGradient(0, 0, 0, 400);
@@ -676,7 +676,7 @@ export class Museum extends Level {
       r.position.set(x, 0, z);
       s.add(r);
     }
-    this.add(P.makePlaqueStand('ROMAN CHARIOT', 'Racing chariots were pulled by two or four horses. Top speed: about 40 km/h.'), 20.8, 0, 0, -Math.PI / 2);
+    this.add(P.makePlaqueStand('ROMAN CHARIOT', 'Racing chariots were pulled by two or four horses around the Circus Maximus. Top speed: about 40 km/h. No seatbelts.'), 20.8, 0, 0, -Math.PI / 2);
     // amphoras
     for (const [x, z] of [[36.5, -7.8], [37.4, -7.6], [36.5, 7.8], [37.4, 7.6], [14, -8], [14, 8]]) {
       this.add(P.makeAmphora(), x, 0, z, x * 3);
@@ -709,7 +709,7 @@ export class Museum extends Level {
     const guide = P.makeWallPlaque('ROMAN NUMERALS 101', 'I = 1    V = 5    X = 10    L = 50\nC = 100    D = 500    M = 1000\nAdd them up, biggest first: XVI = 10+5+1 = 16.\nSmall BEFORE big means subtract: IV = 4, IX = 9, XC = 90, CM = 900.', 3.2, 2, { bodyFont: '23px Georgia, serif', bg: '#2a1c14', accent: '#e9c46a' });
     guide.position.set(15.6, 2.2, -8.78);
     s.add(guide);
-    const glad = P.makeWallPlaque('GLADIATOR SHIELD', 'Gladiators fought in front of crowds of 50,000.\nThe best ones were as famous as sports stars.', 2.6, 1.2, { bg: '#2a1c14', accent: '#e9c46a' });
+    const glad = P.makeWallPlaque('GLADIATOR SHIELD', 'Gladiators fought in front of crowds of 50,000.\nThe best ones were as famous as sports stars.', 2.6, 1.2, { bg: '#2a1c14', accent: '#e9c46a', note: 'my dad could beat him', noteColor: '#a8dcff' });
     glad.position.set(15.6, 2.2, 8.78);
     glad.rotation.y = Math.PI;
     s.add(glad);
@@ -974,11 +974,11 @@ export class Museum extends Level {
     });
 
     // plaques
-    const plaque = (title, body, x, z, ry) => this.add(P.makePlaqueStand(title, body, { bg: '#2a1c0c', accent: '#d4a43a' }), x, 0, z, ry);
-    plaque('EGYPTIAN NUMBERS', 'Ancient Egyptians counted with lines:\n| = 1    || = 2    ||| = 3    |||| = 4\nTen was a little upside-down U.', 17.6, -20.8, -2.5);
-    plaque('THE MUMMY', 'Mummies were wrapped in hundreds of meters of linen.\nThis one is about 3,000 years old.', 30.8, -20.6, 0);
-    plaque('THE ANKH', 'The Egyptian sign for life.\nGods are often shown holding one.', 21.6, -14.6, Math.PI);
-    plaque('SCARAB BEETLE', 'Scarabs roll balls of dung across the sand. Egyptians saw the sun being rolled across the sky the same way.', 33.6, -31.6, -Math.PI / 2);
+    const plaque = (title, body, x, z, ry, more = {}) => this.add(P.makePlaqueStand(title, body, { bg: '#2a1c0c', accent: '#d4a43a', ...more }), x, 0, z, ry);
+    plaque('EGYPTIAN NUMBERS', 'Ancient Egyptians counted with lines:\n| = 1    || = 2    ||| = 3    |||| = 4\nTen was a little upside-down U.', 17.6, -20.8, -2.5, { note: 'why is there MATH in a museum', noteColor: '#ffb3cf' });
+    plaque('THE MUMMY', 'Mummies were wrapped in hundreds of meters of linen. This one is about 3,000 years old and has never been unwrapped.', 30.8, -20.6, 0, { note: 'DO NOT knock on the lid\n- Aaron' });
+    plaque('THE ANKH', 'The Egyptian sign for life. Gods are usually shown holding one.', 21.6, -14.6, Math.PI, { note: "it's not a key. we tried.\n- night shift" });
+    plaque('SCARAB BEETLE', 'Scarabs roll balls of dung across the sand. Egyptians thought a giant beetle rolled the sun across the sky the same way.', 33.6, -31.6, -Math.PI / 2, { note: 'ew', noteColor: '#c4f0a0' });
 
     // braziers with flickering fire
     this.refs.flames = [];
@@ -1106,7 +1106,7 @@ export class Museum extends Level {
     // a dig site for kids, prehistoric plants, benches facing the King
     put(X.makeDigSite(), -11.6, 0, -12.9);
     this.addCollider(-13.6, -9.6, -14.6, -11.2);
-    put(P.makePlaqueStand('DIG SITE', 'Brush away the sand to find the bones.\nAges 4 to 12.'), -9.0, 0, -12.9, Math.PI / 2);
+    put(P.makePlaqueStand('DIG SITE', 'Brush the sand away to find the bones. Ages 4 to 12.', { note: 'no, the night guard cannot play in the sand', noteColor: '#a8dcff' }), -9.0, 0, -12.9, Math.PI / 2);
     col(-9.0, -12.9, 0.3, 0.3);
     for (const [px, pz, seed, h] of [[-13.7, -44.4, 21, 1.6], [-13.8, -16.6, 22, 1.3], [13.7, -11.4, 23, 1.5]]) { put(X.makeCycad(seed, h), px, 0, pz); col(px, pz, 0.9, 0.9); }
     for (const [bx, bz] of [[-5.5, -17.2], [7.6, -15.6]]) { put(P.makeBench(2.4), bx, 0, bz); col(bx, bz, 2.4, 0.55); }
@@ -1307,7 +1307,7 @@ export class Museum extends Level {
       return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: canvasTexture(c), transparent: true, roughness: 0.8 }));
     };
     if (S.clue === 'poster') {
-      const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.05), new THREE.MeshStandardMaterial({ map: signTexture('STAY\nALERT', { w: 256, h: 340, bg: '#16324f', fg: '#ffcc4d', font: 'bold 34px Arial Black, Arial', border: '#ffcc4d' }) }));
+      const poster = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 1.05), new THREE.MeshStandardMaterial({ map: signTexture('STAY\nAWAKE', { w: 256, h: 340, bg: '#16324f', fg: '#ffcc4d', font: 'bold 34px Arial Black, Arial', border: '#ffcc4d' }) }));
       onPanel(poster, mid, 1.85);
       poster.rotation.z = 0.2;
       pre = () => g.tween(0.4, (k) => { poster.rotation.z = 0.2 * (1 - k); });

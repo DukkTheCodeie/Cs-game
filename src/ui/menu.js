@@ -62,7 +62,7 @@ export class Menu {
       <div class="menu-left">
         <div class="logo">${t1.replace(/O/, '<span class="donut-o"></span>')}<span class="l2">${t2.replace(/^O/, '<span class="donut-o"></span>')}</span></div>
         <div class="tagline">One night. One password. Way too many donuts.</div>
-        <div class="menu-badges">${save.flags.kicked ? '<span class="menu-badge">🏁 YOU BEAT THE GAME</span>' : ''}${save.donuts.length ? `<span class="menu-badge ${save.donuts.length >= TOTAL_DONUTS ? 'gold' : 'dim'}">🍩 ${save.donuts.length}/${TOTAL_DONUTS} donuts${save.donuts.length >= TOTAL_DONUTS ? ' — DONUT HUNTER' : ''}</span>` : ''}</div>
+        <div class="menu-badges">${save.flags.kicked ? '<span class="menu-badge">🏁 YOU BEAT THE GAME (KIND OF)</span>' : ''}${save.donuts.length ? `<span class="menu-badge ${save.donuts.length >= TOTAL_DONUTS ? 'gold' : 'dim'}">🍩 ${save.donuts.length}/${TOTAL_DONUTS} donuts${save.donuts.length >= TOTAL_DONUTS ? ' — DONUT HUNTER' : ''}</span>` : ''}</div>
         ${cont ? `<button class="btn menu-btn pink" data-act="continue">▶ CONTINUE <small>${cont.name}</small></button>` : ''}
         <button class="btn menu-btn ${cont ? '' : 'pink'}" data-act="new">${cont ? 'NEW GAME' : '▶ PLAY'} <small>Prologue</small></button>
         <button class="btn menu-btn" data-act="chapters">CHAPTERS <small>${reached.length}/${CHAPTERS.length}</small></button>
@@ -311,8 +311,9 @@ export class Menu {
       <p style="font-weight:800;line-height:1.7">
         Lead developer: <b style="color:var(--gold)">Hudson Saunders</b><br>
         Story and the voice of the dev: <b style="color:var(--pink)">${CONFIG.devName}</b><br>
-        The security guard: <b style="color:var(--gold)">you</b><br><br>
-        Thanks for playing.<br><br>
+        The security guard: <b style="color:var(--gold)">you</b><br>
+        Aaron: <b>Aaron</b><br><br>
+        Thanks to everyone who played it and said it was too short.<br><br>
         Built with three.js. Every sound and song is synthesized in your browser.
       </p>
       <div class="sub" style="margin-top:6px">${VERSION} · <a href="${RELEASES_URL}" target="_blank" rel="noopener" style="color:var(--sky)">what's new</a></div>

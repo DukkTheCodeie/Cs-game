@@ -457,7 +457,7 @@ export function makeDonationBox() {
   const glass = box(0.42, 0.42, 0.42, MATS.glass(), 0, 0.95, 0);
   g.add(glass);
   for (let i = 0; i < 14; i++) g.add(box(0.07, 0.01, 0.035, mat('bill', { color: 0x7fb37a, roughness: 0.8 }), (i % 4) * 0.08 - 0.12, 0.96 + Math.floor(i / 4) * 0.012, ((i * 7) % 5) * 0.06 - 0.12));
-  const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.2), new THREE.MeshStandardMaterial({ map: signTexture('DONATIONS\nThank you!', { w: 256, h: 122, bg: '#2a241c', fg: '#e9d7a8', font: 'bold 26px Georgia, serif' }) }));
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.2), new THREE.MeshStandardMaterial({ map: signTexture('DONATIONS\nhelp keep the\nlights on', { w: 256, h: 122, bg: '#2a241c', fg: '#e9d7a8', font: 'bold 26px Georgia, serif' }) }));
   sign.position.set(0, 0.7, 0.228);
   g.add(sign);
   return shadowAll(g, true, true);
@@ -812,7 +812,7 @@ function boardTexture(lines, { w = 512, h = 352, bg = '#fafafa', fg = '#1a2a6a',
 export function makeBulletinBoard() {
   const g = new THREE.Group();
   g.add(box(1.7, 1.08, 0.04, MATS.darkWood(), 0, -0.54, -0.02));
-  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshStandardMaterial({ map: boardTexture(['SHIFT\nSWAP?\n- Aaron', 'PIZZA\nFRIDAY', 'WHO ATE\nMY DONUT', 'EMPLOYEE\nOF THE\nMONTH:\nAARON', 'CALL MOM', 'IT: NEW\nPASSWORDS\nTONIGHT'], { w: 544, h: 340, bg: '#b48a5a', notes: true }), roughness: 0.9 }));
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 1.0), new THREE.MeshStandardMaterial({ map: boardTexture(['SHIFT\nSWAP?\n- Aaron', 'PIZZA\nFRIDAY\n(cancelled)', 'WHO ATE\nMY DONUT', 'EMPLOYEE OF\nTHE MONTH:\nAARON\n(again)', 'CALL MOM', 'NO PASSWORDS\nON STICKY\nNOTES!!\n- IT'], { w: 544, h: 340, bg: '#b48a5a', notes: true }), roughness: 0.9 }));
   p.position.z = 0.002;
   g.add(p);
   return g;
@@ -821,7 +821,7 @@ export function makeBulletinBoard() {
 export function makeWhiteboard() {
   const g = new THREE.Group();
   g.add(box(1.06, 0.78, 0.03, MATS.metal(), 0, -0.39, -0.015));
-  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.72), new THREE.MeshStandardMaterial({ map: boardTexture(['1. Lock the front doors', '2. Rounds every hour', '3. Check every hall', '4. STAY AWAKE!!'], { title: 'NIGHT SHIFT CHECKLIST' }), roughness: 0.3 }));
+  const p = new THREE.Mesh(new THREE.PlaneGeometry(1.0, 0.72), new THREE.MeshStandardMaterial({ map: boardTexture(['1. Lock the front doors', '2. Rounds every hour', '3. Check the T-Rex is still there', '4. DO NOT eat all the donuts'], { title: 'NIGHT SHIFT CHECKLIST' }), roughness: 0.3 }));
   p.position.z = 0.002;
   g.add(p);
   return g;
@@ -829,7 +829,7 @@ export function makeWhiteboard() {
 
 export function makeIncidentSign() {
   const g = new THREE.Group();
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshStandardMaterial({ map: signTexture('DAYS WITHOUT\nAN ACCIDENT:\n12', { w: 330, h: 210, bg: '#f2f2f2', fg: '#1a6b2a', font: 'bold 30px Arial Black, Arial', border: '#1a6b2a' }), roughness: 0.6 }));
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.7), new THREE.MeshStandardMaterial({ map: signTexture('DAYS WITHOUT A\nDINOSAUR\nINCIDENT:\n0', { w: 330, h: 210, bg: '#f2f2f2', fg: '#1a6b2a', font: 'bold 30px Arial Black, Arial', border: '#1a6b2a' }), roughness: 0.6 }));
   g.add(m);
   return g;
 }
