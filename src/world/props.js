@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { tex, makeCanvas, canvasTexture, plaqueTexture, signTexture } from './textures.js';
+import { tex, makeCanvas, canvasTexture, plaqueTexture, signTexture, stickyTexture } from './textures.js';
 import { mulberry32 } from '../core/util.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { batchStatic } from './batch.js';
@@ -264,11 +264,21 @@ export function makePlaqueStand(title, body, opts = {}) {
   const back = new THREE.Mesh(new THREE.BoxGeometry(0.96, 0.6, 0.03), MATS.black());
   back.position.z = -0.02;
   board.add(back);
+  if (opts.note) board.add(stickyNote(opts.note, 0.22, 0.47, -0.2, -0.14, opts.noteColor));
   return shadowAll(g, true, true);
+}
+
+// A sticky note stuck on the corner of a plaque: a note from the staff, or from a visitor.
+function stickyNote(text, size, x, y, rot, color) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.MeshStandardMaterial({ map: stickyTexture(text, color ? { color } : {}), color: 0xb8b8b8, roughness: 1 }));
+  m.position.set(x, y, 0.004);
+  m.rotation.z = rot;
+  return m;
 }
 
 export function makeWallPlaque(title, body, w = 2, h = 1.25, opts = {}) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: plaqueTexture({ title, body, w: 512, h: Math.round((512 * h) / w), ...opts }), roughness: 0.6, emissive: 0xffffff, emissiveIntensity: 0.03 }));
+  if (opts.note) { const s = Math.min(w, h) * 0.4; m.add(stickyNote(opts.note, s, w / 2 - s * 0.25, -h / 2 + s * 0.3, 0.1, opts.noteColor)); }
   return m;
 }
 
@@ -572,7 +582,7 @@ export function makeBeanbag() {
 export function makeVendingMachine() {
   const g = new THREE.Group();
   g.add(box(1, 2, 0.8, mat('vend', { color: 0xb3202a, roughness: 0.5 })));
-  const front = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 1.3), new THREE.MeshBasicMaterial({ map: signTexture('OUT OF\nORDER', { w: 256, h: 512, bg: '#1a2a3a', fg: '#ff6b6b', font: 'bold 54px Arial Black, Arial' }), toneMapped: false }));
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(0.62, 1.3), new THREE.MeshBasicMaterial({ map: signTexture('OUT OF\nORDER\n(again)', { w: 256, h: 512, bg: '#1a2a3a', fg: '#ff6b6b', font: 'bold 54px Arial Black, Arial' }), toneMapped: false }));
   front.position.set(-0.12, 1.15, 0.401);
   g.add(front);
   return shadowAll(g);

@@ -26,8 +26,8 @@ const ENTRY_C = 2; // the hole you come in through is in the middle column
 const LIGHT_POOL = 6; // real lights shared by every lamp in the archives (see the constructor)
 export const KEY_COLORS = [['red', 0xff4545], ['blue', 0x4aa8ff], ['yellow', 0xffd23f], ['green', 0x55e07a]];
 const GEN_KINDS = ['lightsout', 'caesar', 'roman', 'slider', 'simon', 'keys'];
-const CIPHER_LINES = ['KEEP GOING', 'GATE OPEN', 'ALMOST THERE', 'FRAGMENT SIX IS AHEAD', 'DO NOT FALL ASLEEP', 'STAY AWAKE',
-  'NEXT SECTION', 'SUGAR LEVEL LOW', 'ARCHIVE SIZE UNKNOWN', 'TURN BACK', 'STILL GOING', 'NOT MUCH FURTHER'];
+const CIPHER_LINES = ['KEEP GOING', 'ALMOST THERE', 'NOT EVEN CLOSE', 'WRONG WAY', 'FRAGMENT SIX IS AHEAD', 'DO NOT FALL ASLEEP',
+  'NICE TRY GUARD', 'GO TO BED', 'THE MAP IS LYING', 'KEVIN WAS HERE', 'BRING SNACKS', 'STAY AWAKE'];
 const PROMPTS = { lightsout: 'Fix the fuse box', keys: 'Unlock the gate', slider: 'Restore the poster', caesar: 'Use the cipher terminal', roman: 'Try the number lock', simon: 'Play the memory lock' };
 const LIGHT = { lightsout: 0x66ff99, keys: 0xffd23f, slider: 0xff77cc, caesar: 0x6dff9e, roman: 0xe9c46a, simon: 0x9a7dff };
 // Every section of the archives has a theme: a name (on a sign over the gate into it, and MUSE-OS

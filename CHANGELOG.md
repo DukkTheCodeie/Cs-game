@@ -4,6 +4,18 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.7 — 2026-10-15
+
+- **Funny again, in a human voice.** The guard is sarcastic ("Who made this list, a stegosaurus?"), MUSE-OS
+  is passive-aggressive ("Donut storage. It's empty. We both know why."), Aaron knows you too well, and
+  the visitors say dumb stuff ("Which one of these is the real Egypt?").
+- **Sticky notes on the plaques:** the staff and the visitors have been leaving notes. "PLEASE STOP LICKING
+  THE METEORITE." "his name is Gerald." The plaques themselves have real facts again, with a few jokes.
+- The signs, posters, tips, the office bulletin board and the credits got their jokes back too.
+- **The museum's website has personality now:** big hall colors, a marquee, photos taped to the page,
+  sticky notes from the staff and the night guard, a wall of visitor comment cards, and funnier writing.
+- Behind the scenes: the Guard & Aaron Booth has the new lines.
+
 ## v0.7.6 — 2026-10-15
 
 - **New writing:** the guard, Aaron, the mummy and the museum's visitors talk more naturally, MUSE-OS talks

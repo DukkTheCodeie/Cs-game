@@ -22,8 +22,8 @@ export const CHAPTERS = [
 ];
 
 export const TIPS = {
-  intro: 'Best with headphones.',
-  dino: 'Read the plaques. One of them helps with the puzzle.',
+  intro: 'Headphones on. It\'s a quiet night. For now.',
+  dino: 'Read the plaques. Somebody worked really hard on them.',
   egypt: 'Ancient Egyptians wrote 10 as ∩ and 1 as |. So ∩∩||| is 23.',
   roman: 'Roman numerals: M = 1000, D = 500, C = 100, L = 50, X = 10, V = 5, I = 1.',
   chase: '← → switch lanes · ↑ jump · ↓ slide. Hitting things lets the T-Rex catch up.',
@@ -31,11 +31,12 @@ export const TIPS = {
   morning: 'Good morning! Your shift ended two hours ago.',
 };
 const GENERAL_TIPS = [
-  `There are <b>${TOTAL_DONUTS} hidden donuts</b>. They glow pink.`,
+  `There are <b>${TOTAL_DONUTS} hidden donuts</b>. They glow pink. Some of them are hidden really well.`,
   'Sprinting burns your donut meter about twice as fast.',
-  'Stuck on a puzzle? A hint costs a little donut.',
+  'Stuck on a puzzle? A hint costs a little donut. Worth it.',
   'Press <b>F</b> to turn your flashlight on and off.',
-  'Some walls hide <b>secret rooms</b>. Look for something out of place.',
+  'Aaron has been Employee of the Month eleven months in a row. Nobody knows how.',
+  'Some walls hide <b>secret rooms</b>. If something looks a little off, press E on it.',
 ];
 export function tipFor(id) {
   return Math.random() < 0.6 ? TIPS[id] : GENERAL_TIPS[Math.floor(Math.random() * GENERAL_TIPS.length)];
@@ -198,7 +199,7 @@ async function intro(g) {
     g.computer.setMsg('');
     await g.computer.type('donut123', { speed: 0.2 });
     await g.computer.press('login');
-    g.computer.setMsg('INCORRECT PASSWORD');
+    g.computer.setMsg('INCORRECT PASSWORD (attempt 2 of ∞)');
     g.shake(0.08, 0.3);
     await g.say('guard05');
     await g.wait(0.4);
@@ -773,7 +774,7 @@ async function maze(g) {
   g.meter.drain = drainFor(lvl.curBand);
   let sleeping = false;
   g.meter.onEmpty = () => {
-    if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
+    if (!endless()) return g.failed('YOU FELL ASLEEP', 'Right there in the archives. Again.<br>Tip: dead ends hide donuts — and some shelves hide secret rooms.');
     if (!sleeping) { sleeping = true; sleepEnding(g); }
   };
   // lines wait their turn, so they never cut off someone else
@@ -1133,6 +1134,6 @@ async function morning(g) {
   g.save.flags.ending = 'pending';
   logEvent('finished');
   g.persist();
-  await g._guard(showGameOver(g, { title: 'GAME OVER', sub: 'You did not solve the puzzles.<br><span style="color:var(--dim)">(5 of 6 password fragments.)</span>', buttons: [{ label: 'BACK TO MENU', value: 'menu', cls: 'pink' }] }));
+  await g._guard(showGameOver(g, { title: 'GAME OVER', sub: 'You did not solve the puzzles.<br><span style="color:var(--dim)">(5 of 6 password fragments. So close.)</span>', buttons: [{ label: 'BACK TO MENU', value: 'menu', cls: 'pink' }] }));
   g.toMenu();
 }

@@ -24,11 +24,11 @@ const ANSWERS = { dino: 'SHIFT', rome: '47', five: 'REXMUMMY1974ZAPDONUT', pw: '
 // The staff-only area, shown after signing in to the staff portal. Photos in it use data-photo like the
 // rest of the page.
 const STAFF = `
-<p class="eyebrow">MUSE-OS · Signed in as NIGHT_GUARD</p>
-<h2>Welcome back</h2>
-<p class="lede" style="margin-top:10px">The password was REX, MUMMY, 1974, ZAP, DONUT and SHIFT47. The sixth piece was your own shift number.</p>
+<span class="label muted">MUSE-OS · Signed in as NIGHT_GUARD</span>
+<h2 style="margin:8px 0 12px">Welcome back</h2>
+<p class="lede">The password was REX, MUMMY, 1974, ZAP, DONUT and SHIFT47. The last piece was your own shift number. IT thought that was hilarious.</p>
 
-<h3 style="margin-top:28px">Security cameras, last night</h3>
+<h3 style="margin-top:30px">Security cameras, last night</h3>
 <div class="cams">
   <figure class="cam"><img data-photo="noffice" alt="The security office at night"><figcaption>CAM 1 · SECURITY OFFICE · 23:52</figcaption></figure>
   <figure class="cam"><img data-photo="ndino" alt="The Dinosaur Hall at night"><figcaption>CAM 2 · DINOSAUR HALL · 00:03</figcaption></figure>
@@ -40,21 +40,22 @@ const STAFF = `
   <section class="log">
     <h3>Night shift log, shift #47</h3>
     <ul>
-      <li><b>11:52 PM</b> Session expired. donut123 doesn't work anymore. The screen just says SOLVE THE PUZZLES.</li>
-      <li><b>12:00 AM</b> Panel in the Dino Hall. Got REX. Turned around and the T-Rex was gone. GONE.</li>
-      <li><b>12:40 AM</b> Followed the footprints into the Egyptian Wing. Pillars, then the Pharaoh's Lock. Got MUMMY. Then the mummy woke up and I gave him a donut. Not putting that in the real report.</li>
-      <li><b>1:02 AM</b> Roman Hall. The code was 1974. Then the T-Rex was right behind me, so I ran.</li>
-      <li><b>1:10 AM</b> Ended up in the archives. ZAP. DONUT. Kept going. No fragment six anywhere.</li>
+      <li><b>11:52 PM</b> Got logged out. donut123 doesn't work anymore. The screen just says SOLVE THE PUZZLES. Thanks, IT.</li>
+      <li><b>12:00 AM</b> Did the panel in the Dino Hall. Got REX. Turned around. The T-Rex was GONE.</li>
+      <li><b>12:40 AM</b> Followed the footprints to Egypt. Did the pillars, did the lock, got MUMMY. Then the mummy woke up and I had to give him a donut. Not putting that in the real report.</li>
+      <li><b>1:02 AM</b> Roman Hall. The code was 1974. Then the T-Rex was right behind me so I ran.</li>
+      <li><b>1:10 AM</b> Hid in the archives. ZAP. DONUT. Kept going. Found a Christmas tree. No fragment six.</li>
       <li><b>???</b> Fell asleep.</li>
-      <li><b>7:00 AM</b> Woke up in the Dino Hall. The T-Rex is back. It has my hat.</li>
+      <li><b>7:00 AM</b> Woke up in the Dino Hall. The T-Rex is back. It has my hat. Aaron saw everything.</li>
     </ul>
   </section>
-  <aside>
-    <div class="note"><h4>From IT</h4><p>All staff passwords were changed at 11:52 PM for the yearly security update. If you're locked out, come and see us between 9 AM and 5 PM.</p></div>
-    <div class="note"><h4>Employee of the Month</h4><p>Aaron, for the twelfth month in a row.</p></div>
-    <div class="note"><h4>Parade day</h4><p>Museum Avenue is closed from 9 AM. Night staff, please leave by the side door.</p></div>
-    <div class="note"><h4>From the developer</h4><p>You found the secret staff area. Thanks for playing LOCKED OUT! If you liked it, or found a bug, fill out the comment card at the bottom of the page. I read every one. — Hudson</p></div>
-  </aside>
+  <div class="board">
+    <span class="note">All passwords were changed at 11:52 PM. If you're locked out, that's kind of the point. Come see us 9 to 5.<small>- Kevin, IT</small></span>
+    <span class="note pink" style="--r:2deg">Employee of the Month: Aaron. Twelve months in a row. We are starting to think it's rigged.</span>
+    <span class="note blue" style="--r:-1deg">Parade day! Night staff leave by the side door. The front is full of floats.</span>
+    <span class="note green" style="--r:1.5deg">Whoever left a hat in the T-Rex: it's in lost and found. We have questions.<small>- front desk</small></span>
+    <span class="note" style="--r:-2deg">You found the secret staff area! Thanks for playing LOCKED OUT. If you liked it or found a bug, fill out the comment card. I read every one.<small>- Hudson</small></span>
+  </div>
 </div>
 `;
 
