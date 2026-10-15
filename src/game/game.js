@@ -29,7 +29,7 @@ export { TOTAL_DONUTS };
 function defaultSave() {
   return {
     chapter: null, reached: [], solved: {}, donuts: [], fragments: [], flags: {},
-    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal', cast: 'classic' },
+    settings: { master: 0.8, music: 0.6, sfx: 0.9, voice: 'tts', subtitles: 'medium', sensitivity: 1, invertY: false, fov: 75, quality: 'high', marker: true, shake: true, brightness: 1.15, talkSpeed: 'normal', cast: 'classic', recorded: false },
   };
 }
 

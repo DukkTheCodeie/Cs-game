@@ -4,6 +4,13 @@ Every version here has a matching [GitHub release](https://github.com/Hudsoonvid
 game shows its version in the corner of the menu. To make a new release: bump `version` in `package.json`,
 add a section for it below, run `npm run build`, and merge to `main`. The release is created automatically.
 
+## v0.7.2 — 2026-10-14
+
+- **The recorded voice lines are off by default.** Turn them on in *Settings → Recorded voices*; until
+  then everyone talks in the voice picked under *Character voices*.
+- The game goes online with Cloudflare Workers: `npm run site` builds the site into `public/` and
+  `wrangler.jsonc` serves it.
+
 ## v0.7.1 — 2026-10-14
 
 - Subtitle fixes for the dev's recorded lines: "Khantrast", "dingle chud" and "bradar" are now spelled the

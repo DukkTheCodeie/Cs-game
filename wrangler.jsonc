@@ -1,0 +1,10 @@
+// Cloudflare Workers: the game is a static site, so the Worker only serves the files in public/
+// (npm run site builds the game and puts the site together there).
+{
+  "name": "cs-game",
+  "compatibility_date": "2026-10-01",
+  "build": { "command": "npm run site" },
+  "assets": { "directory": "./public" },
+  // Pull requests get a preview with `wrangler preview`, which needs this block (it can stay empty).
+  "previews": {}
+}
