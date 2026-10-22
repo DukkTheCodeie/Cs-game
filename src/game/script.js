@@ -9,9 +9,9 @@ import { CONFIG } from '../config.js';
 export const SPEAKERS = {
   guard: { name: () => CONFIG.guardName, color: 'gold' },
   dev: { name: () => CONFIG.devName, color: 'pink' },
-  aaron: { name: () => 'AARON', color: 'sky' },
-  mummy: { name: () => 'THE MUMMY', color: 'sand' },
-  museos: { name: () => 'MUSE-OS', color: 'mint' },
+  aaron: { name: () => 'Duke', color: 'sky' },
+  mummy: { name: () => 'THE AMAZING SPIDERMAN', color: 'sand' },
+  museos: { name: () => 'CRAZY-COMPUTER', color: 'mint' },
 };
 
 // The faces you can act out. `act` is the stage direction shown in the clips README.
@@ -33,8 +33,8 @@ export const moodOf = (m) => (EMOTIONS[m] ? m : MOOD_ALIASES[m] || 'normal');
 
 export const LINES = {
   // ---------------- Prologue: the security office
-  guard01: { who: 'guard', mood: 'hungry', text: "Number THREE? The T-Rex is number three? Who made this list, a stegosaurus?" },
-  aaron01: { who: 'aaron', mood: 'normal', text: "Yo, it's Aaron. IT is changing all the computer passwords tonight, so don't let your session time out. And don't eat all the donuts again, man." },
+  guard01: { who: 'guard', mood: 'hungry', text: "Ummmmmmmmmmmmmmmmmm Duke was here?" },
+  aaron01: { who: 'aaron', mood: 'normal', text: "Idrk What to say" },
   guard02: { who: 'guard', mood: 'cool', text: "Yeah, yeah. It's one night. How bad can it be." },
   museos01: { who: 'museos', mood: 'normal', text: 'SESSION EXPIRED.' },
   guard03: { who: 'guard', mood: 'annoyed', text: "Are you kidding me. I looked away for like one second." },
@@ -46,23 +46,23 @@ export const LINES = {
   guard07: { who: 'guard', mood: 'cool', text: "Flashlight. Donuts. Backup donut. Okay, let's go." },
 
   // ---------------- Chapter 1: Dinosaur Hall
-  guard08: { who: 'guard', mood: 'happy', text: "Sup, big guy. Don't eat me." },
+  guard08: { who: 'guard', mood: 'happy', text: "Wow very bix rexxy please dont eat me" },
   museos04: { who: 'museos', mood: 'normal', text: 'Fragment one: REX. Next puzzle: the Egyptian Wing.' },
   guard09: { who: 'guard', mood: 'cool', text: "Egyptian Wing. Easy. I could do this in my sleep." },
   guard10: { who: 'guard', mood: 'confused', text: '...What was that?' },
-  guard11: { who: 'guard', mood: 'shocked', text: "Wait. Where's the T-Rex?" },
-  guard12: { who: 'guard', mood: 'scared', text: "Oh no. Oh no no no. This is literally Night at the Museum." },
-  guard13: { who: 'guard', mood: 'scared', text: "Okay. It's fine. Somebody probably just... borrowed it. I'm gonna go to Egypt now." },
+  guard11: { who: 'guard', mood: 'shocked', text: "Ummmmmm Ohhhhh crapppp" },
+  guard12: { who: 'guard', mood: 'scared', text: "This is like a very popular movie." },
+  guard13: { who: 'guard', mood: 'scared', text: "Okay. It's fine. Somebody probably just... Crap. I'm gonna go to Egypt now." },
 
   // ---------------- Chapter 2: the Egyptian Wing
-  guard35: { who: 'guard', mood: 'scared', text: "I hate this room. Who puts a dead guy in a museum?" },
+  guard35: { who: 'guard', mood: 'scared', text: "Goofy ahh Room" },
   museos13: { who: 'museos', mood: 'normal', text: "Puzzle number two: the Pharaoh's Lock. Its secret is on four pillars, in Egyptian numbers. The Pharaoh wants them smallest first." },
   guard47: { who: 'guard', mood: 'confused', text: "Upside-down U's and little sticks... oh, it's counting. The U's are tens. Okay, the Egyptians were smart." },
-  guard42: { who: 'guard', mood: 'scared', text: "That footprint is bigger than my car. The T-Rex came this way." },
+  guard42: { who: 'guard', mood: 'scared', text: "That footprint is bigger than my car. The Dink DA Dink came this way." },
   guard36: { who: 'guard', mood: 'happy', text: "All four pillars. I'm basically an archaeologist now." },
   museos14: { who: 'museos', mood: 'normal', text: 'Fragment two: MUMMY. Next puzzle: the Roman Empire hall.' },
   guard37: { who: 'guard', mood: 'scared', text: "Why is the coffin making noises. Coffins are not supposed to make noises." },
-  guard38: { who: 'guard', mood: 'scared', text: "AAAH! MUMMY! Get back in your box! I'll call Aaron!" },
+  guard38: { who: 'guard', mood: 'scared', text: "YUGANEYGWOYXEG&*EOTW&*ITN*&RT*N&#@!" },
   mummy01: { who: 'mummy', mood: 'hungry', text: 'Mmmph... mmh mmph? *(Is that... a DONUT?)*' },
   guard39: { who: 'guard', mood: 'confused', text: "You want my DONUT? Dude, you've been dead for three thousand years." },
   mummy02: { who: 'mummy', mood: 'sad', text: 'Mmmph. *(Please.)*' },
@@ -72,16 +72,16 @@ export const LINES = {
   guard14: { who: 'guard', mood: 'scared', text: 'Nope. Nope nope nope nope.' },
 
   // ---------------- Chapter 3: Roman Hall
-  guard15: { who: 'guard', mood: 'normal', text: "Romans. Okay. The Romans didn't have dinosaurs. I think. I'm safe in here." },
-  museos05: { who: 'museos', mood: 'normal', text: 'Fragment three: 1974. The remaining puzzles lie... beyond the walls.' },
-  guard16: { who: 'guard', mood: 'confused', text: 'Beyond the walls? What does that even mea—' },
-  guard17: { who: 'guard', mood: 'shocked', text: 'OH MY GOSH.' },
+  guard15: { who: 'guard', mood: 'normal', text: "All Roads Lead To Rome." },
+  museos05: { who: 'museos', mood: 'normal', text: 'All Roads Lead To Rome.' },
+  guard16: { who: 'guard', mood: 'confused', text: 'All Roads Lead To Rome.' },
+  guard17: { who: 'guard', mood: 'shocked', text: 'All Roads Lead To Rome...' },
 
   // ---------------- Chapter 4: the chase
   guard18: { who: 'guard', mood: 'scared', text: 'AAAAAAAAAAH!' },
-  guard19: { who: 'guard', mood: 'scared', text: "Why is this hallway so LONG?! Who designed this museum?!" },
+  guard19: { who: 'guard', mood: 'scared', text: "WHO THE HELL DESIGNED THIS HALLWAY?!" },
   guard20: { who: 'guard', mood: 'happy', text: "A hole in the wall! Shaped exactly like me! I'm not gonna question it!" },
-  guard21: { who: 'guard', mood: 'cool', text: "HA! You can't fit! Skill issue!" },
+  guard21: { who: 'guard', mood: 'cool', text: "HA! You can't fit! Skill issue HAHHAHAHA!" },
 
   // ---------------- Chapter 5: the archives maze
   museos06: { who: 'museos', mood: 'normal', text: "You have entered the archives. The last password fragments are behind these gates. Also, your sugar level is low. You ate a dozen donuts before midnight. That's on you." },
